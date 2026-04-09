@@ -36,6 +36,12 @@ yarn-error.log*
 # data files
 *.csv
 
+# scripts
+/scripts/
+
+# firebase
+firebase-debug.log
+
 # vercel
 .vercel
 

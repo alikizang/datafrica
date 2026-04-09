@@ -12,7 +12,17 @@
 - [navbar.tsx](file://src/components/layout/navbar.tsx)
 - [button.tsx](file://src/components/ui/button.tsx)
 - [sonner.tsx](file://src/components/ui/sonner.tsx)
+- [card.tsx](file://src/components/ui/card.tsx)
+- [dialog.tsx](file://src/components/ui/dialog.tsx)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated design token system to reflect Brightdata-style dark theme implementation
+- Added comprehensive glass-morphism effects and blue/purple accent color scheme
+- Enhanced global styling system with advanced visual effects and gradients
+- Updated theme provider integration and dark mode enforcement
+- Expanded component styling patterns with new visual effects
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -20,92 +30,98 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
+6. [Design Token System](#design-token-system)
+7. [Visual Effects and Styling](#visual-effects-and-styling)
+8. [Component Styling Patterns](#component-styling-patterns)
+9. [Dependency Analysis](#dependency-analysis)
+10. [Performance Considerations](#performance-considerations)
+11. [Troubleshooting Guide](#troubleshooting-guide)
+12. [Conclusion](#conclusion)
 
 ## Introduction
-This document explains Datafrica’s theme system and design token management. It covers how themes are provided and switched automatically via system preferences and manually by the user, how CSS custom properties and Tailwind CSS are configured to maintain consistent design tokens across light and dark modes, and how theme-aware components are styled. It also provides practical guidance for extending the system with new themes, customizing design tokens, ensuring cross-browser compatibility, and optimizing performance during theme switching.
+This document explains Datafrica's comprehensive theme system and design token management, featuring a Brightdata-inspired dark theme implementation with glass-morphism effects, blue and purple accent colors, and a complete overhaul of the global styling system. The system provides automatic system preference detection via next-themes with manual theme switching capabilities, CSS custom properties for consistent design tokens across light and dark modes, and theme-aware component styling patterns.
 
 ## Project Structure
-The theme system spans a small set of focused files:
-- Theme provider and toggle components
-- Global CSS with design tokens and mode-specific overrides
-- Application layout wiring the provider
-- Tailwind and PostCSS configuration
-- UI components consuming design tokens
+The theme system encompasses a sophisticated set of components and styling configurations:
+- Theme provider and toggle components with enhanced dark mode enforcement
+- Comprehensive global CSS with Brightdata-style design tokens and visual effects
+- Application layout with forced dark mode implementation
+- Advanced Tailwind CSS configuration with custom variants and utilities
+- UI components with glass-morphism and gradient styling
 
 ```mermaid
 graph TB
 subgraph "App Shell"
-L["layout.tsx"]
+L["layout.tsx<br/>Force Dark Mode"]
 end
 subgraph "Theme Layer"
-TP["theme-provider.tsx"]
-TT["theme-toggle.tsx"]
+TP["theme-provider.tsx<br/>next-themes Provider"]
+TT["theme-toggle.tsx<br/>Manual Switch"]
 end
-subgraph "Styling"
-GCSS["globals.css"]
-BTN["button.tsx"]
-SNS["sonner.tsx"]
+subgraph "Styling System"
+GCSS["globals.css<br/>Brightdata Theme<br/>Glass Effects"]
+BTN["button.tsx<br/>Token-based Styling"]
+CARD["card.tsx<br/>Glass Card Effects"]
+DLG["dialog.tsx<br/>Backdrop Effects"]
+SNS["sonner.tsx<br/>Toast Theming"]
 end
-subgraph "Tooling"
-CJSON["components.json"]
-PCFG["postcss.config.mjs"]
-PKG["package.json"]
+subgraph "Advanced Features"
+GRAD[".gradient-text<br/>.gradient-border<br/>.hero-gradient"]
+GLASS[".glass-card<br/>.stat-glow"]
+PILL[".btn-pill<br/>.no-select"]
 end
 L --> TP
 TP --> TT
 L --> GCSS
 BTN --> GCSS
+CARD --> GCSS
+DLG --> GCSS
 SNS --> GCSS
-CJSON --> GCSS
-PCFG --> GCSS
-PKG --> TP
+GCSS --> GRAD
+GCSS --> GLASS
+GCSS --> PILL
 ```
 
 **Diagram sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
-- [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [sonner.tsx:1-50](file://src/components/ui/sonner.tsx#L1-L50)
-- [components.json:1-26](file://components.json#L1-L26)
-- [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
-- [package.json:1-51](file://package.json#L1-L51)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
+- [theme-provider.tsx:6-11](file://src/components/theme-provider.tsx#L6-L11)
+- [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
+- [globals.css:46-196](file://src/app/globals.css#L46-L196)
+- [button.tsx:10-35](file://src/components/ui/button.tsx#L10-L35)
+- [card.tsx:10-21](file://src/components/ui/card.tsx#L10-L21)
+- [dialog.tsx:14-27](file://src/components/ui/dialog.tsx#L14-L27)
+- [sonner.tsx:7-47](file://src/components/ui/sonner.tsx#L7-L47)
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-49](file://src/app/layout.tsx#L1-L49)
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [components.json:1-26](file://components.json#L1-L26)
-- [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
-- [package.json:1-51](file://package.json#L1-L51)
+- [globals.css:1-196](file://src/app/globals.css#L1-L196)
 
 ## Core Components
-- ThemeProvider: Wraps the app with next-themes to manage theme state and persistence. It sets the default theme to system and enables system preference detection.
-- ThemeToggle: Provides a user-controlled switch between light and dark modes, rendering an appropriate icon based on the current theme.
-- Design Tokens: Defined as CSS custom properties in :root and .dark, then exposed to Tailwind via @theme and consumed by components.
-- UI Components: Buttons and toasts consume design tokens directly via CSS variables and Tailwind utilities.
+The theme system consists of several key components working together to deliver a cohesive dark theme experience:
+
+- **ThemeProvider**: Wraps the application with next-themes to manage theme state and persistence, enforcing dark mode as the primary theme
+- **ThemeToggle**: Provides user-controlled theme switching with hydration safety and proper SSR handling
+- **Design Tokens**: Comprehensive CSS custom properties system with Brightdata-inspired color scheme and visual effects
+- **Visual Effects**: Advanced styling including glass-morphism, gradients, and blur effects
+- **UI Components**: Buttons, cards, dialogs, and toasts that consume design tokens and visual effects
 
 Key behaviors:
-- Automatic detection: defaultTheme="system" with enableSystem allows the provider to follow OS-level theme preference.
-- Manual override: ThemeToggle toggles between "light" and "dark".
-- Persistence: next-themes persists the selected theme in localStorage by default.
-- Consistency: Tailwind utilities and component styles rely on CSS variables so they adapt automatically to theme changes.
+- **Dark Mode Enforcement**: The layout forces dark mode with `.dark` class on HTML element
+- **Automatic Detection**: next-themes with `defaultTheme="system"` and `enableSystem` for OS preference
+- **Manual Override**: ThemeToggle toggles between themes with hydration guard
+- **Persistence**: next-themes persists selections in localStorage
+- **Visual Consistency**: All components use CSS variables and Tailwind utilities for automatic adaptation
 
 **Section sources**
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [sonner.tsx:1-50](file://src/components/ui/sonner.tsx#L1-L50)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
+- [globals.css:46-196](file://src/app/globals.css#L46-L196)
 
 ## Architecture Overview
-The theme system architecture centers on a provider that injects theme state into the React tree, a toggle component that updates that state, and a global stylesheet that defines design tokens and Tailwind configuration.
+The theme system architecture implements a force-dark approach with Brightdata-inspired styling, centered on a provider that injects theme state, a toggle component for manual control, and a comprehensive global stylesheet with advanced visual effects.
 
 ```mermaid
 sequenceDiagram
@@ -116,43 +132,51 @@ participant TT as "ThemeToggle"
 participant DOM as "DOM/CSS"
 U->>TT : Click toggle
 TT->>NT : setTheme(theme === "dark" ? "light" : "dark")
-NT-->>DOM : Apply class="light"/"dark" on <html>
-DOM-->>U : UI reflows with new colors/radius
+Note over NT : Forced dark mode<br/>always active
+NT-->>DOM : Apply class="dark" on <html>
+DOM-->>U : UI reflows with<br/>glass effects & gradients
 ```
 
 **Diagram sources**
-- [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+- [theme-provider.tsx:6-11](file://src/components/theme-provider.tsx#L6-L11)
+- [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
+- [globals.css:46-115](file://src/app/globals.css#L46-L115)
 
 ## Detailed Component Analysis
 
 ### ThemeProvider
-- Purpose: Provide theme context to the entire app.
-- Behavior: Uses next-themes with attribute="class", defaultTheme="system", and enableSystem to detect OS preference.
-- Integration: Wrapped around the app shell in layout.tsx.
+The ThemeProvider component serves as the foundation for the theme system, wrapping the entire application with next-themes context.
+
+- **Purpose**: Provide theme context to the entire app with forced dark mode enforcement
+- **Behavior**: Uses next-themes with `attribute="class"`, `defaultTheme="system"`, and `enableSystem` for OS preference detection
+- **Integration**: Wrapped around the app shell in layout.tsx with forced dark class
+- **Enhanced**: Works seamlessly with the Brightdata-style dark theme implementation
 
 ```mermaid
 flowchart TD
-Start(["Mount ThemeProvider"]) --> Detect["Read system preference"]
-Detect --> SetClass["Set <html> class to 'light' or 'dark'"]
+Start(["Mount ThemeProvider"]) --> ForceDark["Apply .dark class<br/>to HTML element"]
+ForceDark --> Detect["Read system preference"]
+Detect --> SetClass["Set <html> class to 'dark'"]
 SetClass --> Persist["Persist selection in storage"]
-Persist --> Ready(["App ready with theme"])
+Persist --> Ready(["App ready with<br/>force-dark theme"])
 ```
 
 **Diagram sources**
-- [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [theme-provider.tsx:6-11](file://src/components/theme-provider.tsx#L6-L11)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
 
 **Section sources**
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-49](file://src/app/layout.tsx#L1-L49)
 
 ### ThemeToggle
-- Purpose: Allow user to switch themes manually.
-- Behavior: Uses next-themes hook to read current theme and toggle between "light" and "dark". Includes hydration guard to avoid SSR mismatches.
-- Placement: Integrated into the navbar for desktop and mobile views.
+The ThemeToggle component provides user-controlled theme switching with proper hydration safety and Brightdata-style styling.
+
+- **Purpose**: Allow user to switch themes manually with visual feedback
+- **Behavior**: Uses next-themes hook to read current theme and toggle between "light" and "dark" with hydration guard
+- **Placement**: Integrated into the navbar for both desktop and mobile views
+- **Styling**: Uses gradient accents and maintains visual consistency with the dark theme
 
 ```mermaid
 sequenceDiagram
@@ -160,164 +184,214 @@ participant U as "User"
 participant TT as "ThemeToggle"
 participant NT as "next-themes"
 participant DOM as "DOM"
-U->>TT : Click icon
+U->>TT : Click themed icon
 TT->>NT : setTheme(current === "dark" ? "light" : "dark")
 NT-->>DOM : Update <html> class
-DOM-->>U : Visual theme change
+DOM-->>U : Visual theme change with<br/>glass effects & gradients
 ```
 
 **Diagram sources**
+- [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
+- [navbar.tsx:21-22](file://src/components/layout/navbar.tsx#L21-L22)
+
+**Section sources**
 - [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [navbar.tsx:1-167](file://src/components/layout/navbar.tsx#L1-L167)
+- [navbar.tsx:1-198](file://src/components/layout/navbar.tsx#L1-L198)
+
+## Design Token System
+The design token system implements a comprehensive Brightdata-inspired dark theme with advanced visual effects and color schemes.
+
+### Color Palette and Scheme
+The system defines a complete color palette optimized for dark mode interfaces:
+
+- **Primary Colors**: Deep navy blue (#0a1628) background with bright blue (#3d7eff) accents
+- **Secondary Colors**: Rich indigo (#1a2a42) and purple (#6c5ce7) accents
+- **Text Colors**: Light gray (#e8ecf4) for primary text with muted blues (#7a8ba3) for secondary
+- **Card Colors**: Slightly lighter navy (#111d32) for elevated surfaces
+- **Border Effects**: Subtle white overlays (rgba 255,255,255,0.08) for depth perception
+
+### Advanced Visual Effects
+The system incorporates several advanced visual effects for enhanced user experience:
+
+- **Glass Morphism**: Semi-transparent backgrounds with backdrop blur effects
+- **Gradient Accents**: Multi-color gradients for buttons, borders, and decorative elements
+- **Statistical Effects**: Glowing effects for important metrics and statistics
+- **Hero Backgrounds**: Radial gradients for hero sections and promotional areas
 
 **Section sources**
-- [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [navbar.tsx:1-167](file://src/components/layout/navbar.tsx#L1-L167)
+- [globals.css:46-115](file://src/app/globals.css#L46-L115)
+- [globals.css:128-182](file://src/app/globals.css#L128-L182)
 
-### Design Tokens and Tailwind Configuration
-- CSS Variables: :root defines base tokens; .dark overrides them for dark mode. Tokens include colors, radii, fonts, and chart colors.
-- Tailwind @theme: Exposes CSS variables as Tailwind tokens for utilities like bg-*, text-*, border-*, ring-*, and spacing/radius.
-- CSS Custom Properties: Components and utilities read from --color-* and --radius-* variables.
-- Tooling: components.json configures Tailwind CSS variables and CSS file location; postcss.config.mjs registers Tailwind plugin.
+## Visual Effects and Styling
+The global styling system implements advanced visual effects that create a premium dark theme experience.
 
-```mermaid
-flowchart TD
-Vars["CSS Variables (:root/.dark)"] --> ThemeBlock["@theme inline"]
-ThemeBlock --> TWUtils["Tailwind Utilities"]
-TWUtils --> Components["UI Components"]
-Components --> Render["Rendered UI"]
+### Glass-Morphism Implementation
+The glass effect creates semi-transparent UI elements with backdrop blur:
+
+```css
+.glass-card {
+  background: rgba(17, 29, 50, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
 ```
 
-**Diagram sources**
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [components.json:1-26](file://components.json#L1-L26)
-- [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
+### Gradient Effects
+Multiple gradient implementations enhance visual appeal:
+
+- **Gradient Borders**: Animated gradient borders on hover for interactive elements
+- **Gradient Text**: Text with gradient coloring for headings and emphasis
+- **Hero Gradients**: Radial gradients for hero sections and promotional areas
+- **Accent Gradients**: Blue-to-purple gradients for primary actions and highlights
+
+### Advanced Styling Classes
+The system provides utility classes for common visual patterns:
+
+- **Pill Buttons**: Rounded button styling for primary actions
+- **Blur Effects**: Text blur for protected content sections
+- **Stat Glow**: Subtle glow effects for important statistics
+- **Anti-Scrape Protection**: Text selection prevention for sensitive content
 
 **Section sources**
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [components.json:1-26](file://components.json#L1-L26)
-- [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
+- [globals.css:128-196](file://src/app/globals.css#L128-L196)
+- [navbar.tsx:21-22](file://src/components/layout/navbar.tsx#L21-L22)
 
-### Theme-Aware Component Styling Patterns
-- Buttons: Use variants that reference primary, secondary, muted, foreground, and ring tokens. These resolve to CSS variables and adapt to theme.
-- Toasts: Sonner reads the current theme and applies CSS variables for background, text, border, and radius to match the active palette.
+## Component Styling Patterns
+Components throughout the application follow consistent styling patterns that leverage the theme system and visual effects.
 
-```mermaid
-classDiagram
-class Button {
-+variant : "default|outline|secondary|ghost|link"
-+size : "default|sm|lg|icon"
-+styles derive from CSS variables
-}
-class SonnerToast {
-+reads theme from next-themes
-+applies CSS variables for colors/radius
-}
-Button --> "uses" CSSVars["CSS Variables"]
-SonnerToast --> "uses" CSSVars
-```
+### Button Styling
+Buttons utilize the design token system with gradient accents and proper contrast:
 
-**Diagram sources**
-- [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [sonner.tsx:1-50](file://src/components/ui/sonner.tsx#L1-L50)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+- **Primary Buttons**: Blue gradient background (#3d7eff) with white text
+- **Ghost Buttons**: Transparent styling with hover effects using accent colors
+- **Pill Shape**: Rounded button styling for modern appearance
+- **Consistent Spacing**: Proper padding and sizing based on theme tokens
 
-**Section sources**
-- [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [sonner.tsx:1-50](file://src/components/ui/sonner.tsx#L1-L50)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+### Card Components
+Cards implement glass-morphism effects with proper elevation and transparency:
 
-### Adding New Themes and Customizing Tokens
-- Add a new theme variant:
-  - Extend the ThemeProvider defaultTheme and enableSystem behavior to include the new variant if desired.
-  - Optionally introduce additional CSS custom properties in :root and .dark for the new scheme.
-- Customize design tokens:
-  - Modify values in :root and .dark within the global stylesheet to adjust colors, radii, and fonts.
-  - Re-run Tailwind to regenerate utilities if you introduce new tokens.
-- Maintain consistency:
-  - Keep all color tokens aligned to the same semantic roles (background, foreground, primary, secondary, muted, destructive, etc.).
-  - Prefer CSS variables for all component colors to ensure automatic adaptation.
+- **Glass Cards**: Semi-transparent backgrounds with backdrop blur
+- **Border Effects**: Subtle borders with gradient accents on hover
+- **Content Organization**: Proper spacing and typography hierarchy
+- **Responsive Design**: Adaptive sizing and layout for different screen sizes
 
-Practical steps:
-- Define new tokens in :root and .dark.
-- Reference them in @theme and Tailwind utilities.
-- Update components to use the new tokens or variants.
+### Dialog Components
+Dialogs incorporate backdrop effects and proper modal styling:
+
+- **Backdrop Effects**: Semi-transparent dark overlays with blur
+- **Glass Content**: Modal content with glass-morphism styling
+- **Border Details**: Subtle borders and proper elevation
+- **Animation Effects**: Smooth open/close animations
 
 **Section sources**
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [components.json:1-26](file://components.json#L1-L26)
+- [button.tsx:10-35](file://src/components/ui/button.tsx#L10-L35)
+- [card.tsx:10-21](file://src/components/ui/card.tsx#L10-L21)
+- [dialog.tsx:14-27](file://src/components/ui/dialog.tsx#L14-L27)
+- [sonner.tsx:31-43](file://src/components/ui/sonner.tsx#L31-L43)
 
 ## Dependency Analysis
-- next-themes: Provides theme state, persistence, and class application on <html>.
-- Tailwind CSS v4: Consumes CSS variables via @theme and generates utilities.
-- PostCSS: Registers Tailwind plugin for CSS processing.
-- shadcn/ui components: Consume design tokens via CSS variables and Tailwind utilities.
+The theme system relies on a carefully orchestrated set of dependencies that work together to deliver the dark theme experience.
+
+### Core Dependencies
+- **next-themes**: Provides theme state management, persistence, and class application
+- **Tailwind CSS v4**: Consumes CSS variables via @theme and generates utilities
+- **PostCSS**: Processes CSS with Tailwind plugin for advanced styling
+- **shadcn/ui Components**: Consume design tokens with enhanced visual effects
+
+### Enhanced Component Integration
+- **Layout Components**: Navbar and footer use glass effects and gradient accents
+- **UI Components**: Buttons, cards, and dialogs leverage theme tokens
+- **Toast System**: Sonner integrates with theme tokens for consistent notifications
+- **Custom Effects**: Utility classes extend beyond standard component styling
 
 ```mermaid
 graph LR
-P["package.json"] --> NT["next-themes"]
-P --> TW["tailwindcss"]
-PCFG["postcss.config.mjs"] --> TW
-CJSON["components.json"] --> TW
-TP["theme-provider.tsx"] --> NT
-GCSS["globals.css"] --> TW
-BTN["button.tsx"] --> GCSS
-SNS["sonner.tsx"] --> GCSS
+P["package.json<br/>Dependencies"] --> NT["next-themes<br/>Theme Management"]
+P --> TW["tailwindcss v4<br/>CSS Processing"]
+PCFG["postcss.config.mjs<br/>Plugin Configuration"] --> TW
+CJSON["components.json<br/>Component Config"] --> TW
+TP["theme-provider.tsx<br/>Provider Setup"] --> NT
+LAYOUT["layout.tsx<br/>Force Dark Mode"] --> TP
+GCSS["globals.css<br/>Theme Tokens & Effects"] --> TW
+BTN["button.tsx<br/>Glass & Gradient Styling"] --> GCSS
+CARD["card.tsx<br/>Glass Card Effects"] --> GCSS
+DLG["dialog.tsx<br/>Backdrop Effects"] --> GCSS
+SNS["sonner.tsx<br/>Toast Theming"] --> GCSS
 ```
 
 **Diagram sources**
-- [package.json:1-51](file://package.json#L1-L51)
+- [package.json:11-38](file://package.json#L11-L38)
 - [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
-- [components.json:1-26](file://components.json#L1-L26)
-- [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [sonner.tsx:1-50](file://src/components/ui/sonner.tsx#L1-L50)
+- [components.json:6-12](file://components.json#L6-L12)
+- [theme-provider.tsx:6-11](file://src/components/theme-provider.tsx#L6-L11)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
+- [globals.css:46-196](file://src/app/globals.css#L46-L196)
 
 **Section sources**
 - [package.json:1-51](file://package.json#L1-L51)
 - [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
 - [components.json:1-26](file://components.json#L1-L26)
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [sonner.tsx:1-50](file://src/components/ui/sonner.tsx#L1-L50)
+- [layout.tsx:1-49](file://src/app/layout.tsx#L1-L49)
+- [globals.css:1-196](file://src/app/globals.css#L1-L196)
 
 ## Performance Considerations
-- Hydration safety: ThemeToggle uses a mounted flag to prevent SSR mismatches, avoiding unnecessary client-side re-renders.
-- Minimal reflow: Theme switching updates only the <html> class and CSS variables, resulting in efficient DOM updates.
-- CSS variables: Using --color-* and --radius-* avoids costly recalculations and leverages GPU-friendly property changes.
-- Tailwind utilities: Utilities derived from CSS variables are generated at build time, minimizing runtime overhead.
+The theme system is optimized for performance while delivering advanced visual effects.
 
-Recommendations:
-- Keep design token changes scoped to CSS variables to minimize cascade impact.
-- Avoid frequent theme switches in tight loops or animations.
-- Test on lower-powered devices to confirm smoothness.
+### Hydration Safety
+- **ThemeToggle**: Uses mounted state to prevent SSR mismatches and unnecessary re-renders
+- **Layout Integration**: Forces dark mode at the HTML level to avoid hydration conflicts
+- **Component Optimization**: All components use CSS variables for efficient updates
+
+### Visual Effect Performance
+- **CSS Variables**: Using --color-* and --radius-* avoids costly recalculations
+- **GPU Acceleration**: Backdrop filters and transforms leverage hardware acceleration
+- **Efficient Transitions**: Smooth animations use transform properties for optimal performance
+- **Minimal Reflow**: Theme switching updates only CSS variables and class attributes
+
+### Memory and Rendering Optimization
+- **Scoped Effects**: Visual effects are applied selectively to relevant components
+- **Cache-Friendly**: Design tokens are processed at build time by Tailwind
+- **Reduced Complexity**: Glass effects use simple CSS properties rather than complex JavaScript
+- **Browser Compatibility**: Effects degrade gracefully on older browsers
 
 **Section sources**
-- [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+- [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
+- [globals.css:128-196](file://src/app/globals.css#L128-L196)
 
 ## Troubleshooting Guide
-Common issues and resolutions:
-- Theme does not switch on initial load:
-  - Verify ThemeProvider wraps the app and that defaultTheme="system" is set.
-  - Confirm the <html> element receives the "light" or "dark" class.
-- Icons or layout flicker during hydration:
-  - Ensure ThemeToggle uses a hydration guard (mounted flag) before rendering interactive elements.
-- Tokens not applied in components:
-  - Check that components reference CSS variables and Tailwind utilities built from @theme.
-  - Verify components.json points to the correct CSS file and that Tailwind is processing it.
-- Browser compatibility:
-  - CSS custom properties are broadly supported; ensure legacy browsers fall back gracefully.
-  - Tailwind v4 requires modern PostCSS; confirm postcss.config.mjs is present and correct.
+Common issues and resolutions for the enhanced theme system:
+
+### Theme and Visual Effects Issues
+- **Force Dark Mode Conflicts**: Verify layout applies `.dark` class to HTML element
+- **Glass Effects Not Working**: Check browser support for backdrop-filter and ensure proper CSS syntax
+- **Gradient Borders Missing**: Ensure gradient definitions are properly formatted and accessible
+- **Visual Effects Flicker**: Confirm CSS variables are defined before component rendering
+
+### Component Styling Problems
+- **Buttons Not Using Theme Colors**: Check that components reference CSS variables instead of hardcoded values
+- **Cards Missing Glass Effect**: Verify `.glass-card` class is applied and CSS variables are accessible
+- **Dialog Backdrops Incorrect**: Ensure backdrop effects use proper z-index and opacity values
+- **Toasts Not Theming Correctly**: Confirm Sonner integrates with theme tokens via CSS variables
+
+### Performance and Compatibility
+- **Slow Theme Switching**: Verify CSS variables are used instead of JavaScript manipulation
+- **Poor Mobile Performance**: Check that visual effects don't exceed device capabilities
+- **Legacy Browser Support**: Confirm graceful degradation for unsupported CSS features
+- **Build Errors**: Ensure Tailwind CSS v4 and PostCSS configuration are properly set up
 
 **Section sources**
-- [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [components.json:1-26](file://components.json#L1-L26)
-- [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
+- [theme-provider.tsx:6-11](file://src/components/theme-provider.tsx#L6-L11)
+- [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
+- [layout.tsx:32-36](file://src/app/layout.tsx#L32-L36)
+- [globals.css:46-196](file://src/app/globals.css#L46-L196)
 
 ## Conclusion
-Datafrica’s theme system combines automatic system preference detection with manual user control, backed by a robust set of design tokens defined as CSS custom properties and exposed to Tailwind via @theme. Components consistently consume these tokens, ensuring a cohesive look and feel across light and dark modes. The system is designed for performance, maintainability, and extensibility, enabling straightforward additions of new themes and refinements to the design language.
+Datafrica's theme system represents a comprehensive implementation of a Brightdata-inspired dark theme with advanced visual effects and glass-morphism styling. The system combines automatic system preference detection with manual user control, backed by a robust design token system that defines a complete color palette and visual effects library. The integration of CSS custom properties, Tailwind CSS v4, and advanced visual effects creates a cohesive and performant dark theme experience that enhances user engagement while maintaining excellent performance characteristics.
+
+The system's strength lies in its comprehensive approach to theme management, from the foundational provider setup to the detailed visual effects implementation. The force-dark approach ensures consistent branding and user experience, while the extensive use of CSS variables and Tailwind utilities provides flexibility for future enhancements and customization.

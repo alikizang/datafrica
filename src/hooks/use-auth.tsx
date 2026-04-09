@@ -49,37 +49,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      if (fbUser) {
-        setFirebaseUser(fbUser);
-        const userDoc = await getDoc(doc(db, "users", fbUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data() as User;
-          // Check if user should be admin but isn't yet
-          if (userData.role !== "admin" && fbUser.email) {
-            const isAdmin = await checkAdminEmail(fbUser.email);
-            if (isAdmin) {
-              userData.role = "admin";
-              await setDoc(doc(db, "users", fbUser.uid), { ...userData, role: "admin" }, { merge: true });
+      try {
+        if (fbUser) {
+          setFirebaseUser(fbUser);
+          try {
+            const userDoc = await getDoc(doc(db, "users", fbUser.uid));
+            if (userDoc.exists()) {
+              const userData = userDoc.data() as User;
+              // Check if user should be admin but isn't yet
+              if (userData.role !== "admin" && fbUser.email) {
+                const isAdmin = await checkAdminEmail(fbUser.email);
+                if (isAdmin) {
+                  userData.role = "admin";
+                  await setDoc(doc(db, "users", fbUser.uid), { role: "admin" }, { merge: true });
+                }
+              }
+              setUser(userData);
+            } else {
+              // First time sign-in: create user document
+              const isAdmin = fbUser.email ? await checkAdminEmail(fbUser.email) : false;
+              const newUser: User = {
+                uid: fbUser.uid,
+                email: fbUser.email || "",
+                displayName: fbUser.displayName || "",
+                role: isAdmin ? "admin" : "user",
+                createdAt: new Date().toISOString(),
+              };
+              await setDoc(doc(db, "users", fbUser.uid), newUser);
+              setUser(newUser);
             }
+          } catch (firestoreError) {
+            console.error("Firestore error during auth:", firestoreError);
+            // Fallback: set basic user from Firebase Auth data
+            const fallbackUser: User = {
+              uid: fbUser.uid,
+              email: fbUser.email || "",
+              displayName: fbUser.displayName || "",
+              role: "user",
+              createdAt: new Date().toISOString(),
+            };
+            setUser(fallbackUser);
           }
-          setUser(userData);
         } else {
-          const isAdmin = fbUser.email ? await checkAdminEmail(fbUser.email) : false;
-          const newUser: User = {
-            uid: fbUser.uid,
-            email: fbUser.email || "",
-            displayName: fbUser.displayName || "",
-            role: isAdmin ? "admin" : "user",
-            createdAt: new Date().toISOString(),
-          };
-          await setDoc(doc(db, "users", fbUser.uid), newUser);
-          setUser(newUser);
+          setFirebaseUser(null);
+          setUser(null);
         }
-      } else {
-        setFirebaseUser(null);
-        setUser(null);
+      } catch (err) {
+        console.error("Auth state change error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();

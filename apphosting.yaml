@@ -52,3 +52,18 @@ env:
     value: datafrica-jwt-secret-change-in-production
     availability:
       - RUNTIME
+
+  # KKiaPay
+  - variable: NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY
+    value: 361f3b30931845fc468d27b188fa94d82ac258c8
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: KKIAPAY_PRIVATE_KEY
+    value: pk_3fe2d17932564c053c8e2ad2f2cde02fb959f0196180505dda99801880bea36d
+    availability:
+      - RUNTIME
+  - variable: KKIAPAY_SECRET
+    value: sk_9787b7f5713dcafb3394676987b0975da4e2661567ce3179f362b5419f894cda
+    availability:
+      - RUNTIME

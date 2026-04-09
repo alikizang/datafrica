@@ -30,6 +30,10 @@ export default function DashboardPage() {
     if (!authLoading && !user) {
       router.push("/login");
     }
+    // Redirect admin users to admin dashboard
+    if (!authLoading && user && user.role === "admin") {
+      router.push("/admin");
+    }
   }, [user, authLoading, router]);
 
   useEffect(() => {
