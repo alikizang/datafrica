@@ -100,8 +100,8 @@ export default function DashboardPage() {
   if (authLoading) {
     return (
       <div className="container mx-auto px-4 lg:px-8 py-10 space-y-6">
-        <Skeleton className="h-8 w-48 bg-white/5" />
-        <Skeleton className="h-64 w-full bg-white/5" />
+        <Skeleton className="h-8 w-48 bg-muted" />
+        <Skeleton className="h-64 w-full bg-muted" />
       </div>
     );
   }
@@ -112,9 +112,9 @@ export default function DashboardPage() {
     <div className="container mx-auto px-4 lg:px-8 py-10">
       {/* Header */}
       <div className="mb-10">
-        <p className="text-sm font-medium text-[#3d7eff] uppercase tracking-wider mb-2">Account</p>
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-[#7a8ba3]">
+        <p className="text-sm font-medium text-primary uppercase tracking-wider mb-2">Account</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+        <p className="text-muted-foreground">
           Welcome back, {user.displayName || user.email}
         </p>
       </div>
@@ -122,12 +122,12 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         <div className="glass-card rounded-xl p-5 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-xl bg-[#3d7eff]/10 flex items-center justify-center">
-            <ShoppingBag className="h-5 w-5 text-[#3d7eff]" />
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <ShoppingBag className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">{purchases.length}</p>
-            <p className="text-sm text-[#7a8ba3]">Purchases</p>
+            <p className="text-2xl font-bold text-foreground">{purchases.length}</p>
+            <p className="text-sm text-muted-foreground">Purchases</p>
           </div>
         </div>
         <div className="glass-card rounded-xl p-5 flex items-center gap-4">
@@ -135,8 +135,8 @@ export default function DashboardPage() {
             <Download className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">{purchases.length}</p>
-            <p className="text-sm text-[#7a8ba3]">Datasets Available</p>
+            <p className="text-2xl font-bold text-foreground">{purchases.length}</p>
+            <p className="text-sm text-muted-foreground">Datasets Available</p>
           </div>
         </div>
         <div className="glass-card rounded-xl p-5 flex items-center gap-4">
@@ -144,18 +144,18 @@ export default function DashboardPage() {
             <User className="h-5 w-5 text-purple-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-white truncate">{user.email}</p>
-            <p className="text-sm text-[#7a8ba3] capitalize">{user.role}</p>
+            <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
+            <p className="text-sm text-muted-foreground capitalize">{user.role}</p>
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="purchases">
-        <TabsList className="bg-[#111d32] border border-white/[0.06]">
-          <TabsTrigger value="purchases" className="data-[state=active]:bg-[#3d7eff] data-[state=active]:text-white text-[#7a8ba3]">
+        <TabsList className="bg-card border border-border">
+          <TabsTrigger value="purchases" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
             My Purchases
           </TabsTrigger>
-          <TabsTrigger value="profile" className="data-[state=active]:bg-[#3d7eff] data-[state=active]:text-white text-[#7a8ba3]">
+          <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
             Profile
           </TabsTrigger>
         </TabsList>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
           {loading ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full bg-white/5" />
+                <Skeleton key={i} className="h-24 w-full bg-muted" />
               ))}
             </div>
           ) : purchases.length > 0 ? (
@@ -173,13 +173,13 @@ export default function DashboardPage() {
                 <div key={purchase.id} className="glass-card rounded-xl p-5">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
-                      <h3 className="font-semibold text-white">{purchase.datasetTitle}</h3>
-                      <div className="flex items-center gap-2 text-sm text-[#7a8ba3]">
+                      <h3 className="font-semibold text-foreground">{purchase.datasetTitle}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Badge
                           className={
                             purchase.status === "completed"
                               ? "bg-emerald-500/10 text-emerald-400 border-0 text-xs"
-                              : "bg-[#1a2a42] text-[#7a8ba3] border-white/[0.08] text-xs"
+                              : "bg-muted text-muted-foreground border-border text-xs"
                           }
                         >
                           {purchase.status}
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                         <button
                           key={format}
                           onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format as "csv" | "excel" | "json")}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-[#c8d6e5] hover:bg-white/5 transition-colors flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1"
                         >
                           {format === "csv" && <FileText className="h-3 w-3" />}
                           {format === "excel" && <FileSpreadsheet className="h-3 w-3" />}
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                       ))}
                       <Link
                         href={`/datasets/${purchase.datasetId}`}
-                        className="p-1.5 rounded-lg text-[#7a8ba3] hover:text-[#3d7eff] hover:bg-white/5 transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
@@ -214,14 +214,14 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-20 space-y-4">
-              <ShoppingBag className="h-12 w-12 mx-auto text-[#1a2a42]" />
-              <h3 className="text-lg font-semibold text-white">No purchases yet</h3>
-              <p className="text-[#7a8ba3]">
+              <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/30" />
+              <h3 className="text-lg font-semibold text-foreground">No purchases yet</h3>
+              <p className="text-muted-foreground">
                 Browse our marketplace to find datasets you need
               </p>
               <Link
                 href="/datasets"
-                className="inline-flex px-6 py-2.5 bg-[#3d7eff] text-white rounded-full hover:bg-[#2d6eef] transition-colors font-medium"
+                className="inline-flex px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium"
               >
                 Browse Datasets
               </Link>
@@ -231,28 +231,28 @@ export default function DashboardPage() {
 
         <TabsContent value="profile" className="mt-6">
           <div className="glass-card rounded-xl p-6 space-y-4">
-            <h3 className="font-semibold text-white text-lg">Profile Information</h3>
+            <h3 className="font-semibold text-foreground text-lg">Profile Information</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-[#7a8ba3]">Name</p>
-                <p className="font-medium text-white">{user.displayName || "Not set"}</p>
+                <p className="text-sm text-muted-foreground">Name</p>
+                <p className="font-medium text-foreground">{user.displayName || "Not set"}</p>
               </div>
-              <Separator className="bg-white/[0.06]" />
+              <Separator className="bg-border" />
               <div>
-                <p className="text-sm text-[#7a8ba3]">Email</p>
-                <p className="font-medium text-white">{user.email}</p>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium text-foreground">{user.email}</p>
               </div>
-              <Separator className="bg-white/[0.06]" />
+              <Separator className="bg-border" />
               <div>
-                <p className="text-sm text-[#7a8ba3]">Role</p>
-                <Badge className="bg-[#3d7eff]/10 text-[#3d7eff] border-0 capitalize">
+                <p className="text-sm text-muted-foreground">Role</p>
+                <Badge className="bg-primary/10 text-primary border-0 capitalize">
                   {user.role}
                 </Badge>
               </div>
-              <Separator className="bg-white/[0.06]" />
+              <Separator className="bg-border" />
               <div>
-                <p className="text-sm text-[#7a8ba3]">Member since</p>
-                <p className="font-medium text-white">
+                <p className="text-sm text-muted-foreground">Member since</p>
+                <p className="font-medium text-foreground">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </p>
               </div>

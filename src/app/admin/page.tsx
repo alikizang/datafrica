@@ -73,10 +73,10 @@ export default function AdminPage() {
   if (authLoading || (!user || user.role !== "admin")) {
     return (
       <div className="container mx-auto px-4 lg:px-8 py-10 space-y-6">
-        <Skeleton className="h-8 w-48 bg-white/5" />
+        <Skeleton className="h-8 w-48 bg-muted" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 bg-white/5" />
+            <Skeleton key={i} className="h-28 bg-muted" />
           ))}
         </div>
       </div>
@@ -88,13 +88,13 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-sm font-medium text-[#3d7eff] uppercase tracking-wider mb-2">Administration</p>
-          <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
-          <p className="text-[#7a8ba3]">Manage datasets, users, and sales</p>
+          <p className="text-sm font-medium text-primary uppercase tracking-wider mb-2">Administration</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
+          <p className="text-muted-foreground">Manage datasets, users, and sales</p>
         </div>
         <Link
           href="/admin/upload"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#3d7eff] text-white rounded-full font-medium hover:bg-[#2d6eef] transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors"
         >
           <Upload className="h-4 w-4" />
           Upload Dataset
@@ -104,12 +104,12 @@ export default function AdminPage() {
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         <Link href="/admin/upload" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
-          <div className="h-10 w-10 rounded-xl bg-[#3d7eff]/10 flex items-center justify-center">
-            <Upload className="h-5 w-5 text-[#3d7eff]" />
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Upload className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="font-semibold text-white">Upload Dataset</p>
-            <p className="text-sm text-[#7a8ba3]">Add new data to the marketplace</p>
+            <p className="font-semibold text-foreground">Upload Dataset</p>
+            <p className="text-sm text-muted-foreground">Add new data to the marketplace</p>
           </div>
         </Link>
         <Link href="/admin/users" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
@@ -117,8 +117,8 @@ export default function AdminPage() {
             <Users className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
-            <p className="font-semibold text-white">Manage Users</p>
-            <p className="text-sm text-[#7a8ba3]">View and manage user accounts</p>
+            <p className="font-semibold text-foreground">Manage Users</p>
+            <p className="text-sm text-muted-foreground">View and manage user accounts</p>
           </div>
         </Link>
         <Link href="/admin/analytics" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
@@ -126,8 +126,8 @@ export default function AdminPage() {
             <BarChart3 className="h-5 w-5 text-purple-400" />
           </div>
           <div>
-            <p className="font-semibold text-white">Analytics</p>
-            <p className="text-sm text-[#7a8ba3]">View detailed sales analytics</p>
+            <p className="font-semibold text-foreground">Analytics</p>
+            <p className="text-sm text-muted-foreground">View detailed sales analytics</p>
           </div>
         </Link>
       </div>
@@ -136,7 +136,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 bg-white/5" />
+            <Skeleton key={i} className="h-28 bg-muted" />
           ))
         ) : (
           <>
@@ -152,8 +152,8 @@ export default function AdminPage() {
                     <stat.icon className={`h-5 w-5 text-${stat.color}-${stat.color === "blue" ? "400" : stat.color === "emerald" ? "400" : stat.color === "amber" ? "400" : "400"}`} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">{stat.value}</p>
-                    <p className="text-sm text-[#7a8ba3]">{stat.label}</p>
+                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
                   </div>
                 </div>
               </div>
@@ -165,16 +165,16 @@ export default function AdminPage() {
       {/* Recent Sales */}
       {analytics && analytics.recentSales.length > 0 && (
         <div className="glass-card rounded-xl p-6">
-          <h3 className="font-semibold text-lg text-white mb-4">Recent Sales</h3>
+          <h3 className="font-semibold text-lg text-foreground mb-4">Recent Sales</h3>
           <div className="space-y-3">
             {analytics.recentSales.slice(0, 10).map((sale) => (
               <div
                 key={sale.id}
-                className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0"
+                className="flex items-center justify-between py-3 border-b border-border last:border-0"
               >
                 <div>
-                  <p className="font-medium text-sm text-white">{sale.datasetTitle}</p>
-                  <p className="text-xs text-[#525f73]">
+                  <p className="font-medium text-sm text-foreground">{sale.datasetTitle}</p>
+                  <p className="text-xs text-dim">
                     {new Date(sale.createdAt).toLocaleDateString()}
                   </p>
                 </div>

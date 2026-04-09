@@ -11,6 +11,8 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
   updateProfile,
   type User as FirebaseUser,
@@ -19,12 +21,15 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase
 import { auth, db } from "@/lib/firebase";
 import type { User } from "@/types";
 
+const googleProvider = new GoogleAuthProvider();
+
 interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
   loading: boolean;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }
@@ -36,7 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if email is in adminEmails collection
   const checkAdminEmail = async (email: string): Promise<boolean> => {
     try {
       const q = query(collection(db, "adminEmails"), where("email", "==", email));
@@ -47,49 +51,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resolveUser = async (fbUser: FirebaseUser): Promise<User> => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", fbUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        if (userData.role !== "admin" && fbUser.email) {
+          const isAdmin = await checkAdminEmail(fbUser.email);
+          if (isAdmin) {
+            userData.role = "admin";
+            await setDoc(doc(db, "users", fbUser.uid), { role: "admin" }, { merge: true });
+          }
+        }
+        return userData;
+      } else {
+        const isAdmin = fbUser.email ? await checkAdminEmail(fbUser.email) : false;
+        const newUser: User = {
+          uid: fbUser.uid,
+          email: fbUser.email || "",
+          displayName: fbUser.displayName || "",
+          role: isAdmin ? "admin" : "user",
+          createdAt: new Date().toISOString(),
+        };
+        await setDoc(doc(db, "users", fbUser.uid), newUser);
+        return newUser;
+      }
+    } catch (err) {
+      console.error("Firestore error during auth:", err);
+      return {
+        uid: fbUser.uid,
+        email: fbUser.email || "",
+        displayName: fbUser.displayName || "",
+        role: "user",
+        createdAt: new Date().toISOString(),
+      };
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       try {
         if (fbUser) {
           setFirebaseUser(fbUser);
-          try {
-            const userDoc = await getDoc(doc(db, "users", fbUser.uid));
-            if (userDoc.exists()) {
-              const userData = userDoc.data() as User;
-              // Check if user should be admin but isn't yet
-              if (userData.role !== "admin" && fbUser.email) {
-                const isAdmin = await checkAdminEmail(fbUser.email);
-                if (isAdmin) {
-                  userData.role = "admin";
-                  await setDoc(doc(db, "users", fbUser.uid), { role: "admin" }, { merge: true });
-                }
-              }
-              setUser(userData);
-            } else {
-              // First time sign-in: create user document
-              const isAdmin = fbUser.email ? await checkAdminEmail(fbUser.email) : false;
-              const newUser: User = {
-                uid: fbUser.uid,
-                email: fbUser.email || "",
-                displayName: fbUser.displayName || "",
-                role: isAdmin ? "admin" : "user",
-                createdAt: new Date().toISOString(),
-              };
-              await setDoc(doc(db, "users", fbUser.uid), newUser);
-              setUser(newUser);
-            }
-          } catch (firestoreError) {
-            console.error("Firestore error during auth:", firestoreError);
-            // Fallback: set basic user from Firebase Auth data
-            const fallbackUser: User = {
-              uid: fbUser.uid,
-              email: fbUser.email || "",
-              displayName: fbUser.displayName || "",
-              role: "user",
-              createdAt: new Date().toISOString(),
-            };
-            setUser(fallbackUser);
-          }
+          const resolved = await resolveUser(fbUser);
+          setUser(resolved);
         } else {
           setFirebaseUser(null);
           setUser(null);
@@ -124,6 +129,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
+  const signInWithGoogle = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    const resolved = await resolveUser(result.user);
+    setUser(resolved);
+  };
+
   const signOut = async () => {
     await firebaseSignOut(auth);
     setUser(null);
@@ -139,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, firebaseUser, loading, signUp, signIn, signOut, getIdToken }}
+      value={{ user, firebaseUser, loading, signUp, signIn, signInWithGoogle, signOut, getIdToken }}
     >
       {children}
     </AuthContext.Provider>

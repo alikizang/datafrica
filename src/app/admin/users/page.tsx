@@ -93,58 +93,58 @@ export default function AdminUsersPage() {
   if (authLoading) return null;
 
   return (
-    <div className="min-h-screen bg-[#0a1628]">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-sm text-[#7a8ba3] hover:text-white mb-6 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Admin
         </Link>
 
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-10 w-10 rounded-lg bg-[#3d7eff]/10 flex items-center justify-center">
-            <Users className="h-5 w-5 text-[#3d7eff]" />
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Users className="h-5 w-5 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Manage Users</h1>
+          <h1 className="text-2xl font-bold text-foreground">Manage Users</h1>
         </div>
 
-        <div className="glass-card rounded-xl border border-white/10 overflow-hidden">
+        <div className="glass-card rounded-xl border border-border overflow-hidden">
           {loading ? (
             <div className="p-6 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full bg-white/5" />
+                <Skeleton key={i} className="h-12 w-full bg-muted" />
               ))}
             </div>
           ) : users.length === 0 ? (
             <div className="p-12 text-center">
-              <Users className="h-12 w-12 text-[#7a8ba3] mx-auto mb-3" />
-              <p className="text-[#7a8ba3]">No users found</p>
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No users found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-[#7a8ba3]">Email</TableHead>
-                    <TableHead className="text-[#7a8ba3]">Name</TableHead>
-                    <TableHead className="text-[#7a8ba3]">Role</TableHead>
-                    <TableHead className="text-[#7a8ba3]">Joined</TableHead>
-                    <TableHead className="text-[#7a8ba3] text-right">Actions</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground">Email</TableHead>
+                    <TableHead className="text-muted-foreground">Name</TableHead>
+                    <TableHead className="text-muted-foreground">Role</TableHead>
+                    <TableHead className="text-muted-foreground">Joined</TableHead>
+                    <TableHead className="text-muted-foreground text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((u) => (
-                    <TableRow key={u.id} className="border-white/10 hover:bg-white/5">
-                      <TableCell className="font-medium text-white">{u.email}</TableCell>
-                      <TableCell className="text-[#c0c8d4]">{u.displayName || "-"}</TableCell>
+                    <TableRow key={u.id} className="border-border hover:bg-muted">
+                      <TableCell className="font-medium text-foreground">{u.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{u.displayName || "-"}</TableCell>
                       <TableCell>
                         <Badge
                           className={
                             u.role === "admin"
-                              ? "bg-[#3d7eff]/20 text-[#3d7eff] border-[#3d7eff]/30 hover:bg-[#3d7eff]/30"
-                              : "bg-white/10 text-[#7a8ba3] border-white/10 hover:bg-white/15"
+                              ? "bg-primary/20 text-primary border-primary/30 hover:bg-primary/30"
+                              : "bg-muted text-muted-foreground border-border hover:bg-muted"
                           }
                         >
                           {u.role === "admin" && (
@@ -153,14 +153,14 @@ export default function AdminUsersPage() {
                           {u.role}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-[#7a8ba3]">
+                      <TableCell className="text-muted-foreground">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 text-[#c0c8d4] hover:bg-white/10 hover:text-white"
+                          className="border-border text-muted-foreground hover:bg-muted hover:text-foreground"
                           onClick={() => toggleRole(u.id, u.role)}
                           disabled={u.id === user?.uid}
                         >

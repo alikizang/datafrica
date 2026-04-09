@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Database, MapPin, Star, ArrowRight, Eye, Lock } from "lucide-react";
+import { Database, MapPin, Star, ArrowRight, Eye } from "lucide-react";
 import type { Dataset } from "@/types";
 
 interface DatasetCardProps {
@@ -19,10 +19,9 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
 
   return (
     <Link href={`/datasets/${dataset.id}`} className="group">
-      <div className="glass-card rounded-xl p-6 h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#3d7eff]/5">
-        {/* Header badges */}
+      <div className="glass-card rounded-xl p-6 h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
         <div className="flex items-center gap-2 mb-4">
-          <Badge className="bg-[#3d7eff]/10 text-[#3d7eff] border-0 text-xs font-medium">
+          <Badge className="bg-primary/10 text-primary border-0 text-xs font-medium">
             {dataset.category}
           </Badge>
           {dataset.featured && (
@@ -37,19 +36,13 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
             </Badge>
           )}
         </div>
-
-        {/* Title */}
-        <h3 className="font-semibold text-base text-white leading-tight line-clamp-2 mb-2 group-hover:text-[#3d7eff] transition-colors">
+        <h3 className="font-semibold text-base text-foreground leading-tight line-clamp-2 mb-2 group-hover:text-primary transition-colors">
           {dataset.title}
         </h3>
-
-        {/* Description */}
-        <p className="text-sm text-[#7a8ba3] line-clamp-2 mb-4 flex-1">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
           {dataset.description}
         </p>
-
-        {/* Metadata */}
-        <div className="flex items-center gap-4 text-xs text-[#525f73] mb-5">
+        <div className="flex items-center gap-4 text-xs text-dim mb-5">
           <span className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />
             {dataset.country}
@@ -65,13 +58,11 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
             </span>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between">
-          <span className="font-bold text-lg text-[#3d7eff]">
+        <div className="pt-4 border-t border-border flex items-center justify-between">
+          <span className="font-bold text-lg text-primary">
             {formatPrice(dataset.price, dataset.currency)}
           </span>
-          <span className="text-sm text-[#7a8ba3] group-hover:text-[#3d7eff] flex items-center gap-1 transition-colors font-medium">
+          <span className="text-sm text-muted-foreground group-hover:text-primary flex items-center gap-1 transition-colors font-medium">
             {dataset.allowDownload ? "View dataset" : "Preview data"}
             <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
           </span>

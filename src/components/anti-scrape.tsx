@@ -149,16 +149,16 @@ export function AntiScrape() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-3">
+        <h2 className="text-2xl font-bold text-foreground mb-3">
           Developer Tools Detected
         </h2>
-        <p className="text-[#7a8ba3] mb-6 leading-relaxed">
+        <p className="text-muted-foreground mb-6 leading-relaxed">
           For security reasons, this platform cannot be accessed while developer tools are open.
           Please close your developer tools and click the button below to continue.
         </p>
         <button
           onClick={handleClose}
-          className="px-8 py-3 bg-[#3d7eff] text-white font-medium rounded-full hover:bg-[#2d6eef] transition-colors"
+          className="px-8 py-3 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors"
         >
           Close & Reload Page
         </button>

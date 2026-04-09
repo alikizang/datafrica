@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage, LANGUAGES } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,60 +13,85 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, X, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, ChevronDown, Sun, Moon, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export function Navbar() {
   const { user, signOut, loading } = useAuth();
+  const { t, lang, setLang } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/[0.06] bg-[#0a1628]/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#3d7eff] to-[#6c5ce7] flex items-center justify-center">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[#6c5ce7] flex items-center justify-center">
             <span className="text-white font-bold text-sm">D</span>
           </div>
-          <span className="text-white">Datafrica</span>
+          <span className="text-foreground">Datafrica</span>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link
-            href="/datasets"
-            className="text-sm font-medium text-[#7a8ba3] hover:text-white transition-colors"
-          >
-            Datasets
+          <Link href="/datasets" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            {t("nav.datasets")}
           </Link>
-          <Link
-            href="/datasets?category=Business"
-            className="text-sm font-medium text-[#7a8ba3] hover:text-white transition-colors"
-          >
-            Business Data
+          <Link href="/datasets?category=Business" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            {t("nav.businessData")}
           </Link>
-          <Link
-            href="/datasets?category=Leads"
-            className="text-sm font-medium text-[#7a8ba3] hover:text-white transition-colors"
-          >
-            Leads
+          <Link href="/datasets?category=Leads" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            {t("nav.leads")}
           </Link>
           {user?.role === "admin" && (
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-[#7a8ba3] hover:text-white transition-colors"
-            >
-              Admin
+            <Link href="/admin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              {t("nav.admin")}
             </Link>
           )}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
+          {/* Language Switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <Globe className="h-4 w-4" />
+                <span className="uppercase text-xs font-medium">{lang}</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 bg-popover border-border">
+              {LANGUAGES.map((l) => (
+                <DropdownMenuItem
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  className={`text-popover-foreground focus:bg-muted ${lang === l.code ? "bg-muted font-medium" : ""}`}
+                >
+                  {l.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme Toggle */}
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          )}
+
           {loading ? null : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 text-sm text-[#7a8ba3] hover:text-white transition-colors">
+                <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors ml-1">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-[#1a2a42] text-[#3d7eff] text-xs font-semibold border border-white/10">
+                    <AvatarFallback className="bg-muted text-primary text-xs font-semibold border border-border">
                       {user.displayName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -72,41 +99,38 @@ export function Navbar() {
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-[#111d32] border-white/10">
+              <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
                 <div className="flex items-center gap-2 p-2">
                   <div className="flex flex-col space-y-0.5">
-                    <p className="text-sm font-medium text-white">{user.displayName || "User"}</p>
-                    <p className="text-xs text-[#7a8ba3]">{user.email}</p>
+                    <p className="text-sm font-medium text-popover-foreground">{user.displayName || "User"}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
-                <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem asChild className="text-[#c8d6e5] focus:text-white focus:bg-white/5">
-                  <Link href="/dashboard">Dashboard</Link>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
+                  <Link href="/dashboard">{t("nav.dashboard")}</Link>
                 </DropdownMenuItem>
                 {user.role === "admin" && (
-                  <DropdownMenuItem asChild className="text-[#c8d6e5] focus:text-white focus:bg-white/5">
-                    <Link href="/admin">Admin Panel</Link>
+                  <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
+                    <Link href="/admin">{t("nav.adminPanel")}</Link>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem
                   onClick={() => signOut()}
-                  className="text-[#c8d6e5] focus:text-white focus:bg-white/5"
+                  className="text-popover-foreground focus:bg-muted"
                 >
-                  Sign out
+                  {t("nav.signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex gap-3">
-              <Link
-                href="/login"
-                className="text-sm font-medium text-[#7a8ba3] hover:text-white transition-colors px-3 py-2"
-              >
-                Sign in
+            <div className="flex gap-3 ml-1">
+              <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2">
+                {t("nav.signIn")}
               </Link>
-              <Button size="sm" className="btn-pill bg-[#3d7eff] hover:bg-[#2d6eef] text-white px-5" asChild>
-                <Link href="/register">Start free trial</Link>
+              <Button size="sm" className="btn-pill bg-primary hover:bg-primary/90 text-primary-foreground px-5" asChild>
+                <Link href="/register">{t("nav.startTrial")}</Link>
               </Button>
             </div>
           )}
@@ -114,9 +138,17 @@ export function Navbar() {
 
         {/* Mobile Toggle */}
         <div className="flex md:hidden items-center gap-2">
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 text-muted-foreground hover:text-foreground"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          )}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-[#7a8ba3] hover:text-white"
+            className="p-2 text-muted-foreground hover:text-foreground"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -125,68 +157,54 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-white/[0.06] bg-[#0d1a2d] p-4 space-y-3">
-          <Link
-            href="/datasets"
-            className="block text-sm font-medium text-[#c8d6e5] hover:text-white py-2"
-            onClick={() => setMobileOpen(false)}
-          >
-            Datasets
+        <div className="md:hidden border-t border-border bg-card p-4 space-y-3">
+          <Link href="/datasets" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+            {t("nav.datasets")}
           </Link>
-          <Link
-            href="/datasets?category=Business"
-            className="block text-sm font-medium text-[#c8d6e5] hover:text-white py-2"
-            onClick={() => setMobileOpen(false)}
-          >
-            Business Data
+          <Link href="/datasets?category=Business" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+            {t("nav.businessData")}
           </Link>
-          <Link
-            href="/datasets?category=Leads"
-            className="block text-sm font-medium text-[#c8d6e5] hover:text-white py-2"
-            onClick={() => setMobileOpen(false)}
-          >
-            Leads
+          <Link href="/datasets?category=Leads" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+            {t("nav.leads")}
           </Link>
+
+          {/* Mobile language selector */}
+          <div className="flex gap-2 py-2 flex-wrap">
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => setLang(l.code)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${lang === l.code ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+
           {user ? (
             <>
-              <Link
-                href="/dashboard"
-                className="block text-sm font-medium text-[#c8d6e5] hover:text-white py-2"
-                onClick={() => setMobileOpen(false)}
-              >
-                Dashboard
+              <Link href="/dashboard" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+                {t("nav.dashboard")}
               </Link>
               {user.role === "admin" && (
-                <Link
-                  href="/admin"
-                  className="block text-sm font-medium text-[#c8d6e5] hover:text-white py-2"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Admin Panel
+                <Link href="/admin" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+                  {t("nav.adminPanel")}
                 </Link>
               )}
               <button
-                className="w-full text-left text-sm font-medium text-[#c8d6e5] hover:text-white py-2"
+                className="w-full text-left text-sm font-medium text-secondary-foreground hover:text-foreground py-2"
                 onClick={() => { signOut(); setMobileOpen(false); }}
               >
-                Sign out
+                {t("nav.signOut")}
               </button>
             </>
           ) : (
             <div className="flex gap-2 pt-2">
-              <Link
-                href="/login"
-                className="flex-1 text-center text-sm font-medium text-[#c8d6e5] border border-white/10 rounded-full py-2 hover:bg-white/5"
-                onClick={() => setMobileOpen(false)}
-              >
-                Sign in
+              <Link href="/login" className="flex-1 text-center text-sm font-medium text-secondary-foreground border border-border rounded-full py-2 hover:bg-muted" onClick={() => setMobileOpen(false)}>
+                {t("nav.signIn")}
               </Link>
-              <Link
-                href="/register"
-                className="flex-1 text-center text-sm font-medium text-white bg-[#3d7eff] rounded-full py-2 hover:bg-[#2d6eef]"
-                onClick={() => setMobileOpen(false)}
-              >
-                Start free trial
+              <Link href="/register" className="flex-1 text-center text-sm font-medium text-primary-foreground bg-primary rounded-full py-2 hover:bg-primary/90" onClick={() => setMobileOpen(false)}>
+                {t("nav.startTrial")}
               </Link>
             </div>
           )}
