@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { AntiScrape } from "@/components/anti-scrape";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -31,18 +31,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          <AuthProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+      <body className="min-h-full flex flex-col no-select">
+        <AuthProvider>
+          <AntiScrape />
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -3,12 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ShoppingBag,
@@ -21,13 +19,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Purchase } from "@/types";
-
-interface DownloadRecord {
-  id: string;
-  datasetId: string;
-  format: string;
-  createdAt: string;
-}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -104,9 +95,9 @@ export default function DashboardPage() {
 
   if (authLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
+      <div className="container mx-auto px-4 lg:px-8 py-10 space-y-6">
+        <Skeleton className="h-8 w-48 bg-white/5" />
+        <Skeleton className="h-64 w-full bg-white/5" />
       </div>
     );
   }
@@ -114,197 +105,155 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 lg:px-8 py-10">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-10">
+        <p className="text-sm font-medium text-[#3d7eff] uppercase tracking-wider mb-2">Account</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-[#7a8ba3]">
           Welcome back, {user.displayName || user.email}
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <ShoppingBag className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{purchases.length}</p>
-                <p className="text-sm text-muted-foreground">Purchases</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Download className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{purchases.length}</p>
-                <p className="text-sm text-muted-foreground">Datasets Available</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium truncate">{user.email}</p>
-                <p className="text-sm text-muted-foreground capitalize">{user.role}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <div className="glass-card rounded-xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-[#3d7eff]/10 flex items-center justify-center">
+            <ShoppingBag className="h-5 w-5 text-[#3d7eff]" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{purchases.length}</p>
+            <p className="text-sm text-[#7a8ba3]">Purchases</p>
+          </div>
+        </div>
+        <div className="glass-card rounded-xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+            <Download className="h-5 w-5 text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{purchases.length}</p>
+            <p className="text-sm text-[#7a8ba3]">Datasets Available</p>
+          </div>
+        </div>
+        <div className="glass-card rounded-xl p-5 flex items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+            <User className="h-5 w-5 text-purple-400" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-white truncate">{user.email}</p>
+            <p className="text-sm text-[#7a8ba3] capitalize">{user.role}</p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="purchases">
-        <TabsList>
-          <TabsTrigger value="purchases">My Purchases</TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
+        <TabsList className="bg-[#111d32] border border-white/[0.06]">
+          <TabsTrigger value="purchases" className="data-[state=active]:bg-[#3d7eff] data-[state=active]:text-white text-[#7a8ba3]">
+            My Purchases
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="data-[state=active]:bg-[#3d7eff] data-[state=active]:text-white text-[#7a8ba3]">
+            Profile
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="purchases" className="mt-6">
           {loading ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full" />
+                <Skeleton key={i} className="h-24 w-full bg-white/5" />
               ))}
             </div>
           ) : purchases.length > 0 ? (
             <div className="space-y-4">
               {purchases.map((purchase) => (
-                <Card key={purchase.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold">{purchase.datasetTitle}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Badge
-                            variant={
-                              purchase.status === "completed"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-xs"
-                          >
-                            {purchase.status}
-                          </Badge>
-                          <span>
-                            {new Date(purchase.createdAt).toLocaleDateString()}
-                          </span>
-                          <span>
-                            {purchase.amount.toLocaleString()} {purchase.currency}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleDownload(
-                              purchase.datasetId,
-                              purchase.datasetTitle,
-                              "csv"
-                            )
+                <div key={purchase.id} className="glass-card rounded-xl p-5">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-white">{purchase.datasetTitle}</h3>
+                      <div className="flex items-center gap-2 text-sm text-[#7a8ba3]">
+                        <Badge
+                          className={
+                            purchase.status === "completed"
+                              ? "bg-emerald-500/10 text-emerald-400 border-0 text-xs"
+                              : "bg-[#1a2a42] text-[#7a8ba3] border-white/[0.08] text-xs"
                           }
                         >
-                          <FileText className="h-3.5 w-3.5 mr-1" />
-                          CSV
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleDownload(
-                              purchase.datasetId,
-                              purchase.datasetTitle,
-                              "excel"
-                            )
-                          }
-                        >
-                          <FileSpreadsheet className="h-3.5 w-3.5 mr-1" />
-                          Excel
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleDownload(
-                              purchase.datasetId,
-                              purchase.datasetTitle,
-                              "json"
-                            )
-                          }
-                        >
-                          <FileJson className="h-3.5 w-3.5 mr-1" />
-                          JSON
-                        </Button>
-                        <Button size="sm" variant="ghost" asChild>
-                          <Link href={`/datasets/${purchase.datasetId}`}>
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Link>
-                        </Button>
+                          {purchase.status}
+                        </Badge>
+                        <span>{new Date(purchase.createdAt).toLocaleDateString()}</span>
+                        <span>{purchase.amount.toLocaleString()} {purchase.currency}</span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="flex items-center gap-2">
+                      {["csv", "excel", "json"].map((format) => (
+                        <button
+                          key={format}
+                          onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format as "csv" | "excel" | "json")}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-[#c8d6e5] hover:bg-white/5 transition-colors flex items-center gap-1"
+                        >
+                          {format === "csv" && <FileText className="h-3 w-3" />}
+                          {format === "excel" && <FileSpreadsheet className="h-3 w-3" />}
+                          {format === "json" && <FileJson className="h-3 w-3" />}
+                          {format.toUpperCase()}
+                        </button>
+                      ))}
+                      <Link
+                        href={`/datasets/${purchase.datasetId}`}
+                        className="p-1.5 rounded-lg text-[#7a8ba3] hover:text-[#3d7eff] hover:bg-white/5 transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 space-y-3">
-              <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/50" />
-              <h3 className="text-lg font-semibold">No purchases yet</h3>
-              <p className="text-muted-foreground">
+            <div className="text-center py-20 space-y-4">
+              <ShoppingBag className="h-12 w-12 mx-auto text-[#1a2a42]" />
+              <h3 className="text-lg font-semibold text-white">No purchases yet</h3>
+              <p className="text-[#7a8ba3]">
                 Browse our marketplace to find datasets you need
               </p>
-              <Button asChild>
-                <Link href="/datasets">Browse Datasets</Link>
-              </Button>
+              <Link
+                href="/datasets"
+                className="inline-flex px-6 py-2.5 bg-[#3d7eff] text-white rounded-full hover:bg-[#2d6eef] transition-colors font-medium"
+              >
+                Browse Datasets
+              </Link>
             </div>
           )}
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="glass-card rounded-xl p-6 space-y-4">
+            <h3 className="font-semibold text-white text-lg">Profile Information</h3>
+            <div className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium">{user.displayName || "Not set"}</p>
+                <p className="text-sm text-[#7a8ba3]">Name</p>
+                <p className="font-medium text-white">{user.displayName || "Not set"}</p>
               </div>
-              <Separator />
+              <Separator className="bg-white/[0.06]" />
               <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{user.email}</p>
+                <p className="text-sm text-[#7a8ba3]">Email</p>
+                <p className="font-medium text-white">{user.email}</p>
               </div>
-              <Separator />
+              <Separator className="bg-white/[0.06]" />
               <div>
-                <p className="text-sm text-muted-foreground">Role</p>
-                <Badge variant="secondary" className="capitalize">
+                <p className="text-sm text-[#7a8ba3]">Role</p>
+                <Badge className="bg-[#3d7eff]/10 text-[#3d7eff] border-0 capitalize">
                   {user.role}
                 </Badge>
               </div>
-              <Separator />
+              <Separator className="bg-white/[0.06]" />
               <div>
-                <p className="text-sm text-muted-foreground">Member since</p>
-                <p className="font-medium">
+                <p className="text-sm text-[#7a8ba3]">Member since</p>
+                <p className="font-medium text-white">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -19,6 +19,8 @@ export interface Dataset {
   recordCount: number;
   columns: string[];
   previewData: Record<string, string | number>[];
+  previewRows: number;
+  allowDownload: boolean;
   fileUrl: string;
   featured: boolean;
   rating: number;
@@ -60,6 +62,7 @@ export type DatasetCategory =
   | "Education";
 
 export const AFRICAN_COUNTRIES = [
+  "Benin",
   "Togo",
   "Nigeria",
   "Ghana",

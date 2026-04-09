@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -73,11 +72,11 @@ export default function AdminPage() {
 
   if (authLoading || (!user || user.role !== "admin")) {
     return (
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <Skeleton className="h-8 w-48" />
+      <div className="container mx-auto px-4 lg:px-8 py-10 space-y-6">
+        <Skeleton className="h-8 w-48 bg-white/5" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-28 bg-white/5" />
           ))}
         </div>
       </div>
@@ -85,16 +84,17 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 lg:px-8 py-10">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-muted-foreground">Manage datasets, users, and sales</p>
+          <p className="text-sm font-medium text-[#3d7eff] uppercase tracking-wider mb-2">Administration</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
+          <p className="text-[#7a8ba3]">Manage datasets, users, and sales</p>
         </div>
         <Link
           href="/admin/upload"
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#3d7eff] text-white rounded-full font-medium hover:bg-[#2d6eef] transition-colors"
         >
           <Upload className="h-4 w-4" />
           Upload Dataset
@@ -102,139 +102,89 @@ export default function AdminPage() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Link href="/admin/upload">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Upload className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="font-semibold">Upload Dataset</p>
-                <p className="text-sm text-muted-foreground">Add new data to the marketplace</p>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <Link href="/admin/upload" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-[#3d7eff]/10 flex items-center justify-center">
+            <Upload className="h-5 w-5 text-[#3d7eff]" />
+          </div>
+          <div>
+            <p className="font-semibold text-white">Upload Dataset</p>
+            <p className="text-sm text-[#7a8ba3]">Add new data to the marketplace</p>
+          </div>
         </Link>
-        <Link href="/admin/users">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Users className="h-5 w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="font-semibold">Manage Users</p>
-                <p className="text-sm text-muted-foreground">View and manage user accounts</p>
-              </div>
-            </CardContent>
-          </Card>
+        <Link href="/admin/users" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+            <Users className="h-5 w-5 text-emerald-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-white">Manage Users</p>
+            <p className="text-sm text-[#7a8ba3]">View and manage user accounts</p>
+          </div>
         </Link>
-        <Link href="/admin/analytics">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="font-semibold">Analytics</p>
-                <p className="text-sm text-muted-foreground">View detailed sales analytics</p>
-              </div>
-            </CardContent>
-          </Card>
+        <Link href="/admin/analytics" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+            <BarChart3 className="h-5 w-5 text-purple-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-white">Analytics</p>
+            <p className="text-sm text-[#7a8ba3]">View detailed sales analytics</p>
+          </div>
         </Link>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-28 bg-white/5" />
           ))
         ) : (
           <>
-            <Card>
-              <CardContent className="pt-6">
+            {[
+              { icon: DollarSign, color: "emerald", label: "Total Revenue (CFA)", value: (analytics?.totalRevenue || 0).toLocaleString() },
+              { icon: ShoppingBag, color: "blue", label: "Total Sales", value: analytics?.totalSales || 0 },
+              { icon: Users, color: "amber", label: "Total Users", value: analytics?.totalUsers || 0 },
+              { icon: Database, color: "purple", label: "Datasets", value: analytics?.totalDatasets || 0 },
+            ].map((stat) => (
+              <div key={stat.label} className="glass-card rounded-xl p-5 stat-glow">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-green-500" />
+                  <div className={`h-10 w-10 rounded-xl bg-${stat.color}-500/10 flex items-center justify-center`}>
+                    <stat.icon className={`h-5 w-5 text-${stat.color}-${stat.color === "blue" ? "400" : stat.color === "emerald" ? "400" : stat.color === "amber" ? "400" : "400"}`} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">
-                      {(analytics?.totalRevenue || 0).toLocaleString()}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Total Revenue (CFA)</p>
+                    <p className="text-2xl font-bold text-white">{stat.value}</p>
+                    <p className="text-sm text-[#7a8ba3]">{stat.label}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <ShoppingBag className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{analytics?.totalSales || 0}</p>
-                    <p className="text-sm text-muted-foreground">Total Sales</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-amber-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{analytics?.totalUsers || 0}</p>
-                    <p className="text-sm text-muted-foreground">Total Users</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <Database className="h-5 w-5 text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{analytics?.totalDatasets || 0}</p>
-                    <p className="text-sm text-muted-foreground">Datasets</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            ))}
           </>
         )}
       </div>
 
       {/* Recent Sales */}
       {analytics && analytics.recentSales.length > 0 && (
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="font-semibold text-lg mb-4">Recent Sales</h3>
-            <div className="space-y-3">
-              {analytics.recentSales.slice(0, 10).map((sale) => (
-                <div
-                  key={sale.id}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{sale.datasetTitle}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(sale.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <p className="font-semibold text-green-600 dark:text-green-400">
-                    +{sale.amount.toLocaleString()} {sale.currency}
+        <div className="glass-card rounded-xl p-6">
+          <h3 className="font-semibold text-lg text-white mb-4">Recent Sales</h3>
+          <div className="space-y-3">
+            {analytics.recentSales.slice(0, 10).map((sale) => (
+              <div
+                key={sale.id}
+                className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0"
+              >
+                <div>
+                  <p className="font-medium text-sm text-white">{sale.datasetTitle}</p>
+                  <p className="text-xs text-[#525f73]">
+                    {new Date(sale.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <p className="font-semibold text-emerald-400">
+                  +{sale.amount.toLocaleString()} {sale.currency}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

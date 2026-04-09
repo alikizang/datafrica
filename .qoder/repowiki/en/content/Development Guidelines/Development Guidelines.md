@@ -2,11 +2,14 @@
 
 <cite>
 **Referenced Files in This Document**
+- [.firebaserc](file://.firebaserc)
+- [firebase.json](file://firebase.json)
 - [tsconfig.json](file://tsconfig.json)
 - [eslint.config.mjs](file://eslint.config.mjs)
 - [next.config.ts](file://next.config.ts)
 - [package.json](file://package.json)
 - [components.json](file://components.json)
+- [.gitignore](file://.gitignore)
 - [src/types/index.ts](file://src/types/index.ts)
 - [src/lib/firebase.ts](file://src/lib/firebase.ts)
 - [src/lib/auth-middleware.ts](file://src/lib/auth-middleware.ts)
@@ -21,8 +24,18 @@
 - [src/app/layout.tsx](file://src/app/layout.tsx)
 - [src/app/page.tsx](file://src/app/page.tsx)
 - [src/app/api/admin/analytics/route.ts](file://src/app/api/admin/analytics/route.ts)
+- [src/app/api/admin/upload/route.ts](file://src/app/api/admin/upload/route.ts)
+- [src/app/admin/upload/page.tsx](file://src/app/admin/upload/page.tsx)
 - [src/app/api/datasets/route.ts](file://src/app/api/datasets/route.ts)
+- [src/app/api/datasets/[id]/download/route.ts](file://src/app/api/datasets/[id]/download/route.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added CSV file patterns to .gitignore for data file management and deployment best practices
+- Updated deployment strategies to include CSV data file exclusion patterns
+- Enhanced data file management documentation with CSV upload and processing workflows
+- Added CSV parsing and validation documentation for dataset uploads
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -33,12 +46,14 @@
 6. [Dependency Analysis](#dependency-analysis)
 7. [Performance Considerations](#performance-considerations)
 8. [Testing Approaches](#testing-approaches)
-9. [Code Organization Principles](#code-organization-principles)
-10. [Debugging Strategies](#debugging-strategies)
-11. [Conclusion](#conclusion)
+9. [Code Organization Principles](#code-organization-principants)
+10. [Deployment Strategies](#deployment-strategies)
+11. [Data File Management](#data-file-management)
+12. [Debugging Strategies](#debugging-strategies)
+13. [Conclusion](#conclusion)
 
 ## Introduction
-This document defines Datafrica’s development guidelines and best practices. It consolidates TypeScript configuration, ESLint enforcement, component development patterns, state management strategies, testing approaches, performance optimizations for Next.js and Firebase, code organization principles, and debugging recommendations. The goal is to ensure consistent, maintainable, and scalable development across the platform.
+This document defines Datafrica's development guidelines and best practices. It consolidates TypeScript configuration, ESLint enforcement, component development patterns, state management strategies, testing approaches, performance optimizations for Next.js and Firebase, code organization principles, and debugging recommendations. The goal is to ensure consistent, maintainable, and scalable development across the platform.
 
 ## Project Structure
 The project follows a Next.js App Router structure with a clear separation of concerns:
@@ -48,6 +63,8 @@ The project follows a Next.js App Router structure with a clear separation of co
 - src/lib: Utility libraries, Firebase integrations, and middleware
 - src/types: Shared TypeScript type definitions
 - Root configs: TypeScript, ESLint, Next.js, Tailwind, and component aliases
+- Firebase configuration: .firebaserc and firebase.json for deployment setup
+- Data file management: .gitignore patterns for CSV and other data files
 
 ```mermaid
 graph TB
@@ -78,6 +95,9 @@ TS["tsconfig.json"]
 ESL["eslint.config.mjs"]
 NX["next.config.ts"]
 CMP["components.json"]
+FRB[".firebaserc"]
+FJB["firebase.json"]
+GI[".gitignore"]
 end
 L --> NB
 L --> TP
@@ -92,6 +112,8 @@ CARD --> U
 DLG --> U
 FB --> T
 AMW --> T
+FRB --> FJB
+GI --> CSV["*.csv patterns"]
 ```
 
 **Diagram sources**
@@ -111,6 +133,9 @@ AMW --> T
 - [eslint.config.mjs:1-19](file://eslint.config.mjs#L1-L19)
 - [next.config.ts:1-8](file://next.config.ts#L1-L8)
 - [components.json:1-26](file://components.json#L1-L26)
+- [.firebaserc:1-6](file://.firebaserc#L1-L6)
+- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [.gitignore:36-37](file://.gitignore#L36-L37)
 
 **Section sources**
 - [src/app/layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
@@ -125,6 +150,9 @@ AMW --> T
 - [eslint.config.mjs:1-19](file://eslint.config.mjs#L1-L19)
 - [next.config.ts:1-8](file://next.config.ts#L1-L8)
 - [components.json:1-26](file://components.json#L1-L26)
+- [.firebaserc:1-6](file://.firebaserc#L1-L6)
+- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [.gitignore:36-37](file://.gitignore#L36-L37)
 
 ## Core Components
 - TypeScript configuration enforces strictness, modern module resolution, and JSX transform for Next.js.
@@ -133,12 +161,17 @@ AMW --> T
 - Authentication provider manages user state, persistence, and token retrieval.
 - UI primitives (Button, Card, Dialog) demonstrate consistent prop interfaces, variants, and composition patterns.
 - Layout composes providers and shared UI to establish theme, auth, navigation, and notifications.
+- Firebase deployment configuration establishes hosting and regional backend setup.
+- CSV data file management prevents accidental commits of large datasets.
 
 Key configuration highlights:
 - Strict TypeScript compiler options, bundler module resolution, and path aliases
 - ESLint Next.js recommended rules plus custom ignores
 - Next.js config placeholder for future optimization toggles
 - Tailwind + shadcn/slots configuration with TSX and RSC enabled
+- Firebase project configuration with default project "mydatafrica"
+- Firebase Hosting with ignore patterns and europe-west1 backend region
+- CSV file patterns in .gitignore for data file management
 
 **Section sources**
 - [tsconfig.json:1-35](file://tsconfig.json#L1-L35)
@@ -151,6 +184,9 @@ Key configuration highlights:
 - [src/components/ui/card.tsx:1-104](file://src/components/ui/card.tsx#L1-L104)
 - [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
 - [src/app/layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [.firebaserc:1-6](file://.firebaserc#L1-L6)
+- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [.gitignore:36-37](file://.gitignore#L36-L37)
 
 ## Architecture Overview
 The runtime architecture centers around:
@@ -158,6 +194,8 @@ The runtime architecture centers around:
 - Client components consuming custom hooks and UI primitives
 - API routes backed by Firebase Admin for secure server-side operations
 - Shared types and utilities for consistency
+- Multiple deployment targets (Vercel and Firebase) with regional backend support
+- CSV data processing pipeline for dataset uploads and downloads
 
 ```mermaid
 graph TB
@@ -172,6 +210,11 @@ Utils["Utilities<br/>lib/utils.ts"]
 UI_Button["UI Button<br/>ui/button.tsx"]
 UI_Card["UI Card<br/>ui/card.tsx"]
 UI_Dialog["UI Dialog<br/>ui/dialog.tsx"]
+Vercel["Vercel Deployment"]
+Firebase["Firebase Deployment"]
+Region["europe-west1 Backend"]
+CSV["CSV Data Files"]
+GitIgnore[".gitignore Patterns"]
 Browser --> App
 App --> Theme
 App --> Auth
@@ -184,6 +227,9 @@ UI_Button --> Utils
 UI_Card --> Utils
 UI_Dialog --> Utils
 Auth --> Types
+Vercel --> Region
+Firebase --> Region
+CSV --> GitIgnore
 ```
 
 **Diagram sources**
@@ -197,6 +243,8 @@ Auth --> Types
 - [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/types/index.ts:1-90](file://src/types/index.ts#L1-L90)
+- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [.gitignore:36-37](file://.gitignore#L36-L37)
 
 ## Detailed Component Analysis
 
@@ -317,6 +365,8 @@ Dialog --> Utils : "uses"
 - Admin analytics endpoint aggregates counts and recent sales
 - Datasets endpoint supports filtering and client-side refinement
 - Auth middleware verifies tokens and checks admin roles
+- CSV upload endpoint processes large datasets with batched writes
+- Download endpoint supports multiple formats (CSV, Excel, JSON)
 
 ```mermaid
 sequenceDiagram
@@ -324,15 +374,16 @@ participant Client as "Client"
 participant API as "API Route"
 participant MW as "Auth Middleware"
 participant AdminDB as "Firebase Admin"
-Client->>API : "GET /api/admin/analytics"
+Client->>API : "POST /api/admin/upload"
 API->>MW : "requireAdmin"
 MW->>AdminDB : "verifyIdToken + read users"
 AdminDB-->>MW : "User + role"
 MW-->>API : "{ user, error }"
 alt "Authorized"
-API->>AdminDB : "Query purchases/users/datasets"
-AdminDB-->>API : "Aggregated data"
-API-->>Client : "JSON response"
+API->>AdminDB : "Parse CSV + validate"
+API->>AdminDB : "Store dataset + batch data"
+AdminDB-->>API : "Success"
+API-->>Client : "Dataset metadata"
 else "Unauthorized/Forbidden"
 API-->>Client : "401/403 JSON"
 end
@@ -340,10 +391,12 @@ end
 
 **Diagram sources**
 - [src/app/api/admin/analytics/route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
+- [src/app/api/admin/upload/route.ts:1-92](file://src/app/api/admin/upload/route.ts#L1-L92)
 - [src/lib/auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
 
 **Section sources**
 - [src/app/api/admin/analytics/route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
+- [src/app/api/admin/upload/route.ts:1-92](file://src/app/api/admin/upload/route.ts#L1-L92)
 - [src/app/api/datasets/route.ts:1-62](file://src/app/api/datasets/route.ts#L1-L62)
 - [src/lib/auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
 
@@ -378,6 +431,8 @@ SetNull --> Done
 - Radix UI primitives and shadcn/ui for accessible UI
 - Tailwind v4 with class merging utilities
 - TypeScript 5.x and ESLint 9.x
+- Papa Parse for CSV parsing and validation
+- SheetJS (XLSX) for Excel file processing
 
 ```mermaid
 graph LR
@@ -389,6 +444,8 @@ UI["@radix-ui / lucide-react / sonner"]
 Tailwind["tailwindcss / tailwind-merge / clsx"]
 TS["typescript / @types/*"]
 ESL["eslint / eslint-config-next"]
+Papa["papaparse"]
+XLSX["xlsx"]
 Pkg --> Next
 Pkg --> React
 Pkg --> Firebase
@@ -396,6 +453,8 @@ Pkg --> UI
 Pkg --> Tailwind
 Pkg --> TS
 Pkg --> ESL
+Pkg --> Papa
+Pkg --> XLSX
 ```
 
 **Diagram sources**
@@ -413,8 +472,8 @@ Pkg --> ESL
 - Monitor bundle size and split vendor chunks if needed
 - Use Firebase indexing strategies for frequently queried fields
 - Enable production profiling and measure Core Web Vitals
-
-[No sources needed since this section provides general guidance]
+- Implement batched writes for large CSV datasets (500 records per batch)
+- Use streaming for large file downloads to prevent memory issues
 
 ## Testing Approaches
 Recommended testing layers:
@@ -422,25 +481,128 @@ Recommended testing layers:
 - Component tests for UI primitives focusing on variant rendering and accessibility
 - Integration tests for hooks to verify state transitions and side effects
 - API route tests validating auth middleware, request parsing, and response shape
-- E2E tests for critical flows (authentication, dataset browsing, purchases)
+- CSV parsing tests with various formats and edge cases
+- E2E tests for critical flows (authentication, dataset browsing, purchases, CSV uploads)
 
 Focus areas:
 - Mock Firebase client and admin SDKs for isolated tests
 - Snapshot test UI components to prevent regressions
 - Test error paths and loading states
 - Verify TypeScript types remain consistent with runtime behavior
-
-[No sources needed since this section provides general guidance]
+- Test CSV parsing with malformed data and large datasets
+- Validate batch processing and pagination for large datasets
 
 ## Code Organization Principles
 - Feature-based grouping under src/components, src/hooks, and src/lib
 - Centralized types in src/types for shared contracts
 - API routes organized by domain under src/app/api
+- CSV data processing separated into dedicated upload/download handlers
 - Consistent naming: PascalCase for components, kebab-case for files, camelCase for hooks
 - Prefer composition over inheritance; use props and variants for customization
-- Keep client components behind “use client” directive and isolate server logic
+- Keep client components behind "use client" directive and isolate server logic
+- Separate data file management from application logic
 
-[No sources needed since this section provides general guidance]
+## Deployment Strategies
+
+### Multi-Platform Deployment Architecture
+Datafrica supports deployment across multiple platforms with regional backend optimization:
+
+#### Vercel Deployment (Primary)
+- Zero-config deployment with automatic scaling
+- Edge network distribution for global CDN
+- Automatic HTTPS and SSL certificate management
+- Preview deployments for pull requests
+
+#### Firebase Hosting (Secondary/Alternative)
+- Static site hosting with Firebase infrastructure
+- Regional backend configuration for europe-west1
+- Custom ignore patterns for optimized builds
+- Integration with Firebase authentication and services
+
+### CSV Data File Management
+**Updated** The project now includes comprehensive CSV data file management:
+
+**Git Ignore Patterns (.gitignore)**
+- CSV files excluded globally: `*.csv`
+- Prevents accidental commits of large dataset files
+- Protects sensitive business data from version control
+- Reduces repository size and improves clone performance
+
+**Data File Management Best Practices**
+- Store CSV datasets in local development environments only
+- Use Firebase Storage for production dataset hosting
+- Implement proper access controls and authentication
+- Compress large datasets before upload
+- Validate CSV structure before processing
+- Handle encoding issues (UTF-8, UTF-8-BOM)
+
+### Build Optimization for Deployment
+- Next.js build artifacts optimized for static hosting
+- Asset optimization and compression
+- Environment variable handling for different deployment targets
+- API route compatibility with both Vercel and Firebase backends
+- CSV parsing optimization with streaming for large files
+
+### Regional Backend Strategy
+- europe-west1 region selected for European market focus
+- Reduced latency for EU users compared to US-based regions
+- Compliance with GDPR and European data protection regulations
+- Localized API processing for better user experience
+
+**Section sources**
+- [.firebaserc:1-6](file://.firebaserc#L1-L6)
+- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [.gitignore:36-37](file://.gitignore#L36-L37)
+
+## Data File Management
+
+### CSV Upload Pipeline
+The CSV upload system handles large datasets efficiently:
+
+**Upload Process**
+1. Admin authentication verification
+2. CSV file parsing with Papa Parse
+3. Data validation and error handling
+4. Batched Firestore writes (500 records per batch)
+5. Metadata storage and preview generation
+
+**Processing Features**
+- Header-first CSV parsing
+- Skip empty lines and malformed entries
+- Column detection and validation
+- Preview data generation for free access
+- Error reporting with detailed parsing information
+
+**Security Measures**
+- Admin-only access to upload functionality
+- File size limits and validation
+- Malformed CSV detection
+- Rate limiting for upload attempts
+
+### CSV Download System
+**Updated** Enhanced download capabilities:
+
+**Supported Formats**
+- CSV: Direct CSV export with headers
+- Excel: XLSX format with multiple sheets
+- JSON: Structured JSON representation
+
+**Access Control**
+- Purchase verification before download
+- Token-based temporary access
+- Expiration date enforcement
+- Usage tracking and audit logs
+
+**Performance Optimization**
+- Streaming downloads for large files
+- Pagination for dataset browsing
+- Efficient data retrieval from Firestore
+- Memory management for large exports
+
+**Section sources**
+- [src/app/api/admin/upload/route.ts:1-92](file://src/app/api/admin/upload/route.ts#L1-L92)
+- [src/app/admin/upload/page.tsx:1-294](file://src/app/admin/upload/page.tsx#L1-L294)
+- [src/app/api/datasets/[id]/download/route.ts:1-97](file://src/app/api/datasets/[id]/download/route.ts#L1-L97)
 
 ## Debugging Strategies
 - Use React DevTools Profiler to identify expensive renders
@@ -449,8 +611,8 @@ Focus areas:
 - Validate environment variables at startup and fail fast on missing keys
 - Use selective console logging during development; remove or gate in prod
 - Employ Sentry or equivalent for runtime error monitoring
-
-[No sources needed since this section provides general guidance]
+- Monitor CSV parsing errors and large dataset processing
+- Track download token usage and expiration
 
 ## Conclusion
-These guidelines standardize TypeScript and ESLint configurations, component development patterns, state management, and API design. By adhering to these practices—strict typing, modular UI composition, secure auth flows, and performance-conscious engineering—you can build a reliable, scalable, and maintainable Next.js application integrated with Firebase.
+These guidelines standardize TypeScript and ESLint configurations, component development patterns, state management, and API design. By adhering to these practices—strict typing, modular UI composition, secure auth flows, CSV data management, and performance-conscious engineering—you can build a reliable, scalable, and maintainable Next.js application integrated with Firebase. The addition of CSV file management patterns and deployment best practices ensures proper handling of large datasets while maintaining clean version control and efficient deployment workflows across both Vercel and Firebase hosting platforms.

@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -13,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { DatasetCard } from "@/components/dataset/dataset-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { Search, X, Database } from "lucide-react";
 import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
 import type { Dataset } from "@/types";
 
@@ -23,7 +21,6 @@ export default function DatasetsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   const fetchDatasets = useCallback(async () => {
     setLoading(true);
@@ -58,44 +55,36 @@ export default function DatasetsPage() {
   const hasFilters = search || category || country;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 lg:px-8 py-10">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Browse Datasets</h1>
-        <p className="text-muted-foreground">
-          Discover and purchase high-quality African datasets
+      <div className="mb-10">
+        <p className="text-sm font-medium text-[#3d7eff] uppercase tracking-wider mb-2">Marketplace</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Browse Datasets</h1>
+        <p className="text-[#7a8ba3] text-lg">
+          Discover and purchase verified African datasets
         </p>
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4 mb-8">
-        <div className="flex gap-3">
+      <div className="space-y-4 mb-10">
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#525f73]" />
             <Input
               placeholder="Search datasets..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
+              className="pl-11 h-12 bg-[#111d32] border-white/[0.08] text-white placeholder:text-[#525f73] rounded-xl focus:border-[#3d7eff] focus:ring-[#3d7eff]/20"
             />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
 
-        <div className={`flex flex-wrap gap-3 ${showFilters ? "flex" : "hidden md:flex"}`}>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[200px] h-12 bg-[#111d32] border-white/[0.08] text-[#c8d6e5] rounded-xl">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#111d32] border-white/10">
               {DATASET_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
+                <SelectItem key={cat} value={cat} className="text-[#c8d6e5] focus:bg-white/5 focus:text-white">
                   {cat}
                 </SelectItem>
               ))}
@@ -103,12 +92,12 @@ export default function DatasetsPage() {
           </Select>
 
           <Select value={country} onValueChange={setCountry}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[200px] h-12 bg-[#111d32] border-white/[0.08] text-[#c8d6e5] rounded-xl">
               <SelectValue placeholder="Country" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-[#111d32] border-white/10">
               {AFRICAN_COUNTRIES.map((c) => (
-                <SelectItem key={c} value={c}>
+                <SelectItem key={c} value={c} className="text-[#c8d6e5] focus:bg-white/5 focus:text-white">
                   {c}
                 </SelectItem>
               ))}
@@ -116,57 +105,36 @@ export default function DatasetsPage() {
           </Select>
 
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Clear filters
-            </Button>
+            <button
+              onClick={clearFilters}
+              className="h-12 px-4 rounded-xl text-sm text-[#7a8ba3] hover:text-white border border-white/[0.08] hover:bg-white/5 transition-colors flex items-center gap-1.5"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </button>
           )}
         </div>
-
-        {/* Active filters */}
-        {hasFilters && (
-          <div className="flex flex-wrap gap-2">
-            {category && (
-              <Badge variant="secondary" className="gap-1">
-                {category}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setCategory("")}
-                />
-              </Badge>
-            )}
-            {country && (
-              <Badge variant="secondary" className="gap-1">
-                {country}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => setCountry("")}
-                />
-              </Badge>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Results */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-lg border p-6 space-y-3">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
+            <div key={i} className="glass-card rounded-xl p-6 space-y-4">
+              <Skeleton className="h-5 w-20 bg-white/5" />
+              <Skeleton className="h-6 w-3/4 bg-white/5" />
+              <Skeleton className="h-4 w-full bg-white/5" />
+              <Skeleton className="h-4 w-2/3 bg-white/5" />
               <div className="flex justify-between pt-4">
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-6 w-24 bg-white/5" />
+                <Skeleton className="h-6 w-16 bg-white/5" />
               </div>
             </div>
           ))}
         </div>
       ) : datasets.length > 0 ? (
         <>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-[#525f73] mb-6">
             {datasets.length} dataset{datasets.length !== 1 ? "s" : ""} found
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -176,16 +144,19 @@ export default function DatasetsPage() {
           </div>
         </>
       ) : (
-        <div className="text-center py-16 space-y-3">
-          <Search className="h-12 w-12 mx-auto text-muted-foreground/50" />
-          <h3 className="text-lg font-semibold">No datasets found</h3>
-          <p className="text-muted-foreground">
+        <div className="text-center py-24 space-y-4">
+          <Database className="h-16 w-16 mx-auto text-[#1a2a42]" />
+          <h3 className="text-xl font-semibold text-white">No datasets found</h3>
+          <p className="text-[#7a8ba3]">
             Try adjusting your search or filters
           </p>
           {hasFilters && (
-            <Button variant="outline" onClick={clearFilters}>
+            <button
+              onClick={clearFilters}
+              className="px-6 py-2.5 rounded-full text-sm text-white border border-white/20 hover:bg-white/5 transition-colors"
+            >
               Clear all filters
-            </Button>
+            </button>
           )}
         </div>
       )}

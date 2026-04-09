@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const currency = (formData.get("currency") as string) || "XOF";
     const previewRows = parseInt(formData.get("previewRows") as string) || 10;
     const featured = formData.get("featured") === "true";
+    const allowDownload = formData.get("allowDownload") !== "false";
 
     if (!file || !title || !category || !country || isNaN(price)) {
       return NextResponse.json(
@@ -54,6 +55,8 @@ export async function POST(request: NextRequest) {
       recordCount: allData.length,
       columns,
       previewData,
+      previewRows,
+      allowDownload,
       fileUrl: "",
       featured,
       rating: 0,

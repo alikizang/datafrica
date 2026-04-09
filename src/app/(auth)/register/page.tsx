@@ -3,12 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, Database } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
@@ -44,73 +41,77 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          <div className="flex justify-center mb-2">
-            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Database className="h-6 w-6 text-primary" />
+      <div className="w-full max-w-md">
+        <div className="glass-card rounded-2xl p-8 space-y-6">
+          <div className="text-center space-y-3">
+            <div className="h-14 w-14 mx-auto rounded-xl bg-gradient-to-br from-[#3d7eff] to-[#6c5ce7] flex items-center justify-center">
+              <span className="text-white font-bold text-xl">D</span>
             </div>
+            <h1 className="text-2xl font-bold text-white">Create your account</h1>
+            <p className="text-sm text-[#7a8ba3]">
+              Join Datafrica to access African datasets
+            </p>
           </div>
-          <CardTitle className="text-2xl">Create your account</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Join Datafrica to access African datasets
-          </p>
-        </CardHeader>
-        <CardContent>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
+              <label className="text-sm font-medium text-[#c8d6e5]">Full name</label>
               <Input
-                id="name"
                 type="text"
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="h-12 bg-[#0d1a2d] border-white/[0.08] text-white placeholder:text-[#525f73] rounded-xl focus:border-[#3d7eff]"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <label className="text-sm font-medium text-[#c8d6e5]">Email</label>
               <Input
-                id="email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-12 bg-[#0d1a2d] border-white/[0.08] text-white placeholder:text-[#525f73] rounded-xl focus:border-[#3d7eff]"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <label className="text-sm font-medium text-[#c8d6e5]">Password</label>
               <Input
-                id="password"
                 type="password"
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="h-12 bg-[#0d1a2d] border-white/[0.08] text-white placeholder:text-[#525f73] rounded-xl focus:border-[#3d7eff]"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <button
+              type="submit"
+              className="w-full h-12 rounded-xl bg-[#3d7eff] text-white font-medium hover:bg-[#2d6eef] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={loading}
+            >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Creating account...
                 </>
               ) : (
                 "Create account"
               )}
-            </Button>
+            </button>
           </form>
-          <div className="mt-6 text-center text-sm">
+
+          <div className="text-center text-sm text-[#7a8ba3]">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline">
+            <Link href="/login" className="text-[#3d7eff] font-medium hover:text-[#5a9aff]">
               Sign in
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
