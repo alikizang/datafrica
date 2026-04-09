@@ -23,6 +23,11 @@ import type { User } from "@/types";
 
 const googleProvider = new GoogleAuthProvider();
 
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
@@ -42,6 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const checkAdminEmail = async (email: string): Promise<boolean> => {
+    // First check the hardcoded fallback list
+    if (ADMIN_EMAILS.includes(email.toLowerCase())) return true;
     try {
       const q = query(collection(db, "adminEmails"), where("email", "==", email));
       const snapshot = await getDocs(q);
@@ -78,11 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error("Firestore error during auth:", err);
+      // Fallback: check hardcoded admin emails when Firestore is unavailable
+      const isFallbackAdmin = ADMIN_EMAILS.includes(
+        (fbUser.email || "").toLowerCase()
+      );
       return {
         uid: fbUser.uid,
         email: fbUser.email || "",
         displayName: fbUser.displayName || "",
-        role: "user",
+        role: isFallbackAdmin ? "admin" : "user",
         createdAt: new Date().toISOString(),
       };
     }

@@ -42,6 +42,11 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_ADMIN_EMAILS
+    value: prosper.alikizang24@gmail.com
+    availability:
+      - BUILD
+      - RUNTIME
 
   # Firebase Admin SDK
   - variable: FIREBASE_ADMIN_PROJECT_ID

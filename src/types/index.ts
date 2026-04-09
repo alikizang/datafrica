@@ -36,10 +36,29 @@ export interface Purchase {
   datasetTitle: string;
   amount: number;
   currency: string;
-  paymentMethod: "kkiapay" | "stripe";
+  paymentMethod: "kkiapay" | "paydunya" | "stripe";
   transactionId: string;
   status: "pending" | "completed" | "failed";
   createdAt: string;
+}
+
+export type PaymentProvider = "paydunya" | "kkiapay";
+
+export interface PaymentSettings {
+  activeProvider: PaymentProvider;
+  paydunya: {
+    masterKey: string;
+    privateKey: string;
+    publicKey: string;
+    token: string;
+    mode: "test" | "live";
+  };
+  kkiapay: {
+    publicKey: string;
+    privateKey: string;
+    secret: string;
+    sandbox: boolean;
+  };
 }
 
 export interface DownloadToken {

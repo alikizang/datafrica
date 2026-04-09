@@ -12,6 +12,7 @@ import {
   BarChart3,
   Upload,
   ShoppingBag,
+  CreditCard,
 } from "lucide-react";
 
 interface Analytics {
@@ -102,14 +103,14 @@ export default function AdminPage() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
         <Link href="/admin/upload" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Upload className="h-5 w-5 text-primary" />
           </div>
           <div>
             <p className="font-semibold text-foreground">Upload Dataset</p>
-            <p className="text-sm text-muted-foreground">Add new data to the marketplace</p>
+            <p className="text-sm text-muted-foreground">Add new data</p>
           </div>
         </Link>
         <Link href="/admin/users" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
@@ -118,7 +119,16 @@ export default function AdminPage() {
           </div>
           <div>
             <p className="font-semibold text-foreground">Manage Users</p>
-            <p className="text-sm text-muted-foreground">View and manage user accounts</p>
+            <p className="text-sm text-muted-foreground">User accounts</p>
+          </div>
+        </Link>
+        <Link href="/admin/payments" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+            <CreditCard className="h-5 w-5 text-amber-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">Payments</p>
+            <p className="text-sm text-muted-foreground">Payment providers</p>
           </div>
         </Link>
         <Link href="/admin/analytics" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
@@ -127,7 +137,7 @@ export default function AdminPage() {
           </div>
           <div>
             <p className="font-semibold text-foreground">Analytics</p>
-            <p className="text-sm text-muted-foreground">View detailed sales analytics</p>
+            <p className="text-sm text-muted-foreground">Sales analytics</p>
           </div>
         </Link>
       </div>

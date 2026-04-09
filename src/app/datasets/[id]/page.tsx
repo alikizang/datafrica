@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataPreviewTable } from "@/components/dataset/data-preview-table";
-import { KKiapayButton } from "@/components/payment/kkiapay-button";
+import { PaymentButton } from "@/components/payment/payment-button";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Database,
@@ -33,6 +33,7 @@ export default function DatasetDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, getIdToken } = useAuth();
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +58,48 @@ export default function DatasetDetailPage({
 
     fetchDataset();
   }, [id]);
+
+  // Handle PayDunya return (user redirected back after payment)
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const paydunyaToken = searchParams.get("token");
+
+    if (paymentStatus === "success" && paydunyaToken && user) {
+      (async () => {
+        try {
+          const authToken = await getIdToken();
+          if (!authToken) return;
+
+          const res = await fetch("/api/payments/verify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              transactionId: paydunyaToken,
+              datasetId: id,
+              paymentMethod: "paydunya",
+            }),
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            setPurchased(true);
+            setDownloadToken(data.downloadToken);
+            toast.success("Payment successful! You can now access the full dataset.");
+          }
+        } catch {
+          // IPN webhook will handle it as backup
+        }
+        // Clean up URL params
+        router.replace(`/datasets/${id}`, { scroll: false });
+      })();
+    } else if (paymentStatus === "cancelled") {
+      toast.error("Payment was cancelled.");
+      router.replace(`/datasets/${id}`, { scroll: false });
+    }
+  }, [searchParams, user, id, getIdToken, router]);
 
   useEffect(() => {
     async function checkPurchase() {
@@ -357,13 +400,13 @@ export default function DatasetDetailPage({
               </div>
             ) : user ? (
               <div className="space-y-4">
-                <KKiapayButton
+                <PaymentButton
                   dataset={dataset}
                   onSuccess={handlePaymentSuccess}
                   onError={(err) => toast.error(err)}
                 />
                 <p className="text-xs text-center text-dim">
-                  Secure payment via KKiaPay. Supports mobile money and cards.
+                  Secure payment. Supports mobile money and cards.
                 </p>
               </div>
             ) : (

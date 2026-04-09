@@ -37,6 +37,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Settings (payment config, etc.) - only readable/writable via Admin SDK
+    match /settings/{settingId} {
+      allow read, write: if false;
+    }
+
+    // Download tokens - only via Admin SDK
+    match /downloadTokens/{tokenId} {
+      allow read, write: if false;
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

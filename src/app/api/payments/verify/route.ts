@@ -75,6 +75,42 @@ export async function POST(request: NextRequest) {
           verified = true;
         }
       }
+    } else if (paymentMethod === "paydunya") {
+      // Verify PayDunya transaction by confirming invoice token
+      try {
+        const settingsDoc = await adminDb.collection("settings").doc("payment").get();
+        const settings = settingsDoc.exists ? settingsDoc.data() : null;
+
+        const masterKey = settings?.paydunya?.masterKey || process.env.PAYDUNYA_MASTER_KEY || "";
+        const privateKey = settings?.paydunya?.privateKey || process.env.PAYDUNYA_PRIVATE_KEY || "";
+        const token = settings?.paydunya?.token || process.env.PAYDUNYA_TOKEN || "";
+        const mode = settings?.paydunya?.mode || process.env.PAYDUNYA_MODE || "test";
+
+        const baseURL =
+          mode === "live"
+            ? "https://app.paydunya.com/api/v1"
+            : "https://app.paydunya.com/sandbox-api/v1";
+
+        const confirmRes = await fetch(`${baseURL}/checkout-invoice/confirm/${transactionId}`, {
+          headers: {
+            "PAYDUNYA-MASTER-KEY": masterKey,
+            "PAYDUNYA-PRIVATE-KEY": privateKey,
+            "PAYDUNYA-TOKEN": token,
+          },
+        });
+
+        if (confirmRes.ok) {
+          const confirmData = await confirmRes.json();
+          if (confirmData.response_code === "00" && confirmData.status === "completed") {
+            verified = true;
+          }
+        }
+      } catch (pdError) {
+        console.error("PayDunya verification error:", pdError);
+        if (process.env.NODE_ENV === "development") {
+          verified = true;
+        }
+      }
     } else if (paymentMethod === "stripe") {
       // Stripe verification would go here
       // For now, mark as verified in development
