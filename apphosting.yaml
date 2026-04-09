@@ -43,22 +43,12 @@ env:
       - BUILD
       - RUNTIME
 
-  # Firebase Admin SDK (uses default credentials in App Hosting)
+  # Firebase Admin SDK
   - variable: FIREBASE_ADMIN_PROJECT_ID
     value: mydatafrica
     availability:
       - RUNTIME
-
-  # Secrets (stored in Secret Manager, referenced here)
-  - variable: FIREBASE_ADMIN_CLIENT_EMAIL
-    secret: FIREBASE_ADMIN_CLIENT_EMAIL
-    availability:
-      - RUNTIME
-  - variable: FIREBASE_ADMIN_PRIVATE_KEY
-    secret: FIREBASE_ADMIN_PRIVATE_KEY
-    availability:
-      - RUNTIME
   - variable: JWT_SECRET
-    secret: JWT_SECRET
+    value: datafrica-jwt-secret-change-in-production
     availability:
       - RUNTIME

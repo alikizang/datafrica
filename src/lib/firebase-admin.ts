@@ -17,13 +17,21 @@ function getAdminApp(): App {
     return _app;
   }
 
-  const serviceAccount: ServiceAccount = {
-    projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-  };
+  // In Firebase App Hosting, use Application Default Credentials if no explicit key
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-  _app = initializeApp({ credential: cert(serviceAccount) });
+  if (clientEmail && privateKey && !privateKey.includes("YOUR_KEY_HERE")) {
+    const serviceAccount: ServiceAccount = {
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+      clientEmail,
+      privateKey,
+    };
+    _app = initializeApp({ credential: cert(serviceAccount) });
+  } else {
+    // Fall back to Application Default Credentials (works in App Hosting / Cloud Run)
+    _app = initializeApp({ projectId: process.env.FIREBASE_ADMIN_PROJECT_ID });
+  }
   return _app;
 }
 
