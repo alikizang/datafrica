@@ -1,0 +1,64 @@
+runConfig:
+  concurrency: 100
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 2
+
+env:
+  # Firebase Client SDK (public, safe to expose)
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyAwVFH441wCKKHZ3rUVORMoj-KrFhHuPDo
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: mydatafrica.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: mydatafrica
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: mydatafrica.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "737879095116"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:737879095116:web:3df3e7856df819575981e9"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://datafrica--mydatafrica.europe-west4.hosted.app
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Firebase Admin SDK (uses default credentials in App Hosting)
+  - variable: FIREBASE_ADMIN_PROJECT_ID
+    value: mydatafrica
+    availability:
+      - RUNTIME
+
+  # Secrets (stored in Secret Manager, referenced here)
+  - variable: FIREBASE_ADMIN_CLIENT_EMAIL
+    secret: FIREBASE_ADMIN_CLIENT_EMAIL
+    availability:
+      - RUNTIME
+  - variable: FIREBASE_ADMIN_PRIVATE_KEY
+    secret: FIREBASE_ADMIN_PRIVATE_KEY
+    availability:
+      - RUNTIME
+  - variable: JWT_SECRET
+    secret: JWT_SECRET
+    availability:
+      - RUNTIME
