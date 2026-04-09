@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
-import { ArrowLeft, Shield, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Shield, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserRecord {
@@ -94,46 +93,59 @@ export default function AdminUsersPage() {
   if (authLoading) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Link
-        href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Admin
-      </Link>
+    <div className="min-h-screen bg-[#0a1628]">
+      <div className="container mx-auto px-4 py-8">
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-1 text-sm text-[#7a8ba3] hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Admin
+        </Link>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Users</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-10 w-10 rounded-lg bg-[#3d7eff]/10 flex items-center justify-center">
+            <Users className="h-5 w-5 text-[#3d7eff]" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Manage Users</h1>
+        </div>
+
+        <div className="glass-card rounded-xl border border-white/10 overflow-hidden">
           {loading ? (
-            <div className="space-y-3">
+            <div className="p-6 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton key={i} className="h-12 w-full bg-white/5" />
               ))}
             </div>
+          ) : users.length === 0 ? (
+            <div className="p-12 text-center">
+              <Users className="h-12 w-12 text-[#7a8ba3] mx-auto mb-3" />
+              <p className="text-[#7a8ba3]">No users found</p>
+            </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableRow className="border-white/10 hover:bg-transparent">
+                    <TableHead className="text-[#7a8ba3]">Email</TableHead>
+                    <TableHead className="text-[#7a8ba3]">Name</TableHead>
+                    <TableHead className="text-[#7a8ba3]">Role</TableHead>
+                    <TableHead className="text-[#7a8ba3]">Joined</TableHead>
+                    <TableHead className="text-[#7a8ba3] text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.email}</TableCell>
-                      <TableCell>{u.displayName || "-"}</TableCell>
+                    <TableRow key={u.id} className="border-white/10 hover:bg-white/5">
+                      <TableCell className="font-medium text-white">{u.email}</TableCell>
+                      <TableCell className="text-[#c0c8d4]">{u.displayName || "-"}</TableCell>
                       <TableCell>
                         <Badge
-                          variant={u.role === "admin" ? "default" : "secondary"}
+                          className={
+                            u.role === "admin"
+                              ? "bg-[#3d7eff]/20 text-[#3d7eff] border-[#3d7eff]/30 hover:bg-[#3d7eff]/30"
+                              : "bg-white/10 text-[#7a8ba3] border-white/10 hover:bg-white/15"
+                          }
                         >
                           {u.role === "admin" && (
                             <Shield className="h-3 w-3 mr-1" />
@@ -141,13 +153,14 @@ export default function AdminUsersPage() {
                           {u.role}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-[#7a8ba3]">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           size="sm"
                           variant="outline"
+                          className="border-white/10 text-[#c0c8d4] hover:bg-white/10 hover:text-white"
                           onClick={() => toggleRole(u.id, u.role)}
                           disabled={u.id === user?.uid}
                         >
@@ -170,8 +183,8 @@ export default function AdminUsersPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
