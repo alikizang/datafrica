@@ -122,6 +122,11 @@ export default function DatasetDetailPage({
         });
         if (res.ok) {
           setPurchased(true);
+          // Auto-open full viewer if ?fullview=true
+          if (searchParams.get("fullview") === "true") {
+            setShowFullViewer(true);
+            router.replace(`/datasets/${id}`, { scroll: false });
+          }
         }
       } catch {
         // Not purchased
@@ -129,7 +134,7 @@ export default function DatasetDetailPage({
     }
 
     checkPurchase();
-  }, [user, id, getIdToken]);
+  }, [user, id, getIdToken, searchParams, router]);
 
   const handlePaymentSuccess = useCallback(
     async (transactionId: string) => {
@@ -333,6 +338,15 @@ export default function DatasetDetailPage({
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
               <Eye className="h-4 w-4 text-primary" />
               {t("dataset.dataPreview")}
+              {purchased && (
+                <button
+                  onClick={() => setShowFullViewer(true)}
+                  className="ml-auto px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors flex items-center gap-1.5 normal-case tracking-normal"
+                >
+                  <Database className="h-3.5 w-3.5" />
+                  {t("dataset.fullView")}
+                </button>
+              )}
             </h3>
             <DataPreviewTable
               data={dataset.previewData}
@@ -341,15 +355,6 @@ export default function DatasetDetailPage({
               totalRecords={dataset.recordCount}
               purchased={purchased}
             />
-            {purchased && (
-              <button
-                onClick={() => setShowFullViewer(true)}
-                className="mt-4 w-full py-3 rounded-xl bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 border border-primary/20"
-              >
-                <Database className="h-4 w-4" />
-                {t("dataset.fullView")}
-              </button>
-            )}
           </div>
 
           {/* Full Dataset Viewer (fullscreen overlay) */}

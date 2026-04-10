@@ -102,7 +102,8 @@ export async function GET(
     }
 
     try {
-      const bucket = adminStorage.bucket();
+      const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || undefined;
+      const bucket = adminStorage.bucket(bucketName);
       const file = bucket.file(storagePath);
       const [exists] = await file.exists();
 

@@ -18,6 +18,7 @@ import {
   FileJson,
   ExternalLink,
   Eye,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Purchase } from "@/types";
@@ -176,7 +177,7 @@ export default function DashboardPage() {
                         <span>{purchase.amount.toLocaleString()} {purchase.currency}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {purchase.allowDownload !== false ? (
                         (["csv", "excel", "json"] as const).map((format) => (
                           <button key={format} onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format)} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1">
@@ -192,7 +193,11 @@ export default function DashboardPage() {
                           {t("dataset.viewOnly")}
                         </span>
                       )}
-                      <Link href={`/datasets/${purchase.datasetId}`} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors">
+                      <Link href={`/datasets/${purchase.datasetId}?fullview=true`} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1">
+                        <Database className="h-3 w-3" />
+                        {t("dataset.fullView")}
+                      </Link>
+                      <Link href={`/datasets/${purchase.datasetId}`} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title={t("dataset.viewDataset")}>
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     </div>

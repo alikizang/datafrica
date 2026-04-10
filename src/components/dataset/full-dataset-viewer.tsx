@@ -153,21 +153,23 @@ export function FullDatasetViewer({ datasetId, datasetTitle, initialFullscreen =
             </button>
           )}
         </form>
-        <button
-          type="button"
-          onClick={() => {
-            setFullscreen((v) => {
-              const next = !v;
-              if (!next && initialFullscreen && onClose) onClose();
-              return next;
-            });
-          }}
-          className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors shrink-0"
-          title={fullscreen ? t("dataset.exitFullView") : t("dataset.fullView")}
-        >
-          {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          <span className="hidden sm:inline">{fullscreen ? t("dataset.exitFullView") : t("dataset.fullView")}</span>
-        </button>
+        {!initialFullscreen && (
+          <button
+            type="button"
+            onClick={() => {
+              setFullscreen((v) => {
+                const next = !v;
+                if (!next && initialFullscreen && onClose) onClose();
+                return next;
+              });
+            }}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors shrink-0"
+            title={fullscreen ? t("dataset.exitFullView") : t("dataset.fullView")}
+          >
+            {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            <span className="hidden sm:inline">{fullscreen ? t("dataset.exitFullView") : t("dataset.fullView")}</span>
+          </button>
+        )}
       </div>
 
       {/* Results info */}

@@ -72,10 +72,14 @@ export async function GET(
       storagePath = `datasets/${id}/data.csv`;
     }
 
+    console.log(`[data] Dataset ${id} - fileUrl: "${rawPath}", resolved storagePath: "${storagePath}"`);
+
     try {
-      const bucket = adminStorage.bucket();
+      const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || undefined;
+      const bucket = adminStorage.bucket(bucketName);
       const file = bucket.file(storagePath);
       const [exists] = await file.exists();
+      console.log(`[data] File exists at "${storagePath}": ${exists}`);
 
       if (exists) {
         const [contents] = await file.download();
@@ -85,8 +89,10 @@ export async function GET(
           skipEmptyLines: true,
         });
         allData = parsed.data as Record<string, unknown>[];
+        console.log(`[data] Parsed ${allData.length} rows from Storage`);
       }
-    } catch {
+    } catch (storageError) {
+      console.error(`[data] Storage error for "${storagePath}":`, storageError);
       // Fall through to Firestore
     }
 

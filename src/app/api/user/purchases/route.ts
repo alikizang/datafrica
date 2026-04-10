@@ -25,7 +25,29 @@ export async function GET(request: NextRequest) {
         return dateB.localeCompare(dateA);
       });
 
-    return NextResponse.json({ purchases });
+    // Enrich purchases with dataset allowDownload (handles old records without this field)
+    const datasetIds = [...new Set(purchases.map((p) => (p as Record<string, unknown>).datasetId as string))];
+    const datasetAllowDownload: Record<string, boolean> = {};
+    // Firestore getAll supports up to 100 refs per call
+    if (datasetIds.length > 0) {
+      const refs = datasetIds.map((dId) => adminDb.collection("datasets").doc(dId));
+      const datasetDocs = await adminDb.getAll(...refs);
+      for (const doc of datasetDocs) {
+        if (doc.exists) {
+          datasetAllowDownload[doc.id] = doc.data()!.allowDownload !== false;
+        }
+      }
+    }
+
+    const enrichedPurchases = purchases.map((p) => {
+      const rec = p as Record<string, unknown>;
+      return {
+        ...rec,
+        allowDownload: datasetAllowDownload[rec.datasetId as string] ?? true,
+      };
+    });
+
+    return NextResponse.json({ purchases: enrichedPurchases });
   } catch (error) {
     console.error("Error fetching purchases:", error);
     return NextResponse.json(
