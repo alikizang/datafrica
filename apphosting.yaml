@@ -65,7 +65,7 @@ env:
 
   # PayDunya
   - variable: PAYDUNYA_MASTER_KEY
-    value: wQsPy2oq-X6kd-XNHf-D6Zc-5aiAoTY3XAfV
+    value: PWi2wARf-R115-PAeu-bPvm-mNdTjC0geQic
     availability:
       - RUNTIME
   - variable: PAYDUNYA_PRIVATE_KEY
