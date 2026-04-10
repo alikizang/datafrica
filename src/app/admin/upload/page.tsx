@@ -308,7 +308,7 @@ export default function UploadDatasetPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
                   {DATASET_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-muted focus:text-foreground">
+                    <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                       {t(`categories.${cat}`) !== `categories.${cat}` ? t(`categories.${cat}`) : cat}
                     </SelectItem>
                   ))}
@@ -323,7 +323,7 @@ export default function UploadDatasetPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
                   {AFRICAN_COUNTRIES.map((c) => (
-                    <SelectItem key={c} value={c} className="text-popover-foreground focus:bg-muted focus:text-foreground">
+                    <SelectItem key={c} value={c} className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                       {c}
                     </SelectItem>
                   ))}
@@ -354,11 +354,11 @@ export default function UploadDatasetPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  <SelectItem value="XOF" className="text-popover-foreground focus:bg-muted focus:text-foreground">CFA (XOF)</SelectItem>
-                  <SelectItem value="USD" className="text-popover-foreground focus:bg-muted focus:text-foreground">USD ($)</SelectItem>
-                  <SelectItem value="NGN" className="text-popover-foreground focus:bg-muted focus:text-foreground">NGN</SelectItem>
-                  <SelectItem value="KES" className="text-popover-foreground focus:bg-muted focus:text-foreground">KES</SelectItem>
-                  <SelectItem value="GHS" className="text-popover-foreground focus:bg-muted focus:text-foreground">GHS</SelectItem>
+                  <SelectItem value="XOF" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">CFA (XOF)</SelectItem>
+                  <SelectItem value="USD" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">USD ($)</SelectItem>
+                  <SelectItem value="NGN" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">NGN</SelectItem>
+                  <SelectItem value="KES" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">KES</SelectItem>
+                  <SelectItem value="GHS" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">GHS</SelectItem>
                 </SelectContent>
               </Select>
             </div>

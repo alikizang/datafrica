@@ -73,7 +73,7 @@ export default function DatasetsPage() {
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               {DATASET_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-muted focus:text-foreground">
+                <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                   {t(`categories.${cat}`) !== `categories.${cat}` ? t(`categories.${cat}`) : cat}
                 </SelectItem>
               ))}
@@ -85,7 +85,7 @@ export default function DatasetsPage() {
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               {AFRICAN_COUNTRIES.map((c) => (
-                <SelectItem key={c} value={c} className="text-popover-foreground focus:bg-muted focus:text-foreground">{c}</SelectItem>
+                <SelectItem key={c} value={c} className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">{c}</SelectItem>
               ))}
             </SelectContent>
           </Select>

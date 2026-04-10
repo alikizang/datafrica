@@ -63,7 +63,7 @@
   --secondary-foreground: #334155;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
+  --accent: #e8eef6;
   --accent-foreground: #0f172a;
   --destructive: #ef4444;
   --border: #e2e8f0;
@@ -78,7 +78,7 @@
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #3d7eff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
+  --sidebar-accent: #e8eef6;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #3d7eff;
@@ -101,7 +101,7 @@
   --secondary-foreground: #c8d6e5;
   --muted: #152238;
   --muted-foreground: #7a8ba3;
-  --accent: #1a2a42;
+  --accent: #1e3352;
   --accent-foreground: #e8ecf4;
   --destructive: #ef4444;
   --border: rgba(255, 255, 255, 0.08);
@@ -116,7 +116,7 @@
   --sidebar-foreground: #e8ecf4;
   --sidebar-primary: #3d7eff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1a2a42;
+  --sidebar-accent: #1e3352;
   --sidebar-accent-foreground: #e8ecf4;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #3d7eff;
@@ -144,8 +144,8 @@ body {
 }
 
 .glass-card:hover {
-  border-color: var(--primary);
-  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
 }
 
 /* Gradient accent border on hover */

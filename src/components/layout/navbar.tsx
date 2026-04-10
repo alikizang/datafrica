@@ -67,7 +67,7 @@ export function Navbar() {
                 <DropdownMenuItem
                   key={l.code}
                   onClick={() => setLang(l.code)}
-                  className={`text-popover-foreground focus:bg-muted ${lang === l.code ? "bg-muted font-medium" : ""}`}
+                  className={`text-popover-foreground focus:bg-accent focus:text-accent-foreground ${lang === l.code ? "bg-accent font-medium" : ""}`}
                 >
                   {l.label}
                 </DropdownMenuItem>
@@ -108,18 +108,18 @@ export function Navbar() {
                 </div>
                 <DropdownMenuSeparator className="bg-border" />
                 {user.role === "admin" ? (
-                  <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
+                  <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                     <Link href="/admin">{t("nav.adminPanel")}</Link>
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
+                  <DropdownMenuItem asChild className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                     <Link href="/dashboard">{t("nav.dashboard")}</Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem
                   onClick={() => signOut()}
-                  className="text-popover-foreground focus:bg-muted"
+                  className="text-popover-foreground focus:bg-accent focus:text-accent-foreground"
                 >
                   {t("nav.signOut")}
                 </DropdownMenuItem>

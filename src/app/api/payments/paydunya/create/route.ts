@@ -40,12 +40,16 @@ export async function POST(request: NextRequest) {
     const settingsDoc = await adminDb.collection("settings").doc("payment").get();
     const settings = settingsDoc.exists ? settingsDoc.data() : null;
 
-    // Use Firestore values if non-empty, otherwise fall back to env vars
-    const masterKey = settings?.paydunya?.masterKey || process.env.PAYDUNYA_MASTER_KEY || "";
-    const privateKey = settings?.paydunya?.privateKey || process.env.PAYDUNYA_PRIVATE_KEY || "";
-    const publicKey = settings?.paydunya?.publicKey || process.env.PAYDUNYA_PUBLIC_KEY || "";
-    const token = settings?.paydunya?.token || process.env.PAYDUNYA_TOKEN || "";
-    const mode = settings?.paydunya?.mode || process.env.PAYDUNYA_MODE || "test";
+    // Use Firestore values only if they're real keys (not masked with bullets from old bug)
+    const isValidKey = (key: string | undefined): key is string =>
+      !!key && key.length > 0 && !key.includes("•");
+
+    const pdSettings = settings?.paydunya;
+    const masterKey = isValidKey(pdSettings?.masterKey) ? pdSettings.masterKey : (process.env.PAYDUNYA_MASTER_KEY || "");
+    const privateKey = isValidKey(pdSettings?.privateKey) ? pdSettings.privateKey : (process.env.PAYDUNYA_PRIVATE_KEY || "");
+    const publicKey = isValidKey(pdSettings?.publicKey) ? pdSettings.publicKey : (process.env.PAYDUNYA_PUBLIC_KEY || "");
+    const token = isValidKey(pdSettings?.token) ? pdSettings.token : (process.env.PAYDUNYA_TOKEN || "");
+    const mode = pdSettings?.mode || process.env.PAYDUNYA_MODE || "test";
 
     if (!masterKey || !privateKey || !publicKey || !token) {
       return NextResponse.json(

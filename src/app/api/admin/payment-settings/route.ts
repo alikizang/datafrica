@@ -32,21 +32,26 @@ export async function GET(request: NextRequest) {
 
     const data = doc.data()!;
 
-    // Return real keys to admin (the admin panel is already auth-protected).
-    // The eye toggle on the frontend handles visual show/hide via type="password".
+    // If Firestore keys are corrupted (contain bullet chars from old masking bug),
+    // fall back to env vars so admin sees the real keys
+    const clean = (val: string | undefined, envFallback: string) => {
+      if (!val || val.includes("•")) return envFallback;
+      return val;
+    };
+
     return NextResponse.json({
       activeProvider: data.activeProvider || "paydunya",
       paydunya: {
-        masterKey: data.paydunya?.masterKey || "",
-        privateKey: data.paydunya?.privateKey || "",
-        publicKey: data.paydunya?.publicKey || "",
-        token: data.paydunya?.token || "",
+        masterKey: clean(data.paydunya?.masterKey, process.env.PAYDUNYA_MASTER_KEY || ""),
+        privateKey: clean(data.paydunya?.privateKey, process.env.PAYDUNYA_PRIVATE_KEY || ""),
+        publicKey: clean(data.paydunya?.publicKey, process.env.PAYDUNYA_PUBLIC_KEY || ""),
+        token: clean(data.paydunya?.token, process.env.PAYDUNYA_TOKEN || ""),
         mode: data.paydunya?.mode || "test",
       },
       kkiapay: {
-        publicKey: data.kkiapay?.publicKey || "",
-        privateKey: data.kkiapay?.privateKey || "",
-        secret: data.kkiapay?.secret || "",
+        publicKey: clean(data.kkiapay?.publicKey, process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || ""),
+        privateKey: clean(data.kkiapay?.privateKey, process.env.KKIAPAY_PRIVATE_KEY || ""),
+        secret: clean(data.kkiapay?.secret, process.env.KKIAPAY_SECRET || ""),
         sandbox: data.kkiapay?.sandbox ?? true,
       },
     });
@@ -71,25 +76,31 @@ export async function PUT(request: NextRequest) {
 
     const update: Record<string, unknown> = {};
 
+    // Strip any value that still contains bullet characters (corruption guard)
+    const sanitize = (val: string | undefined) => {
+      if (!val || val.includes("\u2022")) return "";
+      return val;
+    };
+
     if (activeProvider) {
       update.activeProvider = activeProvider;
     }
 
     if (paydunya) {
       update.paydunya = {
-        masterKey: paydunya.masterKey || "",
-        privateKey: paydunya.privateKey || "",
-        publicKey: paydunya.publicKey || "",
-        token: paydunya.token || "",
+        masterKey: sanitize(paydunya.masterKey),
+        privateKey: sanitize(paydunya.privateKey),
+        publicKey: sanitize(paydunya.publicKey),
+        token: sanitize(paydunya.token),
         mode: paydunya.mode || "test",
       };
     }
 
     if (kkiapay) {
       update.kkiapay = {
-        publicKey: kkiapay.publicKey || "",
-        privateKey: kkiapay.privateKey || "",
-        secret: kkiapay.secret || "",
+        publicKey: sanitize(kkiapay.publicKey),
+        privateKey: sanitize(kkiapay.privateKey),
+        secret: sanitize(kkiapay.secret),
         sandbox: kkiapay.sandbox ?? true,
       };
     }
