@@ -8,11 +8,13 @@
   "hosting": {
     "public": "public_hosting",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "redirects": [
+    "rewrites": [
       {
         "source": "**",
-        "destination": "https://datafrica--mydatafrica.europe-west4.hosted.app",
-        "type": 301
+        "run": {
+          "serviceId": "datafrica",
+          "region": "europe-west4"
+        }
       }
     ]
   }

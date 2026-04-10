@@ -47,6 +47,11 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    value: 737879095116-1vmm3nhfjm6bfc5hius71fvvu8i8tv25.apps.googleusercontent.com
+    availability:
+      - BUILD
+      - RUNTIME
 
   # Firebase Admin SDK
   - variable: FIREBASE_ADMIN_PROJECT_ID
