@@ -40,12 +40,14 @@ export async function POST(request: NextRequest) {
     const settingsDoc = await adminDb.collection("settings").doc("payment").get();
     const settings = settingsDoc.exists ? settingsDoc.data() : null;
 
+    // Use Firestore values if non-empty, otherwise fall back to env vars
     const masterKey = settings?.paydunya?.masterKey || process.env.PAYDUNYA_MASTER_KEY || "";
     const privateKey = settings?.paydunya?.privateKey || process.env.PAYDUNYA_PRIVATE_KEY || "";
+    const publicKey = settings?.paydunya?.publicKey || process.env.PAYDUNYA_PUBLIC_KEY || "";
     const token = settings?.paydunya?.token || process.env.PAYDUNYA_TOKEN || "";
     const mode = settings?.paydunya?.mode || process.env.PAYDUNYA_MODE || "test";
 
-    if (!masterKey || !privateKey || !token) {
+    if (!masterKey || !privateKey || !publicKey || !token) {
       return NextResponse.json(
         { error: "PayDunya is not configured. Please set up payment settings in admin." },
         { status: 500 }
@@ -98,6 +100,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         "PAYDUNYA-MASTER-KEY": masterKey,
         "PAYDUNYA-PRIVATE-KEY": privateKey,
+        "PAYDUNYA-PUBLIC-KEY": publicKey,
         "PAYDUNYA-TOKEN": token,
       },
       body: JSON.stringify(invoicePayload),

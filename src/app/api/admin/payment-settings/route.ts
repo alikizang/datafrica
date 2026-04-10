@@ -16,15 +16,15 @@ export async function GET(request: NextRequest) {
         activeProvider: "paydunya",
         paydunya: {
           masterKey: process.env.PAYDUNYA_MASTER_KEY || "",
-          privateKey: "",
-          publicKey: "",
+          privateKey: process.env.PAYDUNYA_PRIVATE_KEY || "",
+          publicKey: process.env.PAYDUNYA_PUBLIC_KEY || "",
           token: process.env.PAYDUNYA_TOKEN || "",
           mode: process.env.PAYDUNYA_MODE || "test",
         },
         kkiapay: {
           publicKey: process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || "",
-          privateKey: "",
-          secret: "",
+          privateKey: process.env.KKIAPAY_PRIVATE_KEY || "",
+          secret: process.env.KKIAPAY_SECRET || "",
           sandbox: true,
         },
       });
@@ -32,23 +32,21 @@ export async function GET(request: NextRequest) {
 
     const data = doc.data()!;
 
-    // Mask sensitive keys for the frontend (show last 8 chars)
-    const mask = (key: string) =>
-      key && key.length > 8 ? "•".repeat(key.length - 8) + key.slice(-8) : key || "";
-
+    // Return real keys to admin (the admin panel is already auth-protected).
+    // The eye toggle on the frontend handles visual show/hide via type="password".
     return NextResponse.json({
       activeProvider: data.activeProvider || "paydunya",
       paydunya: {
-        masterKey: mask(data.paydunya?.masterKey || ""),
-        privateKey: mask(data.paydunya?.privateKey || ""),
-        publicKey: mask(data.paydunya?.publicKey || ""),
-        token: mask(data.paydunya?.token || ""),
+        masterKey: data.paydunya?.masterKey || "",
+        privateKey: data.paydunya?.privateKey || "",
+        publicKey: data.paydunya?.publicKey || "",
+        token: data.paydunya?.token || "",
         mode: data.paydunya?.mode || "test",
       },
       kkiapay: {
-        publicKey: mask(data.kkiapay?.publicKey || ""),
-        privateKey: mask(data.kkiapay?.privateKey || ""),
-        secret: mask(data.kkiapay?.secret || ""),
+        publicKey: data.kkiapay?.publicKey || "",
+        privateKey: data.kkiapay?.privateKey || "",
+        secret: data.kkiapay?.secret || "",
         sandbox: data.kkiapay?.sandbox ?? true,
       },
     });
@@ -71,17 +69,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
     }
 
-    // Get existing settings to preserve masked fields
-    const existingDoc = await adminDb.collection("settings").doc("payment").get();
-    const existing = existingDoc.exists ? existingDoc.data()! : {};
-
-    // Helper to keep existing value if new value is masked (contains bullets)
-    const resolveKey = (newVal: string | undefined, existingVal: string | undefined) => {
-      if (!newVal) return existingVal || "";
-      if (newVal.includes("•")) return existingVal || "";
-      return newVal;
-    };
-
     const update: Record<string, unknown> = {};
 
     if (activeProvider) {
@@ -90,20 +77,20 @@ export async function PUT(request: NextRequest) {
 
     if (paydunya) {
       update.paydunya = {
-        masterKey: resolveKey(paydunya.masterKey, existing.paydunya?.masterKey),
-        privateKey: resolveKey(paydunya.privateKey, existing.paydunya?.privateKey),
-        publicKey: resolveKey(paydunya.publicKey, existing.paydunya?.publicKey),
-        token: resolveKey(paydunya.token, existing.paydunya?.token),
-        mode: paydunya.mode || existing.paydunya?.mode || "test",
+        masterKey: paydunya.masterKey || "",
+        privateKey: paydunya.privateKey || "",
+        publicKey: paydunya.publicKey || "",
+        token: paydunya.token || "",
+        mode: paydunya.mode || "test",
       };
     }
 
     if (kkiapay) {
       update.kkiapay = {
-        publicKey: resolveKey(kkiapay.publicKey, existing.kkiapay?.publicKey),
-        privateKey: resolveKey(kkiapay.privateKey, existing.kkiapay?.privateKey),
-        secret: resolveKey(kkiapay.secret, existing.kkiapay?.secret),
-        sandbox: kkiapay.sandbox ?? existing.kkiapay?.sandbox ?? true,
+        publicKey: kkiapay.publicKey || "",
+        privateKey: kkiapay.privateKey || "",
+        secret: kkiapay.secret || "",
+        sandbox: kkiapay.sandbox ?? true,
       };
     }
 

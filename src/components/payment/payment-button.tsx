@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { Loader2, CreditCard } from "lucide-react";
 import type { Dataset, PaymentProvider } from "@/types";
 
@@ -14,6 +15,7 @@ interface PaymentButtonProps {
 
 export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProps) {
   const { user, getIdToken } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState<PaymentProvider>("paydunya");
   const [kkiapayReady, setKkiapayReady] = useState(false);
@@ -157,12 +159,12 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
       {loading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Processing...
+          {t("dataset.processing")}
         </>
       ) : (
         <>
           <CreditCard className="mr-2 h-4 w-4" />
-          Pay {formatPrice(dataset.price, dataset.currency)}
+          {t("dataset.pay")} {formatPrice(dataset.price, dataset.currency)}
         </>
       )}
     </Button>

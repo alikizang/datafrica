@@ -9,7 +9,7 @@
   "dataset": {
     "records": "registros", "columns": "columnas", "preview": "Vista previa", "viewOnly": "Solo visualizacion", "download": "Descargar",
     "purchaseToUnlock": "Compre para desbloquear el conjunto completo", "showing": "Mostrando", "of": "de",
-    "purchaseToSee": "Compre para ver todos los registros", "price": "Precio", "payWith": "Pagar con KKiaPay",
+    "purchaseToSee": "Compre para ver todos los registros", "price": "Precio", "payWith": "Pagar con KKiaPay", "pay": "Pagar",
     "processing": "Procesando...", "alreadyPurchased": "Ya comprado", "dataFormat": "Formato",
     "lastUpdated": "Ultima actualizacion", "country": "Pais", "category": "Categoria",
     "filterBy": "Filtrar por", "allCategories": "Todas las categorias", "allCountries": "Todos los paises",
