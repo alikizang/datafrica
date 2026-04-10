@@ -11,6 +11,7 @@ export interface User {
 export interface Dataset {
   id: string;
   title: string;
+  titles?: Record<string, string>;
   description: string;
   descriptions?: Record<string, string>;
   category: DatasetCategory;

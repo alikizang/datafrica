@@ -275,7 +275,7 @@ export default function DatasetDetailPage({
                 </Badge>
               )}
             </div>
-            <h1 className="text-3xl font-bold text-foreground mb-3">{dataset.title}</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-3">{dataset.titles?.[lang] || dataset.title}</h1>
             <p className="text-muted-foreground text-lg leading-relaxed">{dataset.descriptions?.[lang] || dataset.description}</p>
           </div>
 

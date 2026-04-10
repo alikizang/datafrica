@@ -14,7 +14,9 @@ export async function POST(request: NextRequest) {
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const descriptionsRaw = formData.get("descriptions") as string;
-    let descriptions: Record<string, string> = {};
+    const titlesRaw = formData.get("titles") as string;
+    const descriptions: Record<string, string> = {};
+    const titles: Record<string, string> = {};
     try {
       const parsed = JSON.parse(descriptionsRaw || "{}");
       // Only keep non-empty entries
@@ -25,6 +27,16 @@ export async function POST(request: NextRequest) {
       }
     } catch {
       // Ignore parse errors, use empty descriptions
+    }
+    try {
+      const parsedTitles = JSON.parse(titlesRaw || "{}");
+      for (const [k, v] of Object.entries(parsedTitles)) {
+        if (typeof v === "string" && v.trim()) {
+          titles[k] = v.trim();
+        }
+      }
+    } catch {
+      // Ignore parse errors
     }
     const category = formData.get("category") as string;
     const country = formData.get("country") as string;
@@ -76,6 +88,7 @@ export async function POST(request: NextRequest) {
 
     await datasetRef.set({
       title,
+      titles,
       description: description || "",
       descriptions,
       category,

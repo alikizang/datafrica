@@ -129,7 +129,11 @@
     "paymentBreakdown": "Metodos de pagamento",
     "transactions": "transacoes",
     "datasetsByCountry": "Dados por pais",
-    "monthlySales": "Vendas mensais"
+    "monthlySales": "Vendas mensais",
+    "titleLangHelp": "Adicione titulos em varios idiomas. O * indica que um idioma tem conteudo.",
+    "status_missingKeys": "Chaves em falta",
+    "status_testMode": "Modo de teste",
+    "status_ready": "Pronto"
   },
   "categories": {
     "Business": "Negocios",

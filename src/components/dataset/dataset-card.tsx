@@ -46,7 +46,7 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
           )}
         </div>
         <h3 className="font-semibold text-base text-foreground leading-tight line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-          {dataset.title}
+          {dataset.titles?.[lang] || dataset.title}
         </h3>
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
           {description}

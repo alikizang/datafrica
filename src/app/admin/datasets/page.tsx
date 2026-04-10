@@ -38,6 +38,7 @@ import { DATASET_CATEGORIES, AFRICAN_COUNTRIES } from "@/types";
 interface DatasetRecord {
   id: string;
   title: string;
+  titles?: Record<string, string>;
   description: string;
   descriptions?: Record<string, string>;
   category: string;

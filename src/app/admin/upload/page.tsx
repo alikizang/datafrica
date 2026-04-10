@@ -17,10 +17,14 @@ import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
 import Link from "next/link";
 
 export default function UploadDatasetPage() {
-  const { user, getIdToken } = useAuth();
+  const { getIdToken } = useAuth();
   const { t } = useLanguage();
 
   const [title, setTitle] = useState("");
+  const [titles, setTitles] = useState<Record<string, string>>({
+    en: "", fr: "", pt: "", es: "", ar: "",
+  });
+  const [titleLang, setTitleLang] = useState("en");
   const [descriptions, setDescriptions] = useState<Record<string, string>>({
     en: "", fr: "", pt: "", es: "", ar: "",
   });
@@ -39,12 +43,14 @@ export default function UploadDatasetPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const effectiveTitle = titles.en || Object.values(titles).find(v => v) || "";
+
     if (!file) {
       toast.error("Please select a CSV file");
       return;
     }
 
-    if (!title || !category || !country || !price) {
+    if (!effectiveTitle || !category || !country || !price) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -60,7 +66,8 @@ export default function UploadDatasetPage() {
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("title", title);
+      formData.append("title", titles.en || Object.values(titles).find(v => v) || title);
+      formData.append("titles", JSON.stringify(titles));
       formData.append("description", descriptions.en || Object.values(descriptions).find(v => v) || "");
       formData.append("descriptions", JSON.stringify(descriptions));
       formData.append("category", category);
@@ -104,7 +111,7 @@ export default function UploadDatasetPage() {
         </p>
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => { setSuccess(false); setTitle(""); setDescriptions({ en: "", fr: "", pt: "", es: "", ar: "" }); setFile(null); }}
+            onClick={() => { setSuccess(false); setTitle(""); setTitles({ en: "", fr: "", pt: "", es: "", ar: "" }); setDescriptions({ en: "", fr: "", pt: "", es: "", ar: "" }); setFile(null); }}
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium"
           >
             {t("admin.uploadAnother")}
@@ -155,16 +162,35 @@ export default function UploadDatasetPage() {
             <p className="text-xs text-dim">{t("admin.csvHelp")}</p>
           </div>
 
-          {/* Title */}
+          {/* Title (multi-language) */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">{t("admin.title")} *</label>
+            <div className="flex gap-1 mb-2">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => setTitleLang(l.code)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                    titleLang === l.code
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:text-foreground border border-border"
+                  }`}
+                >
+                  {l.code.toUpperCase()}
+                  {titles[l.code] ? " *" : ""}
+                </button>
+              ))}
+            </div>
             <Input
               placeholder="e.g., Benin Business Directory 2025"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
+              value={titles[titleLang] || ""}
+              onChange={(e) => setTitles(prev => ({ ...prev, [titleLang]: e.target.value }))}
               className="h-12 bg-muted border-border text-foreground placeholder:text-dim rounded-xl focus:border-primary"
             />
+            <p className="text-xs text-dim">
+              {t("admin.titleLangHelp")}
+            </p>
           </div>
 
           {/* Description (multi-language) */}

@@ -298,7 +298,11 @@
     "paymentBreakdown": "Payment Methods",
     "transactions": "transactions",
     "datasetsByCountry": "Datasets by Country",
-    "monthlySales": "Monthly Sales"
+    "monthlySales": "Monthly Sales",
+    "titleLangHelp": "Add titles in multiple languages. The * indicates a language has content.",
+    "status_missingKeys": "Missing keys",
+    "status_testMode": "Test mode",
+    "status_ready": "Ready"
   },
   "categories": {
     "Business": "Business",
