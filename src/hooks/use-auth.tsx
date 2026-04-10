@@ -175,13 +175,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const getIdToken = async () => {
-    // Use firebaseUser state first, fall back to auth.currentUser
-    // (auth.currentUser is set synchronously after signIn, before onAuthStateChanged fires)
+    // Try all sources: state, then current auth user, then wait briefly for auth to settle
     const currentUser = firebaseUser || auth.currentUser;
     if (currentUser) {
       return currentUser.getIdToken();
     }
-    return null;
+    // Auth may not have settled yet (e.g. right after redirect). Wait briefly.
+    return new Promise<string | null>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 2000);
+      const unsub = onAuthStateChanged(auth, (fbUser) => {
+        unsub();
+        clearTimeout(timeout);
+        if (fbUser) {
+          fbUser.getIdToken().then(resolve).catch(() => resolve(null));
+        } else {
+          resolve(null);
+        }
+      });
+    });
   };
 
   return (

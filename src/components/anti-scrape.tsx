@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 export function AntiScrape() {
+  const { user } = useAuth();
   const [devToolsOpen, setDevToolsOpen] = useState(false);
 
+  const isAdmin = user?.role === "admin";
+
   useEffect(() => {
+    // Admins are exempt from all anti-scrape protections
+    if (isAdmin) return;
+
     // Block right-click context menu
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
@@ -81,14 +88,12 @@ export function AntiScrape() {
     };
 
     // DevTools detection using window size (desktop only - mobile has false positives)
-    let devtoolsCheckInterval: ReturnType<typeof setInterval>;
-
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
 
     const checkDevTools = () => {
-      if (isMobile) return; // Skip on mobile - browser chrome causes false positives
+      if (isMobile) return;
       const threshold = 160;
       const widthDiff = window.outerWidth - window.innerWidth > threshold;
       const heightDiff = window.outerHeight - window.innerHeight > threshold;
@@ -100,7 +105,6 @@ export function AntiScrape() {
       }
     };
 
-    // Additional detection: override console methods (desktop only)
     const detectConsole = () => {
       if (isMobile) return;
       const element = new Image();
@@ -118,26 +122,27 @@ export function AntiScrape() {
     document.addEventListener("dragstart", handleDragStart);
     document.addEventListener("copy", handleCopy);
 
-    devtoolsCheckInterval = setInterval(() => {
+    const devtoolsCheckInterval = setInterval(() => {
       checkDevTools();
       detectConsole();
     }, 1000);
 
-    // Block print screen
-    document.addEventListener("keyup", (e) => {
+    const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === "PrintScreen") {
         navigator.clipboard.writeText("");
       }
-    });
+    };
+    document.addEventListener("keyup", handleKeyUp);
 
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("dragstart", handleDragStart);
       document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("keyup", handleKeyUp);
       clearInterval(devtoolsCheckInterval);
     };
-  }, [devToolsOpen]);
+  }, [devToolsOpen, isAdmin]);
 
   // Handle close action - reload the page
   const handleClose = () => {
@@ -145,7 +150,8 @@ export function AntiScrape() {
     window.location.reload();
   };
 
-  if (!devToolsOpen) return null;
+  // Admins never see the overlay
+  if (isAdmin || !devToolsOpen) return null;
 
   return (
     <div className="devtools-overlay">

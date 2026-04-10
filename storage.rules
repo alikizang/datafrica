@@ -1,7 +1,16 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Dataset files - server-only access via Admin SDK
+    // Dataset uploads - authenticated users can write to their own folder
+    // Files are only readable via Admin SDK (for purchased downloads)
+    match /uploads/{userId}/{allPaths=**} {
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024 * 1024;
+      allow read: if false;
+    }
+
+    // Legacy dataset files - server-only access via Admin SDK
     match /datasets/{datasetId}/{allPaths=**} {
       allow read, write: if false;
     }

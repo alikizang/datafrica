@@ -15,12 +15,21 @@ import { Loader2, Upload, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
 import Link from "next/link";
+import Papa from "papaparse";
+import { ref, uploadBytesResumable } from "firebase/storage";
+import { storage, auth as firebaseAuth } from "@/lib/firebase";
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
 
 export default function UploadDatasetPage() {
   const { getIdToken } = useAuth();
   const { t } = useLanguage();
 
-  const [title, setTitle] = useState("");
   const [titles, setTitles] = useState<Record<string, string>>({
     en: "", fr: "", pt: "", es: "", ar: "",
   });
@@ -39,6 +48,8 @@ export default function UploadDatasetPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadPhase, setUploadPhase] = useState<"idle" | "parsing" | "uploading" | "saving">("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,33 +66,86 @@ export default function UploadDatasetPage() {
       return;
     }
 
+    const currentUser = firebaseAuth.currentUser;
+    if (!currentUser) {
+      toast.error(t("common.error"));
+      return;
+    }
+
     setUploading(true);
+    setUploadProgress(0);
+    setUploadPhase("parsing");
 
     try {
+      // Phase 1: Parse first portion of CSV for preview data
+      const sliceSize = Math.min(file.size, 100 * 1024);
+      const slice = file.slice(0, sliceSize);
+      const sliceText = await slice.text();
+      const lastNewline = sliceText.lastIndexOf("\n");
+      const completeText = lastNewline > 0 ? sliceText.substring(0, lastNewline) : sliceText;
+      const parsed = Papa.parse(completeText, { header: true, skipEmptyLines: true });
+      const columns = parsed.meta.fields || [];
+      const allPreviewRows = parsed.data as Record<string, string>[];
+      const previewData = allPreviewRows.slice(0, parseInt(previewRows));
+
+      // Estimate total record count
+      const avgRowSize = completeText.length / Math.max(allPreviewRows.length, 1);
+      const estimatedRecordCount = file.size <= sliceSize
+        ? allPreviewRows.length
+        : Math.round(file.size / avgRowSize);
+
+      // Phase 2: Upload file directly to Firebase Storage with progress
+      setUploadPhase("uploading");
+      const datasetId = crypto.randomUUID();
+      const storagePath = `uploads/${currentUser.uid}/${datasetId}/data.csv`;
+      const storageRef = ref(storage, storagePath);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      await new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(Math.round(progress));
+          },
+          (error) => reject(error),
+          () => resolve()
+        );
+      });
+
+      // Phase 3: Save metadata via API (small JSON payload only)
+      setUploadPhase("saving");
       const token = await getIdToken();
       if (!token) {
         toast.error(t("common.error"));
         return;
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("title", titles.en || Object.values(titles).find(v => v) || title);
-      formData.append("titles", JSON.stringify(titles));
-      formData.append("description", descriptions.en || Object.values(descriptions).find(v => v) || "");
-      formData.append("descriptions", JSON.stringify(descriptions));
-      formData.append("category", category);
-      formData.append("country", country);
-      formData.append("price", price);
-      formData.append("currency", currency);
-      formData.append("previewRows", previewRows);
-      formData.append("featured", featured.toString());
-      formData.append("allowDownload", allowDownload.toString());
-
       const res = await fetch("/api/admin/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          datasetId,
+          storagePath,
+          title: effectiveTitle,
+          titles,
+          description: descriptions.en || Object.values(descriptions).find(v => v) || "",
+          descriptions,
+          category,
+          country,
+          price: parseFloat(price),
+          currency,
+          previewRows: parseInt(previewRows),
+          featured,
+          allowDownload,
+          columns,
+          previewData,
+          recordCount: estimatedRecordCount,
+          fileSize: file.size,
+        }),
       });
 
       const data = await res.json();
@@ -94,10 +158,13 @@ export default function UploadDatasetPage() {
       } else {
         toast.error(data.error || t("common.error"));
       }
-    } catch {
+    } catch (err) {
+      console.error("Upload error:", err);
       toast.error(t("common.error"));
     } finally {
       setUploading(false);
+      setUploadPhase("idle");
+      setUploadProgress(0);
     }
   };
 
@@ -111,7 +178,7 @@ export default function UploadDatasetPage() {
         </p>
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => { setSuccess(false); setTitle(""); setTitles({ en: "", fr: "", pt: "", es: "", ar: "" }); setDescriptions({ en: "", fr: "", pt: "", es: "", ar: "" }); setFile(null); }}
+            onClick={() => { setSuccess(false); setTitles({ en: "", fr: "", pt: "", es: "", ar: "" }); setDescriptions({ en: "", fr: "", pt: "", es: "", ar: "" }); setFile(null); }}
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium"
           >
             {t("admin.uploadAnother")}
@@ -159,7 +226,14 @@ export default function UploadDatasetPage() {
               required
               className="bg-muted border-border text-foreground rounded-xl file:bg-card file:text-foreground file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3"
             />
-            <p className="text-xs text-dim">{t("admin.csvHelp")}</p>
+            <p className="text-xs text-dim">
+              {t("admin.csvHelp")}
+              {file && (
+                <span className="ml-2 font-medium text-foreground">
+                  ({formatFileSize(file.size)})
+                </span>
+              )}
+            </p>
           </div>
 
           {/* Title (multi-language) */}
@@ -353,6 +427,40 @@ export default function UploadDatasetPage() {
             </div>
           </div>
 
+          {/* Upload Progress */}
+          {uploading && (
+            <div className="space-y-3 p-4 rounded-xl bg-muted/50 border border-primary/20">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="font-medium text-foreground">
+                    {uploadPhase === "parsing" && t("admin.parsingCsv")}
+                    {uploadPhase === "uploading" && t("admin.uploadingFile")}
+                    {uploadPhase === "saving" && t("admin.savingMetadata")}
+                  </span>
+                </div>
+                {uploadPhase === "uploading" && (
+                  <span className="font-mono text-primary font-semibold">{uploadProgress}%</span>
+                )}
+              </div>
+              <div className="w-full bg-card rounded-full h-2.5 overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+                  style={{
+                    width: uploadPhase === "parsing" ? "5%"
+                      : uploadPhase === "uploading" ? `${Math.max(5, uploadProgress)}%`
+                      : "95%",
+                  }}
+                />
+              </div>
+              {uploadPhase === "uploading" && file && (
+                <p className="text-xs text-dim">
+                  {formatFileSize(file.size * uploadProgress / 100)} / {formatFileSize(file.size)}
+                </p>
+              )}
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -361,7 +469,9 @@ export default function UploadDatasetPage() {
             {uploading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {t("admin.uploadingProcessing")}
+                {uploadPhase === "parsing" && t("admin.parsingCsv")}
+                {uploadPhase === "uploading" && `${t("admin.uploadingFile")} (${uploadProgress}%)`}
+                {uploadPhase === "saving" && t("admin.savingMetadata")}
               </>
             ) : (
               <>
