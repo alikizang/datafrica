@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
       paymentMethod,
       transactionId,
       status: "completed",
+      allowDownload: dataset.allowDownload !== false,
       createdAt: new Date().toISOString(),
     });
 

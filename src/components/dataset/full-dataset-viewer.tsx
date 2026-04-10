@@ -25,9 +25,13 @@ interface Pagination {
 interface FullDatasetViewerProps {
   datasetId: string;
   datasetTitle?: string;
+  /** Start in fullscreen overlay mode */
+  initialFullscreen?: boolean;
+  /** Called when the user exits fullscreen (useful when opened externally) */
+  onClose?: () => void;
 }
 
-export function FullDatasetViewer({ datasetId, datasetTitle }: FullDatasetViewerProps) {
+export function FullDatasetViewer({ datasetId, datasetTitle, initialFullscreen = false, onClose }: FullDatasetViewerProps) {
   const { getIdToken } = useAuth();
   const { t } = useLanguage();
   const [data, setData] = useState<Record<string, unknown>[]>([]);
@@ -37,7 +41,7 @@ export function FullDatasetViewer({ datasetId, datasetTitle }: FullDatasetViewer
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
-  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(initialFullscreen);
 
   const fetchData = useCallback(
     async (p: number, q: string) => {
@@ -79,11 +83,14 @@ export function FullDatasetViewer({ datasetId, datasetTitle }: FullDatasetViewer
   useEffect(() => {
     if (!fullscreen) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setFullscreen(false);
+      if (e.key === "Escape") {
+        setFullscreen(false);
+        if (initialFullscreen && onClose) onClose();
+      }
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [fullscreen]);
+  }, [fullscreen, initialFullscreen, onClose]);
 
   // Lock body scroll when fullscreen
   useEffect(() => {
@@ -148,7 +155,13 @@ export function FullDatasetViewer({ datasetId, datasetTitle }: FullDatasetViewer
         </form>
         <button
           type="button"
-          onClick={() => setFullscreen((v) => !v)}
+          onClick={() => {
+            setFullscreen((v) => {
+              const next = !v;
+              if (!next && initialFullscreen && onClose) onClose();
+              return next;
+            });
+          }}
           className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors shrink-0"
           title={fullscreen ? t("dataset.exitFullView") : t("dataset.fullView")}
         >
@@ -299,7 +312,10 @@ export function FullDatasetViewer({ datasetId, datasetTitle }: FullDatasetViewer
               </h2>
             </div>
             <button
-              onClick={() => setFullscreen(false)}
+              onClick={() => {
+                setFullscreen(false);
+                if (initialFullscreen && onClose) onClose();
+              }}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors"
             >
               <X className="h-4 w-4" />

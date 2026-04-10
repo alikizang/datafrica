@@ -17,6 +17,7 @@ import {
   FileSpreadsheet,
   FileJson,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Purchase } from "@/types";
@@ -176,14 +177,21 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {(["csv", "excel", "json"] as const).map((format) => (
-                        <button key={format} onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format)} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1">
-                          {format === "csv" && <FileText className="h-3 w-3" />}
-                          {format === "excel" && <FileSpreadsheet className="h-3 w-3" />}
-                          {format === "json" && <FileJson className="h-3 w-3" />}
-                          {format.toUpperCase()}
-                        </button>
-                      ))}
+                      {purchase.allowDownload !== false ? (
+                        (["csv", "excel", "json"] as const).map((format) => (
+                          <button key={format} onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format)} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1">
+                            {format === "csv" && <FileText className="h-3 w-3" />}
+                            {format === "excel" && <FileSpreadsheet className="h-3 w-3" />}
+                            {format === "json" && <FileJson className="h-3 w-3" />}
+                            {format.toUpperCase()}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="px-3 py-1.5 rounded-lg text-xs font-medium text-purple-400 bg-purple-500/10 flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {t("dataset.viewOnly")}
+                        </span>
+                      )}
                       <Link href={`/datasets/${purchase.datasetId}`} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors">
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>

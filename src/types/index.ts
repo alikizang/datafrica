@@ -41,6 +41,7 @@ export interface Purchase {
   paymentMethod: "kkiapay" | "paydunya" | "stripe";
   transactionId: string;
   status: "pending" | "completed" | "failed";
+  allowDownload?: boolean;
   createdAt: string;
 }
 

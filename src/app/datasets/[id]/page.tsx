@@ -43,6 +43,7 @@ export default function DatasetDetailPage({
   const [purchased, setPurchased] = useState(false);
   const [downloadToken, setDownloadToken] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [showFullViewer, setShowFullViewer] = useState(false);
 
   useEffect(() => {
     async function fetchDataset() {
@@ -327,33 +328,39 @@ export default function DatasetDetailPage({
             </div>
           </div>
 
-          {/* Data Table - Full viewer for purchased users, Preview for others */}
+          {/* Data Preview */}
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-              {purchased ? (
-                <>
-                  <Database className="h-4 w-4 text-emerald-500" />
-                  {t("dataset.fullDataset")}
-                </>
-              ) : (
-                <>
-                  <Lock className="h-4 w-4 text-primary" />
-                  {t("dataset.dataPreview")}
-                </>
-              )}
+              <Eye className="h-4 w-4 text-primary" />
+              {t("dataset.dataPreview")}
             </h3>
-            {purchased ? (
-              <FullDatasetViewer datasetId={id} datasetTitle={dataset.titles?.[lang] || dataset.title} />
-            ) : (
-              <DataPreviewTable
-                data={dataset.previewData}
-                columns={dataset.columns}
-                maxRows={dataset.previewRows || 10}
-                totalRecords={dataset.recordCount}
-                purchased={purchased}
-              />
+            <DataPreviewTable
+              data={dataset.previewData}
+              columns={dataset.columns}
+              maxRows={dataset.previewRows || 10}
+              totalRecords={dataset.recordCount}
+              purchased={purchased}
+            />
+            {purchased && (
+              <button
+                onClick={() => setShowFullViewer(true)}
+                className="mt-4 w-full py-3 rounded-xl bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 border border-primary/20"
+              >
+                <Database className="h-4 w-4" />
+                {t("dataset.fullView")}
+              </button>
             )}
           </div>
+
+          {/* Full Dataset Viewer (fullscreen overlay) */}
+          {showFullViewer && (
+            <FullDatasetViewer
+              datasetId={id}
+              datasetTitle={dataset.titles?.[lang] || dataset.title}
+              initialFullscreen
+              onClose={() => setShowFullViewer(false)}
+            />
+          )}
         </div>
 
         {/* Sidebar */}
