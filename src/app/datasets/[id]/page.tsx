@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataPreviewTable } from "@/components/dataset/data-preview-table";
+import { FullDatasetViewer } from "@/components/dataset/full-dataset-viewer";
 import { PaymentButton } from "@/components/payment/payment-button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
@@ -62,11 +63,13 @@ export default function DatasetDetailPage({
   }, [id]);
 
   // Handle PayDunya return (user redirected back after payment)
+  // PayDunya appends ?token=INVOICE_TOKEN to the return_url
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
     const paydunyaToken = searchParams.get("token");
 
-    if (paymentStatus === "success" && paydunyaToken && user) {
+    // PayDunya return: token param present (with or without payment=success)
+    if (paydunyaToken && user && !purchased) {
       (async () => {
         try {
           const authToken = await getIdToken();
@@ -89,7 +92,9 @@ export default function DatasetDetailPage({
           if (res.ok && data.success) {
             setPurchased(true);
             setDownloadToken(data.downloadToken);
-            toast.success("Payment successful! You can now access the full dataset.");
+            toast.success(t("dataset.paymentSuccess"));
+          } else if (data.alreadyPurchased) {
+            setPurchased(true);
           }
         } catch {
           // IPN webhook will handle it as backup
@@ -98,10 +103,10 @@ export default function DatasetDetailPage({
         router.replace(`/datasets/${id}`, { scroll: false });
       })();
     } else if (paymentStatus === "cancelled") {
-      toast.error("Payment was cancelled.");
+      toast.error(t("dataset.paymentCancelled"));
       router.replace(`/datasets/${id}`, { scroll: false });
     }
-  }, [searchParams, user, id, getIdToken, router]);
+  }, [searchParams, user, id, getIdToken, router, purchased, t]);
 
   useEffect(() => {
     async function checkPurchase() {
@@ -322,19 +327,32 @@ export default function DatasetDetailPage({
             </div>
           </div>
 
-          {/* Preview Table */}
+          {/* Data Table - Full viewer for purchased users, Preview for others */}
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Lock className="h-4 w-4 text-primary" />
-              {t("dataset.dataPreview")}
+              {purchased ? (
+                <>
+                  <Database className="h-4 w-4 text-emerald-500" />
+                  {t("dataset.fullDataset")}
+                </>
+              ) : (
+                <>
+                  <Lock className="h-4 w-4 text-primary" />
+                  {t("dataset.dataPreview")}
+                </>
+              )}
             </h3>
-            <DataPreviewTable
-              data={dataset.previewData}
-              columns={dataset.columns}
-              maxRows={dataset.previewRows || 10}
-              totalRecords={dataset.recordCount}
-              purchased={purchased}
-            />
+            {purchased ? (
+              <FullDatasetViewer datasetId={id} />
+            ) : (
+              <DataPreviewTable
+                data={dataset.previewData}
+                columns={dataset.columns}
+                maxRows={dataset.previewRows || 10}
+                totalRecords={dataset.recordCount}
+                purchased={purchased}
+              />
+            )}
           </div>
         </div>
 

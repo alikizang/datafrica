@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         currency: dataset.currency || "XOF",
       },
       actions: {
-        return_url: `${appUrl}/datasets/${datasetId}?payment=success`,
+        return_url: `${appUrl}/datasets/${datasetId}`,
         cancel_url: `${appUrl}/datasets/${datasetId}?payment=cancelled`,
         callback_url: `${appUrl}/api/payments/paydunya/webhook`,
       },

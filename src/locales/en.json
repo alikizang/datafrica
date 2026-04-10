@@ -149,7 +149,20 @@
     "featured": "Featured",
     "ratings": "ratings",
     "viewDataset": "View dataset",
-    "previewDataLink": "Preview data"
+    "previewDataLink": "Preview data",
+    "fullDataset": "Full Dataset",
+    "searchDataset": "Search in dataset...",
+    "search": "Search",
+    "clearSearch": "Clear",
+    "resultsFound": "results found",
+    "totalRecords": "total records",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next",
+    "noSearchResults": "No results match your search.",
+    "noDataAvailable": "No data available.",
+    "paymentSuccess": "Payment successful! You can now access the full dataset.",
+    "paymentCancelled": "Payment was cancelled."
   },
   "footer": {
     "desc": "The premier marketplace for African datasets. Access verified business directories, leads, and institutional data across the continent.",

@@ -149,7 +149,20 @@
     "featured": "En vedette",
     "ratings": "avis",
     "viewDataset": "Voir le jeu de donn\u00e9es",
-    "previewDataLink": "Aper\u00e7u des donn\u00e9es"
+    "previewDataLink": "Aper\u00e7u des donn\u00e9es",
+    "fullDataset": "Jeu de donn\u00e9es complet",
+    "searchDataset": "Rechercher dans le jeu de donn\u00e9es...",
+    "search": "Rechercher",
+    "clearSearch": "Effacer",
+    "resultsFound": "r\u00e9sultats trouv\u00e9s",
+    "totalRecords": "enregistrements au total",
+    "page": "Page",
+    "previous": "Pr\u00e9c\u00e9dent",
+    "next": "Suivant",
+    "noSearchResults": "Aucun r\u00e9sultat ne correspond \u00e0 votre recherche.",
+    "noDataAvailable": "Aucune donn\u00e9e disponible.",
+    "paymentSuccess": "Paiement r\u00e9ussi ! Vous pouvez maintenant acc\u00e9der au jeu de donn\u00e9es complet.",
+    "paymentCancelled": "Le paiement a \u00e9t\u00e9 annul\u00e9."
   },
   "footer": {
     "desc": "Le march\u00e9 de r\u00e9f\u00e9rence pour les donn\u00e9es africaines. Acc\u00e9dez \u00e0 des annuaires d'entreprises, des prospects et des donn\u00e9es institutionnelles v\u00e9rifi\u00e9s \u00e0 travers le continent.",

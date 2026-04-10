@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { Loader2, CreditCard } from "lucide-react";
+import Image from "next/image";
 import type { Dataset, PaymentProvider } from "@/types";
 
 interface PaymentButtonProps {
@@ -150,23 +151,36 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
   const isDisabled = loading || (provider === "kkiapay" && !kkiapayReady);
 
   return (
-    <Button
-      size="lg"
-      className="w-full text-base font-semibold"
-      onClick={handlePayment}
-      disabled={isDisabled}
-    >
-      {loading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {t("dataset.processing")}
-        </>
-      ) : (
-        <>
-          <CreditCard className="mr-2 h-4 w-4" />
-          {t("dataset.pay")} {formatPrice(dataset.price, dataset.currency)}
-        </>
+    <div className="space-y-3">
+      <Button
+        size="lg"
+        className="w-full text-base font-semibold"
+        onClick={handlePayment}
+        disabled={isDisabled}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t("dataset.processing")}
+          </>
+        ) : (
+          <>
+            <CreditCard className="mr-2 h-4 w-4" />
+            {t("dataset.pay")} {formatPrice(dataset.price, dataset.currency)}
+          </>
+        )}
+      </Button>
+      {provider === "paydunya" && (
+        <div className="flex justify-center">
+          <Image
+            src="/paydunya-methods.png"
+            alt="Orange Money, Wave, Visa, Mastercard, MTN Mobile Money"
+            width={320}
+            height={36}
+            className="opacity-80"
+          />
+        </div>
       )}
-    </Button>
+    </div>
   );
 }
