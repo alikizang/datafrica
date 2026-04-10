@@ -15,6 +15,14 @@
 - [route.ts](file://src/app/api/admin/users/route.ts)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated authentication method signatures to reflect Promise<User> return types
+- Enhanced documentation of user redirection mechanism improvements
+- Added detailed coverage of race condition elimination in authentication flows
+- Updated usage examples to demonstrate immediate role-based routing
+- Revised authentication lifecycle documentation to highlight resolved user data availability
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -28,6 +36,8 @@
 
 ## Introduction
 This document provides comprehensive documentation for the custom use-auth React hook implementation that manages centralized authentication state using the React Context pattern. The implementation integrates Firebase Authentication for user sessions and Firestore for user profiles, providing a complete authentication lifecycle from initialization to user profile synchronization.
+
+**Updated**: The authentication system has been enhanced with improved user redirection mechanisms. Authentication functions (signUp, signIn, signInWithGoogle) now return resolved user data directly (Promise<User>) instead of void promises, eliminating race conditions in user redirection and enabling immediate role-based routing throughout the application.
 
 The authentication system follows modern React patterns with a Provider component that wraps the application, exposing authentication state and methods through a custom hook. It handles automatic user profile creation, real-time authentication state updates, and seamless integration with both client-side and server-side authentication flows.
 
@@ -67,30 +77,31 @@ API --> AM
 ```
 
 **Diagram sources**
-- [use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
-- [firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
+- [use-auth.tsx:1-190](file://src/hooks/use-auth.tsx#L1-L190)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
+- [firebase.ts:1-57](file://src/lib/firebase.ts#L1-L57)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
-- [index.ts:1-90](file://src/types/index.ts#L1-L90)
+- [index.ts:1-113](file://src/types/index.ts#L1-L113)
 
 **Section sources**
-- [use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
-- [firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
+- [use-auth.tsx:1-190](file://src/hooks/use-auth.tsx#L1-L190)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
+- [firebase.ts:1-57](file://src/lib/firebase.ts#L1-L57)
 
 ## Core Components
 The authentication system consists of several interconnected components that work together to provide comprehensive user management:
 
 ### AuthContext and Provider
 The central component is the AuthContext provider that manages the complete authentication state and exposes it to the application through a custom hook. The provider maintains three primary state variables:
-- `user`: The Firestore user profile data
+- `user`: The Firestore user profile data (resolved and ready for immediate use)
 - `firebaseUser`: The raw Firebase Authentication user object
 - `loading`: Authentication initialization status
 
 ### Authentication Methods
-The hook exposes five primary methods for authentication operations:
-- `signUp`: Creates new user accounts with profile synchronization
-- `signIn`: Authenticates existing users
+**Updated**: The hook exposes five primary methods for authentication operations, all now returning resolved user data directly:
+- `signUp`: Creates new user accounts with profile synchronization and returns Promise<User>
+- `signIn`: Authenticates existing users and returns Promise<User> for immediate redirection
+- `signInWithGoogle`: Handles Google OAuth authentication and returns Promise<User>
 - `signOut`: Logs users out and clears state
 - `getIdToken`: Retrieves Firebase ID tokens for server communication
 - `user`: Current user profile data
@@ -99,8 +110,8 @@ The hook exposes five primary methods for authentication operations:
 The system uses Firebase's `onAuthStateChanged` listener to automatically detect authentication changes and update the application state in real-time without requiring manual refreshes.
 
 **Section sources**
-- [use-auth.tsx:22-30](file://src/hooks/use-auth.tsx#L22-L30)
-- [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
+- [use-auth.tsx:31-40](file://src/hooks/use-auth.tsx#L31-L40)
+- [use-auth.tsx:130-159](file://src/hooks/use-auth.tsx#L130-L159)
 
 ## Architecture Overview
 The authentication architecture follows a layered approach with clear separation between client-side and server-side concerns:
@@ -131,10 +142,12 @@ Firebase-->>Provider : User credential
 Provider->>Firebase : updateProfile(displayName)
 Provider->>Firestore : Save user profile
 Provider->>Provider : Set user state
+Provider-->>App : Promise<User> resolved immediately
 App->>Provider : signIn(email, password)
 Provider->>Firebase : signInWithEmailAndPassword()
 Firebase-->>Provider : Auth success
 Provider->>Firestore : Sync user profile
+Provider-->>App : Promise<User> resolved immediately
 App->>Provider : getIdToken()
 Provider->>Firebase : firebaseUser.getIdToken()
 Firebase-->>Provider : ID token
@@ -148,18 +161,16 @@ Server-->>App : Authorized response
 ```
 
 **Diagram sources**
-- [use-auth.tsx:39-67](file://src/hooks/use-auth.tsx#L39-L67)
-- [use-auth.tsx:69-82](file://src/hooks/use-auth.tsx#L69-L82)
-- [use-auth.tsx:84-86](file://src/hooks/use-auth.tsx#L84-L86)
-- [use-auth.tsx:88-92](file://src/hooks/use-auth.tsx#L88-L92)
-- [use-auth.tsx:94-99](file://src/hooks/use-auth.tsx#L94-L99)
-- [auth-middleware.ts:4-28](file://src/lib/auth-middleware.ts#L4-L28)
+- [use-auth.tsx:109-128](file://src/hooks/use-auth.tsx#L109-L128)
+- [use-auth.tsx:130-159](file://src/hooks/use-auth.tsx#L130-L159)
+- [use-auth.tsx:167-172](file://src/hooks/use-auth.tsx#L167-L172)
+- [auth-middleware.ts:9-33](file://src/lib/auth-middleware.ts#L9-L33)
 
-The architecture ensures that authentication state is consistently managed across the entire application while providing seamless integration with both client-side and server-side authentication flows.
+The architecture ensures that authentication state is consistently managed across the entire application while providing seamless integration with both client-side and server-side authentication flows. **Updated**: The enhanced return types eliminate race conditions by providing immediate access to resolved user data for redirection and role-based routing.
 
 **Section sources**
-- [use-auth.tsx:101-108](file://src/hooks/use-auth.tsx#L101-L108)
-- [layout.tsx:39-44](file://src/app/layout.tsx#L39-L44)
+- [use-auth.tsx:174-181](file://src/hooks/use-auth.tsx#L174-L181)
+- [layout.tsx:42-48](file://src/app/layout.tsx#L42-L48)
 
 ## Detailed Component Analysis
 
@@ -168,7 +179,7 @@ The AuthProvider serves as the central state manager for all authentication-rela
 
 #### State Management
 The provider maintains three critical state variables:
-- **user**: Contains the complete user profile synchronized from Firestore
+- **user**: Contains the complete user profile synchronized from Firestore (ready for immediate use)
 - **firebaseUser**: Holds the raw Firebase Authentication user object
 - **loading**: Tracks initialization progress during app startup
 
@@ -195,16 +206,16 @@ SetLoadingFalse --> Ready([Ready for Use])
 ```
 
 **Diagram sources**
-- [use-auth.tsx:39-67](file://src/hooks/use-auth.tsx#L39-L67)
-- [use-auth.tsx:43-58](file://src/hooks/use-auth.tsx#L43-L58)
+- [use-auth.tsx:109-128](file://src/hooks/use-auth.tsx#L109-L128)
+- [use-auth.tsx:112-124](file://src/hooks/use-auth.tsx#L112-L124)
 
 **Section sources**
-- [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
 
 ### Authentication Methods Implementation
 
 #### signUp Method
-The `signUp` method implements a complete user registration flow that handles both Firebase Authentication and Firestore profile creation:
+**Updated**: The `signUp` method now returns a Promise<User> that resolves immediately with the created user data, enabling immediate redirection and role-based routing:
 
 ```mermaid
 sequenceDiagram
@@ -220,14 +231,18 @@ Firebase-->>Hook : Profile updated
 Hook->>Firestore : Create user document
 Firestore-->>Hook : Document saved
 Hook->>Hook : Set user state
-Hook-->>Component : Promise resolved
+Hook-->>Component : Promise<User> resolved immediately
+Component->>Component : router.push(resolvedUser.role === "admin" ? "/admin" : "/dashboard")
 ```
 
 **Diagram sources**
-- [use-auth.tsx:69-82](file://src/hooks/use-auth.tsx#L69-L82)
+- [use-auth.tsx:130-145](file://src/hooks/use-auth.tsx#L130-L145)
 
 #### signIn Method
-The `signIn` method provides a streamlined authentication experience by delegating all authentication logic to Firebase while maintaining local state synchronization.
+**Updated**: The `signIn` method now returns a Promise<User> that resolves with the authenticated user data, enabling immediate role-based redirection without race conditions.
+
+#### signInWithGoogle Method
+**Updated**: The `signInWithGoogle` method now returns a Promise<User> that resolves with the Google-authenticated user data, enabling immediate redirection to appropriate dashboard based on user role.
 
 #### signOut Method
 The `signOut` method ensures complete cleanup of authentication state by calling Firebase's sign-out function and clearing local state variables.
@@ -236,7 +251,7 @@ The `signOut` method ensures complete cleanup of authentication state by calling
 The `getIdToken` method provides secure token access for server-side authentication, returning null when no user is authenticated to prevent unauthorized access attempts.
 
 **Section sources**
-- [use-auth.tsx:69-99](file://src/hooks/use-auth.tsx#L69-L99)
+- [use-auth.tsx:130-172](file://src/hooks/use-auth.tsx#L130-L172)
 
 ### User Profile Management
 The authentication system automatically manages user profiles in Firestore with a standardized structure:
@@ -250,7 +265,7 @@ The authentication system automatically manages user profiles in Firestore with 
 | createdAt | string | ISO timestamp of account creation |
 
 **Section sources**
-- [use-auth.tsx:49-55](file://src/hooks/use-auth.tsx#L49-L55)
+- [use-auth.tsx:76-84](file://src/hooks/use-auth.tsx#L76-L84)
 - [index.ts:3-9](file://src/types/index.ts#L3-L9)
 
 ## Dependency Analysis
@@ -283,8 +298,8 @@ UA --> AT
 ```
 
 **Diagram sources**
-- [use-auth.tsx:10-20](file://src/hooks/use-auth.tsx#L10-L20)
-- [index.ts:1-90](file://src/types/index.ts#L1-L90)
+- [use-auth.tsx:3-22](file://src/hooks/use-auth.tsx#L3-L22)
+- [index.ts:1-113](file://src/types/index.ts#L1-L113)
 
 ### Server-Side Integration
 The client-side authentication seamlessly integrates with server-side verification through Firebase Admin SDK:
@@ -307,11 +322,11 @@ Server-->>Client : Protected resource
 ```
 
 **Diagram sources**
-- [use-auth.tsx:94-99](file://src/hooks/use-auth.tsx#L94-L99)
-- [auth-middleware.ts:4-28](file://src/lib/auth-middleware.ts#L4-L28)
+- [use-auth.tsx:167-172](file://src/hooks/use-auth.tsx#L167-L172)
+- [auth-middleware.ts:9-33](file://src/lib/auth-middleware.ts#L9-L33)
 
 **Section sources**
-- [firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
+- [firebase.ts:1-57](file://src/lib/firebase.ts#L1-L57)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
 
 ## Performance Considerations
@@ -330,6 +345,9 @@ The authentication implementation incorporates several performance optimizations
 - **Local State Caching**: User data is cached locally to reduce Firestore read operations
 - **Token Caching**: ID tokens are cached and refreshed automatically by Firebase
 
+### Race Condition Elimination
+**Updated**: The enhanced return types eliminate race conditions by providing immediate access to resolved user data, ensuring reliable redirection and role-based routing without timing issues.
+
 ## Troubleshooting Guide
 
 ### Common Authentication Issues
@@ -346,25 +364,31 @@ The authentication implementation incorporates several performance optimizations
 **Symptoms**: `getIdToken()` returns null unexpectedly
 **Solution**: Verify that the user is authenticated before attempting to retrieve tokens and check Firebase configuration.
 
+#### Immediate Redirection Issues
+**Updated**: With the new Promise<User> return types, ensure that components properly await the authentication methods before attempting redirection to avoid any timing issues.
+
 ### Debugging Authentication Flows
 
 #### Component-Level Debugging
-Components consuming the auth hook should monitor the loading state and user object to identify authentication timing issues.
+Components consuming the auth hook should monitor the loading state and user object to identify authentication timing issues. **Updated**: Since authentication methods now return resolved user data immediately, components can safely use the returned user object for redirection logic.
 
 #### Server-Side Debugging
 Server-side authentication middleware should log token verification failures and user role validation errors.
 
 **Section sources**
-- [use-auth.tsx:110-116](file://src/hooks/use-auth.tsx#L110-L116)
-- [auth-middleware.ts:4-47](file://src/lib/auth-middleware.ts#L4-L47)
+- [use-auth.tsx:183-189](file://src/hooks/use-auth.tsx#L183-L189)
+- [auth-middleware.ts:9-62](file://src/lib/auth-middleware.ts#L9-L62)
 
 ## Conclusion
 The custom use-auth hook implementation provides a robust, scalable solution for managing authentication state in Next.js applications. By leveraging React Context patterns and Firebase's real-time capabilities, it delivers seamless user experiences with automatic state synchronization and comprehensive error handling.
+
+**Updated**: The enhanced authentication system now provides immediate user data resolution through Promise<User> return types, eliminating race conditions in user redirection and enabling reliable role-based routing throughout the application. This improvement significantly enhances the user experience by ensuring consistent and predictable authentication flows.
 
 The implementation successfully bridges client-side and server-side authentication through standardized token-based verification, enabling secure protected routes and administrative functionality. The modular design allows for easy extension and customization while maintaining clean separation of concerns between authentication logic and presentation components.
 
 Key strengths of this implementation include:
 - **Real-time State Management**: Automatic authentication state updates without manual refreshes
+- **Immediate User Resolution**: Promise<User> return types eliminate race conditions in redirection
 - **Seamless Integration**: Clean separation between client and server authentication flows
 - **Type Safety**: Comprehensive TypeScript support with strongly typed user profiles
 - **Error Resilience**: Robust error handling and loading state management

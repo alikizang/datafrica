@@ -10,8 +10,10 @@
 - [package.json](file://package.json)
 - [components.json](file://components.json)
 - [.gitignore](file://.gitignore)
+- [AGENTS.md](file://AGENTS.md)
 - [src/types/index.ts](file://src/types/index.ts)
 - [src/lib/firebase.ts](file://src/lib/firebase.ts)
+- [src/lib/firebase-admin.ts](file://src/lib/firebase-admin.ts)
 - [src/lib/auth-middleware.ts](file://src/lib/auth-middleware.ts)
 - [src/hooks/use-auth.tsx](file://src/hooks/use-auth.tsx)
 - [src/components/theme-provider.tsx](file://src/components/theme-provider.tsx)
@@ -32,25 +34,30 @@
 
 ## Update Summary
 **Changes Made**
-- Added CSV file patterns to .gitignore for data file management and deployment best practices
-- Updated deployment strategies to include CSV data file exclusion patterns
-- Enhanced data file management documentation with CSV upload and processing workflows
-- Added CSV parsing and validation documentation for dataset uploads
+- Added comprehensive build and lint command documentation from AGENTS.md
+- Integrated session efficiency practices for memory optimization during development
+- Documented code conventions including client-server separation and Firebase architecture
+- Added testing procedures and verification steps
+- Updated deployment strategies to include Firebase App Hosting and dual hosting setup
+- Enhanced Firebase configuration documentation with App Hosting integration
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
-5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Testing Approaches](#testing-approaches)
-9. [Code Organization Principles](#code-organization-principants)
-10. [Deployment Strategies](#deployment-strategies)
-11. [Data File Management](#data-file-management)
-12. [Debugging Strategies](#debugging-strategies)
-13. [Conclusion](#conclusion)
+5. [Development Commands](#development-commands)
+6. [Session Efficiency Practices](#session-efficiency-practices)
+7. [Code Conventions](#code-conventions)
+8. [Detailed Component Analysis](#detailed-component-analysis)
+9. [Dependency Analysis](#dependency-analysis)
+10. [Performance Considerations](#performance-considerations)
+11. [Testing Approaches](#testing-approaches)
+12. [Code Organization Principles](#code-organization-principants)
+13. [Deployment Strategies](#deployment-strategies)
+14. [Data File Management](#data-file-management)
+15. [Debugging Strategies](#debugging-strategies)
+16. [Conclusion](#conclusion)
 
 ## Introduction
 This document defines Datafrica's development guidelines and best practices. It consolidates TypeScript configuration, ESLint enforcement, component development patterns, state management strategies, testing approaches, performance optimizations for Next.js and Firebase, code organization principles, and debugging recommendations. The goal is to ensure consistent, maintainable, and scalable development across the platform.
@@ -84,6 +91,7 @@ UA["hooks/use-auth.tsx"]
 end
 subgraph "Lib"
 FB["lib/firebase.ts"]
+FBA["lib/firebase-admin.ts"]
 AMW["lib/auth-middleware.ts"]
 U["lib/utils.ts"]
 end
@@ -98,6 +106,7 @@ CMP["components.json"]
 FRB[".firebaserc"]
 FJB["firebase.json"]
 GI[".gitignore"]
+PKG["package.json"]
 end
 L --> NB
 L --> TP
@@ -111,9 +120,14 @@ BTN --> U
 CARD --> U
 DLG --> U
 FB --> T
+FBA --> T
 AMW --> T
 FRB --> FJB
 GI --> CSV["*.csv patterns"]
+PKG --> TS
+PKG --> ESL
+PKG --> NX
+PKG --> CMP
 ```
 
 **Diagram sources**
@@ -126,7 +140,8 @@ GI --> CSV["*.csv patterns"]
 - [src/components/theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [src/hooks/use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
 - [src/lib/firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
-- [src/lib/auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
+- [src/lib/firebase-admin.ts:1-64](file://src/lib/firebase-admin.ts#L1-L64)
+- [src/lib/auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/types/index.ts:1-90](file://src/types/index.ts#L1-L90)
 - [tsconfig.json:1-35](file://tsconfig.json#L1-L35)
@@ -134,8 +149,9 @@ GI --> CSV["*.csv patterns"]
 - [next.config.ts:1-8](file://next.config.ts#L1-L8)
 - [components.json:1-26](file://components.json#L1-L26)
 - [.firebaserc:1-6](file://.firebaserc#L1-L6)
-- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [firebase.json:1-22](file://firebase.json#L1-L22)
 - [.gitignore:36-37](file://.gitignore#L36-L37)
+- [package.json:1-52](file://package.json#L1-L52)
 
 **Section sources**
 - [src/app/layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
@@ -143,7 +159,8 @@ GI --> CSV["*.csv patterns"]
 - [src/components/layout/navbar.tsx:1-167](file://src/components/layout/navbar.tsx#L1-L167)
 - [src/hooks/use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
 - [src/lib/firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
-- [src/lib/auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
+- [src/lib/firebase-admin.ts:1-64](file://src/lib/firebase-admin.ts#L1-L64)
+- [src/lib/auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/types/index.ts:1-90](file://src/types/index.ts#L1-L90)
 - [tsconfig.json:1-35](file://tsconfig.json#L1-L35)
@@ -151,13 +168,15 @@ GI --> CSV["*.csv patterns"]
 - [next.config.ts:1-8](file://next.config.ts#L1-L8)
 - [components.json:1-26](file://components.json#L1-L26)
 - [.firebaserc:1-6](file://.firebaserc#L1-L6)
-- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [firebase.json:1-22](file://firebase.json#L1-L22)
 - [.gitignore:36-37](file://.gitignore#L36-L37)
+- [package.json:1-52](file://package.json#L1-L52)
 
 ## Core Components
 - TypeScript configuration enforces strictness, modern module resolution, and JSX transform for Next.js.
 - ESLint integrates Next.js core web vitals and TypeScript rules with explicit overrides.
 - Firebase client SDK is initialized and exported for auth, Firestore, and storage.
+- Firebase Admin SDK provides server-side operations with lazy initialization and proxy pattern.
 - Authentication provider manages user state, persistence, and token retrieval.
 - UI primitives (Button, Card, Dialog) demonstrate consistent prop interfaces, variants, and composition patterns.
 - Layout composes providers and shared UI to establish theme, auth, navigation, and notifications.
@@ -170,7 +189,8 @@ Key configuration highlights:
 - Next.js config placeholder for future optimization toggles
 - Tailwind + shadcn/slots configuration with TSX and RSC enabled
 - Firebase project configuration with default project "mydatafrica"
-- Firebase Hosting with ignore patterns and europe-west1 backend region
+- Firebase Hosting with ignore patterns and europe-west4 backend region
+- Dual hosting setup with App Hosting and traditional Firebase Hosting
 - CSV file patterns in .gitignore for data file management
 
 **Section sources**
@@ -179,13 +199,14 @@ Key configuration highlights:
 - [next.config.ts:1-8](file://next.config.ts#L1-L8)
 - [components.json:1-26](file://components.json#L1-L26)
 - [src/lib/firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
+- [src/lib/firebase-admin.ts:1-64](file://src/lib/firebase-admin.ts#L1-L64)
 - [src/hooks/use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
 - [src/components/ui/button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
 - [src/components/ui/card.tsx:1-104](file://src/components/ui/card.tsx#L1-L104)
 - [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
 - [src/app/layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
 - [.firebaserc:1-6](file://.firebaserc#L1-L6)
-- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [firebase.json:1-22](file://firebase.json#L1-L22)
 - [.gitignore:36-37](file://.gitignore#L36-L37)
 
 ## Architecture Overview
@@ -212,7 +233,8 @@ UI_Card["UI Card<br/>ui/card.tsx"]
 UI_Dialog["UI Dialog<br/>ui/dialog.tsx"]
 Vercel["Vercel Deployment"]
 Firebase["Firebase Deployment"]
-Region["europe-west1 Backend"]
+AppHosting["Firebase App Hosting"]
+Region["europe-west4 Backend"]
 CSV["CSV Data Files"]
 GitIgnore[".gitignore Patterns"]
 Browser --> App
@@ -229,6 +251,7 @@ UI_Dialog --> Utils
 Auth --> Types
 Vercel --> Region
 Firebase --> Region
+AppHosting --> Region
 CSV --> GitIgnore
 ```
 
@@ -243,8 +266,102 @@ CSV --> GitIgnore
 - [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/types/index.ts:1-90](file://src/types/index.ts#L1-L90)
-- [firebase.json:1-14](file://firebase.json#L1-L14)
+- [firebase.json:1-22](file://firebase.json#L1-L22)
 - [.gitignore:36-37](file://.gitignore#L36-L37)
+
+## Development Commands
+
+### Build and Lint Commands
+The project provides standardized development commands for building, linting, and running the development server:
+
+**Available Commands:**
+- **Build**: `npm run build` - Compiles the Next.js application for production
+- **Lint**: `npm run lint` - Runs ESLint across the codebase
+- **Dev server**: `npm run dev` - Starts the development server with hot reloading
+- **Deploy hosting**: `firebase deploy --only hosting` - Deploys only the hosting portion to Firebase
+
+**Build Process:**
+- Next.js compilation with TypeScript checking
+- Asset optimization and static generation
+- Bundle analysis and optimization
+- Environment-specific configuration application
+
+**Lint Process:**
+- ESLint analysis with Next.js and TypeScript rules
+- Auto-fixable issues resolution
+- Import order and code style validation
+- Generated files exclusion handling
+
+**Section sources**
+- [package.json:5-10](file://package.json#L5-L10)
+- [AGENTS.md:9-14](file://AGENTS.md#L9-L14)
+
+## Session Efficiency Practices
+
+### Memory Optimization During Development
+To avoid excessive memory consumption during development sessions, follow these session efficiency practices:
+
+**1. Keep Sessions Focused**
+- Handle one feature or bug fix per session when possible
+- Avoid combining unrelated large tasks in a single session
+- Maintain clear boundaries between different development activities
+
+**2. Minimize Sub-agent Usage**
+- Only use Task/sub-agents when truly needed (complex multi-file searches, code reviews)
+- Prefer direct tool calls (Read, Grep, Glob) for simple lookups
+- Use targeted file operations instead of broad searches
+
+**3. Avoid Unnecessary File Reading**
+- Use `offset` and `limit` parameters when only a specific section is needed
+- Use Grep to find relevant lines first before reading files
+- Work from memory when files are already in context
+
+**4. Batch Related Edits**
+- When making multiple edits to the same file, plan all changes first
+- Execute them together rather than reading the file between each edit
+- Reduce I/O operations and improve development speed
+
+**5. Clean Up Background Processes**
+- After running builds, dev servers, or deploys, ensure background processes are terminated
+- Free up system resources and prevent memory leaks
+- Monitor resource usage during development
+
+**Section sources**
+- [AGENTS.md:15-24](file://AGENTS.md#L15-L24)
+
+## Code Conventions
+
+### Development Standards and Patterns
+The project follows specific code conventions to ensure consistency and maintainability:
+
+**Client-Server Separation:**
+- Use `"use client"` directive only when the component needs client-side features (hooks, event handlers, browser APIs)
+- All API routes under `src/app/api/` use Firebase Admin SDK (initialized in `src/lib/firebase-admin.ts`)
+- Client-side Firebase is in `src/lib/firebase.ts`
+- Auth logic is in `src/hooks/use-auth.tsx`
+
+**Internationalization:**
+- All user-facing strings must be translated in all 5 locale files (en, fr, pt, es, ar)
+- Placeholders and dynamic content should be properly localized
+- Use consistent translation keys across the application
+
+**Component Architecture:**
+- Use shadcn/ui components from `src/components/ui/`
+- Theme support: dark/light mode via `next-themes`
+- Maintain consistent prop interfaces and variant patterns
+- Follow accessibility guidelines and semantic HTML
+
+**Firebase Integration:**
+- Admin guard protects routes under `src/app/admin/`
+- Firestore collections: `users`, `datasets`, `purchases`
+- Storage bucket path: `datasets/`
+- Authentication: Google Sign-In + Email/Password
+
+**Section sources**
+- [AGENTS.md:25-33](file://AGENTS.md#L25-L33)
+- [src/lib/firebase-admin.ts:1-64](file://src/lib/firebase-admin.ts#L1-L64)
+- [src/lib/firebase.ts:1-22](file://src/lib/firebase.ts#L1-L22)
+- [src/hooks/use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
 
 ## Detailed Component Analysis
 
@@ -392,13 +509,13 @@ end
 **Diagram sources**
 - [src/app/api/admin/analytics/route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
 - [src/app/api/admin/upload/route.ts:1-92](file://src/app/api/admin/upload/route.ts#L1-L92)
-- [src/lib/auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
+- [src/lib/auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
 
 **Section sources**
 - [src/app/api/admin/analytics/route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
 - [src/app/api/admin/upload/route.ts:1-92](file://src/app/api/admin/upload/route.ts#L1-L92)
 - [src/app/api/datasets/route.ts:1-62](file://src/app/api/datasets/route.ts#L1-L62)
-- [src/lib/auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
+- [src/lib/auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
 
 ### Component Lifecycle and State Management
 - Navbar demonstrates conditional rendering based on auth loading and user presence
@@ -458,10 +575,10 @@ Pkg --> XLSX
 ```
 
 **Diagram sources**
-- [package.json:1-51](file://package.json#L1-L51)
+- [package.json:1-52](file://package.json#L1-L52)
 
 **Section sources**
-- [package.json:1-51](file://package.json#L1-L51)
+- [package.json:1-52](file://package.json#L1-L52)
 
 ## Performance Considerations
 - Use concurrent data fetching patterns (Promise.all) to reduce load time
@@ -515,26 +632,19 @@ Datafrica supports deployment across multiple platforms with regional backend op
 
 #### Firebase Hosting (Secondary/Alternative)
 - Static site hosting with Firebase infrastructure
-- Regional backend configuration for europe-west1
+- Regional backend configuration for europe-west4
 - Custom ignore patterns for optimized builds
 - Integration with Firebase authentication and services
 
-### CSV Data File Management
-**Updated** The project now includes comprehensive CSV data file management:
+#### Firebase App Hosting (Primary/Production)
+**Updated** The project now uses Firebase App Hosting as the primary deployment target:
 
-**Git Ignore Patterns (.gitignore)**
-- CSV files excluded globally: `*.csv`
-- Prevents accidental commits of large dataset files
-- Protects sensitive business data from version control
-- Reduces repository size and improves clone performance
-
-**Data File Management Best Practices**
-- Store CSV datasets in local development environments only
-- Use Firebase Storage for production dataset hosting
-- Implement proper access controls and authentication
-- Compress large datasets before upload
-- Validate CSV structure before processing
-- Handle encoding issues (UTF-8, UTF-8-BOM)
+- **Service ID**: `datafrica`
+- **Region**: `europe-west4` (optimized for European market)
+- **Auto-deployment**: From GitHub repository
+- **Domain**: `datafrica--mydatafrica.europe-west4.hosted.app`
+- **Transparent proxy**: Configured as Cloud Run rewrite to App Hosting service
+- **Dual hosting setup**: Traditional Firebase Hosting acts as transparent proxy
 
 ### Build Optimization for Deployment
 - Next.js build artifacts optimized for static hosting
@@ -544,15 +654,15 @@ Datafrica supports deployment across multiple platforms with regional backend op
 - CSV parsing optimization with streaming for large files
 
 ### Regional Backend Strategy
-- europe-west1 region selected for European market focus
+- europe-west4 region selected for European market focus
 - Reduced latency for EU users compared to US-based regions
 - Compliance with GDPR and European data protection regulations
 - Localized API processing for better user experience
 
 **Section sources**
 - [.firebaserc:1-6](file://.firebaserc#L1-L6)
-- [firebase.json:1-14](file://firebase.json#L1-L14)
-- [.gitignore:36-37](file://.gitignore#L36-L37)
+- [firebase.json:1-22](file://firebase.json#L1-L22)
+- [AGENTS.md:34-39](file://AGENTS.md#L34-L39)
 
 ## Data File Management
 
@@ -615,4 +725,6 @@ The CSV upload system handles large datasets efficiently:
 - Track download token usage and expiration
 
 ## Conclusion
-These guidelines standardize TypeScript and ESLint configurations, component development patterns, state management, and API design. By adhering to these practices—strict typing, modular UI composition, secure auth flows, CSV data management, and performance-conscious engineering—you can build a reliable, scalable, and maintainable Next.js application integrated with Firebase. The addition of CSV file management patterns and deployment best practices ensures proper handling of large datasets while maintaining clean version control and efficient deployment workflows across both Vercel and Firebase hosting platforms.
+These guidelines standardize TypeScript and ESLint configurations, component development patterns, state management, and API design. By adhering to these practices—strict typing, modular UI composition, secure auth flows, CSV data management, and performance-conscious engineering—you can build a reliable, scalable, and maintainable Next.js application integrated with Firebase. The addition of CSV file management patterns, deployment best practices, session efficiency practices, and comprehensive development commands ensures proper handling of large datasets while maintaining clean version control and efficient deployment workflows across both Vercel and Firebase hosting platforms.
+
+The integration of Firebase App Hosting as the primary deployment target, combined with the dual hosting setup, provides redundancy and optimal performance for European users. The session efficiency practices help maintain development productivity while preventing memory issues during intensive development sessions. The comprehensive testing approach ensures code quality and reliability across all components and API endpoints.

@@ -19,20 +19,29 @@
 - [components.json](file://components.json)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated Design System section to reflect comprehensive transition from hardcoded hex colors to semantic Tailwind CSS variables
+- Enhanced Global CSS Architecture section with detailed explanation of semantic color system
+- Added new section on Semantic Color Variables and Design Tokens
+- Updated component analysis to highlight semantic class usage patterns
+- Revised troubleshooting guide to address semantic variable considerations
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
-10. [Appendices](#appendices)
+6. [Design System and Semantic Variables](#design-system-and-semantic-variables)
+7. [Dependency Analysis](#dependency-analysis)
+8. [Performance Considerations](#performance-considerations)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
+11. [Appendices](#appendices)
 
 ## Introduction
-This document describes the frontend architecture of Datafrica’s Next.js application. It focuses on the App Router file-based routing model under src/app, the provider pattern for theme and authentication, the component hierarchy from the root layout to reusable UI components, the responsive design system using Tailwind CSS and shadcn/ui, navigation structure with Navbar and Footer, the font system using Geist and Geist Mono, client-side rendering and hydration considerations, and the global CSS architecture and styling conventions.
+This document describes the frontend architecture of Datafrica's Next.js application. It focuses on the App Router file-based routing model under src/app, the provider pattern for theme and authentication, the component hierarchy from the root layout to reusable UI components, the responsive design system using Tailwind CSS and shadcn/ui with semantic variables, navigation structure with Navbar and Footer, the font system using Geist and Geist Mono, client-side rendering and hydration considerations, and the global CSS architecture and styling conventions.
 
 ## Project Structure
 The application follows Next.js App Router conventions with a strict file-based routing structure under src/app. The root layout composes providers and shared UI, while pages and API routes are organized by feature and route segment. Reusable UI components live under src/components, grouped by domain (e.g., dataset, layout, ui) and shared utilities under src/lib.
@@ -70,35 +79,35 @@ P --> Types
 ```
 
 **Diagram sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [page.tsx:1-199](file://src/app/page.tsx#L1-L199)
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [navbar.tsx:1-167](file://src/components/layout/navbar.tsx#L1-L167)
-- [footer.tsx:1-75](file://src/components/layout/footer.tsx#L1-L75)
+- [navbar.tsx:1-216](file://src/components/layout/navbar.tsx#L1-L216)
+- [footer.tsx:1-57](file://src/components/layout/footer.tsx#L1-L57)
 - [use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+- [globals.css:1-208](file://src/app/globals.css#L1-L208)
 - [dataset-card.tsx:1-81](file://src/components/dataset/dataset-card.tsx#L1-L81)
 - [index.ts:1-90](file://src/types/index.ts#L1-L90)
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [page.tsx:1-199](file://src/app/page.tsx#L1-L199)
 
 ## Core Components
 - Root layout: Defines metadata, fonts, providers, and the page shell with Navbar, main content area, Footer, and toast notifications.
 - Providers: ThemeProvider wraps the app with next-themes, and AuthProvider manages authentication state and exposes user context.
 - Navigation: Navbar handles desktop/mobile layouts, user menu, and theme toggle; Footer organizes links and branding.
-- UI primitives: Shadcn/ui components (button, dropdown-menu) provide consistent, accessible building blocks.
+- UI primitives: Shadcn/ui components (button, dropdown-menu) provide consistent, accessible building blocks using semantic color variables.
 - Domain components: DatasetCard renders dataset previews with category badges, pricing, and CTAs.
 - Types: Strongly typed User, Dataset, Purchase, and DownloadToken models support type-safe development.
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
-- [navbar.tsx:1-167](file://src/components/layout/navbar.tsx#L1-L167)
-- [footer.tsx:1-75](file://src/components/layout/footer.tsx#L1-L75)
+- [navbar.tsx:1-216](file://src/components/layout/navbar.tsx#L1-L216)
+- [footer.tsx:1-57](file://src/components/layout/footer.tsx#L1-L57)
 - [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
 - [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
 - [dataset-card.tsx:1-81](file://src/components/dataset/dataset-card.tsx#L1-L81)
@@ -108,7 +117,7 @@ P --> Types
 The application uses a layered architecture:
 - Routing layer: App Router segments map to pages and nested layouts.
 - Provider layer: ThemeProvider and AuthProvider wrap the entire application to share state and theme preferences.
-- UI layer: Shared components (buttons, dropdowns, cards) built with shadcn/ui and styled via Tailwind.
+- UI layer: Shared components (buttons, dropdowns, cards) built with shadcn/ui and styled via Tailwind semantic variables.
 - Domain layer: Feature-specific components (e.g., DatasetCard) encapsulate presentation logic.
 - Data layer: Authentication state and user context are managed via Firebase and exposed through a React context.
 
@@ -131,11 +140,11 @@ PG --> TY
 ```
 
 **Diagram sources**
-- [layout.tsx:26-49](file://src/app/layout.tsx#L26-L49)
+- [layout.tsx:28-54](file://src/app/layout.tsx#L28-L54)
 - [theme-provider.tsx:6-12](file://src/components/theme-provider.tsx#L6-L12)
 - [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
-- [navbar.tsx:18-167](file://src/components/layout/navbar.tsx#L18-L167)
-- [footer.tsx:4-75](file://src/components/layout/footer.tsx#L4-L75)
+- [navbar.tsx:19-216](file://src/components/layout/navbar.tsx#L19-L216)
+- [footer.tsx:6-57](file://src/components/layout/footer.tsx#L6-L57)
 - [page.tsx:18-199](file://src/app/page.tsx#L18-L199)
 - [button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
 - [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
@@ -168,13 +177,13 @@ Layout-->>Browser : Hydrated HTML/CSS/JS
 ```
 
 **Diagram sources**
-- [layout.tsx:26-49](file://src/app/layout.tsx#L26-L49)
+- [layout.tsx:28-54](file://src/app/layout.tsx#L28-L54)
 - [theme-provider.tsx:6-12](file://src/components/theme-provider.tsx#L6-L12)
 - [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
-- [navbar.tsx:18-167](file://src/components/layout/navbar.tsx#L18-L167)
+- [navbar.tsx:19-216](file://src/components/layout/navbar.tsx#L19-L216)
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
 
@@ -210,10 +219,10 @@ ClearUser --> Done
 - Navbar:
   - Displays logo and links to datasets and admin (conditional on role).
   - Desktop nav and mobile drawer with theme toggle and user actions.
-  - Uses DropdownMenu, Avatar, and Button primitives.
+  - Uses DropdownMenu, Avatar, and Button primitives with semantic color classes.
 - Footer:
   - Multi-column layout with links to marketplace, company, and developer resources.
-  - Responsive grid and copyright information.
+  - Responsive grid and copyright information using semantic color variables.
 
 ```mermaid
 graph LR
@@ -228,14 +237,14 @@ FT --> COL3["Developer Links"]
 ```
 
 **Diagram sources**
-- [navbar.tsx:18-167](file://src/components/layout/navbar.tsx#L18-L167)
+- [navbar.tsx:19-216](file://src/components/layout/navbar.tsx#L19-L216)
 - [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
 - [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
-- [footer.tsx:4-75](file://src/components/layout/footer.tsx#L4-L75)
+- [footer.tsx:6-57](file://src/components/layout/footer.tsx#L6-L57)
 
 **Section sources**
-- [navbar.tsx:1-167](file://src/components/layout/navbar.tsx#L1-L167)
-- [footer.tsx:1-75](file://src/components/layout/footer.tsx#L1-L75)
+- [navbar.tsx:1-216](file://src/components/layout/navbar.tsx#L1-L216)
+- [footer.tsx:1-57](file://src/components/layout/footer.tsx#L1-L57)
 
 ### Home Page and Dataset Presentation
 The home page:
@@ -263,30 +272,56 @@ UI-->>Page : Compose sections (hero, features, grids)
 - [page.tsx:1-199](file://src/app/page.tsx#L1-L199)
 - [dataset-card.tsx:1-81](file://src/components/dataset/dataset-card.tsx#L1-L81)
 
-### Global CSS and Design System
-- Tailwind v4 with CSS variables for theme tokens.
-- Shadcn/ui configured with RSC support and aliasing for components, utils, and hooks.
-- Design tokens mapped to oklch color spaces and radius variables.
-- Font variables applied at the root html element for consistent typography.
+## Design System and Semantic Variables
+
+**Updated** The application now uses a comprehensive semantic color system built on Tailwind CSS variables, replacing hardcoded hex colors throughout the design system.
+
+### Semantic Color Architecture
+The design system is built around a semantic color hierarchy that automatically adapts to light and dark themes:
+
+- **Core Palette**: Primary blue (#3d7eff) serves as the main brand color
+- **Surface Colors**: Background and foreground colors that adapt to theme
+- **Component Colors**: Card, popover, and input colors derived from semantic variables
+- **Chart Colors**: Distinct colors for data visualization (blue, green, yellow, purple, red)
+- **Custom Semantics**: Surface, surface-foreground, and dim colors for specialized use cases
+
+### CSS Variable Implementation
+The semantic system is implemented through a two-tier approach:
+
+1. **Theme Variables** (`--background`, `--foreground`, `--primary`, etc.): Defined in light and dark modes
+2. **Semantic Variables** (`--color-*`): Mapped to theme variables for consistent usage across components
 
 ```mermaid
 graph TB
-CSS["globals.css"] --> TW["Tailwind v4"]
-CSS --> THEME["CSS Variables (--color-*, --font-*)"]
-CSS --> FONTS["Geist Sans/Mono Variables"]
-CFG["components.json"] --> ALIAS["Aliases: @/components, @/lib, @/hooks"]
-CFG --> RSC["RSC: true"]
+TV["Theme Variables<br/>Light/Dark Mode"]
+SV["Semantic Variables<br/>Mapped to Theme"]
+CV["Component Classes<br/>bg-primary, text-foreground"]
+TV --> SV
+SV --> CV
 ```
 
 **Diagram sources**
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
-- [components.json:1-26](file://components.json#L1-L26)
-- [layout.tsx:10-18](file://src/app/layout.tsx#L10-L18)
+- [globals.css:5-49](file://src/app/globals.css#L5-L49)
+- [globals.css:52-126](file://src/app/globals.css#L52-L126)
+
+### Component Color Usage Patterns
+Components consistently use semantic classes:
+- **Primary Actions**: `bg-primary text-primary-foreground`
+- **Secondary Actions**: `bg-secondary text-secondary-foreground`
+- **Borders**: `border-border` (automatically adapts to theme)
+- **Text**: `text-foreground`, `text-muted-foreground`
+- **Backgrounds**: `bg-background`, `bg-card`, `bg-popover`
+
+### Custom Semantic Colors
+Additional semantic colors provide specialized functionality:
+- **Surface**: `--color-surface` for glassmorphism effects
+- **Surface Foreground**: `--color-surface-foreground` for surface text
+- **Dim**: `--color-dim` for subtle text and borders
 
 **Section sources**
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+- [globals.css:1-208](file://src/app/globals.css#L1-L208)
 - [components.json:1-26](file://components.json#L1-L26)
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 
 ## Dependency Analysis
 External dependencies relevant to frontend architecture:
@@ -295,7 +330,7 @@ External dependencies relevant to frontend architecture:
 - Firebase and Firebase Admin for authentication and user storage.
 - Radix UI primitives (Avatar, Dropdown Menu, Select, etc.) for accessible UI.
 - lucide-react for icons.
-- Tailwind CSS v4 and shadcn/ui for styling and component primitives.
+- Tailwind CSS v4 with semantic CSS variables for styling and component primitives.
 
 ```mermaid
 graph TB
@@ -304,7 +339,7 @@ THEME["next-themes"]
 FIRE["firebase"]
 RADIX["@radix-ui/*"]
 ICONS["lucide-react"]
-TWCSS["tailwindcss v4"]
+TWCSS["tailwindcss v4<br/>with CSS Variables"]
 SHAD["shadcn/ui"]
 APP --> THEME
 APP --> FIRE
@@ -315,11 +350,11 @@ APP --> SHAD
 ```
 
 **Diagram sources**
-- [package.json:11-38](file://package.json#L11-L38)
+- [package.json:11-39](file://package.json#L11-L39)
 - [components.json:1-26](file://components.json#L1-L26)
 
 **Section sources**
-- [package.json:1-51](file://package.json#L1-L51)
+- [package.json:1-52](file://package.json#L1-L52)
 - [components.json:1-26](file://components.json#L1-L26)
 
 ## Performance Considerations
@@ -329,23 +364,20 @@ APP --> SHAD
 - CSS variables: Tailwind CSS variables minimize repaints and improve theme transitions.
 - Component reuse: Shadcn/ui primitives and domain components reduce bundle size and improve maintainability.
 
-[No sources needed since this section provides general guidance]
-
 ## Troubleshooting Guide
 - Hydration warnings: Verify that only client components render dynamic content and that providers are wrapped around the entire app.
 - Authentication state: Ensure onAuthStateChanged subscription is initialized and user documents are created in Firestore.
 - Theme switching: Confirm next-themes is configured and ThemeToggle updates the theme correctly.
 - Routing: Validate that route segments match the intended pages and nested layouts.
+- Semantic variables: Ensure components use semantic classes (bg-primary, text-foreground) instead of hardcoded colors for proper theme adaptation.
 
 **Section sources**
-- [layout.tsx:35-35](file://src/app/layout.tsx#L35-L35)
+- [layout.tsx:37-37](file://src/app/layout.tsx#L37-L37)
 - [use-auth.tsx:39-67](file://src/hooks/use-auth.tsx#L39-L67)
 - [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
 
 ## Conclusion
-Datafrica’s frontend leverages Next.js App Router for structured routing, a robust provider pattern for theme and authentication, and a cohesive design system using Tailwind CSS and shadcn/ui. The root layout composes providers and shared UI, while pages and domain components encapsulate presentation logic. The font system, responsive design, and global CSS architecture deliver a consistent, accessible experience across devices.
-
-[No sources needed since this section summarizes without analyzing specific files]
+Datafrica's frontend leverages Next.js App Router for structured routing, a robust provider pattern for theme and authentication, and a cohesive design system using Tailwind CSS and shadcn/ui with semantic variables. The root layout composes providers and shared UI, while pages and domain components encapsulate presentation logic. The semantic color system ensures consistent theming across light and dark modes, delivering a professional, accessible experience across devices.
 
 ## Appendices
 
@@ -355,7 +387,7 @@ Datafrica’s frontend leverages Next.js App Router for structured routing, a ro
 - API routes under src/app/api handle backend interactions.
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [page.tsx:1-199](file://src/app/page.tsx#L1-L199)
 
 ### Client-Side Rendering and SSR Considerations
@@ -364,7 +396,7 @@ Datafrica’s frontend leverages Next.js App Router for structured routing, a ro
 - Providers initialize on the client to manage theme and auth state.
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
 - [use-auth.tsx:1-117](file://src/hooks/use-auth.tsx#L1-L117)
 
@@ -373,7 +405,7 @@ Datafrica’s frontend leverages Next.js App Router for structured routing, a ro
 - Typography tokens are consistently referenced across components.
 
 **Section sources**
-- [layout.tsx:10-18](file://src/app/layout.tsx#L10-L18)
+- [layout.tsx:12-20](file://src/app/layout.tsx#L12-L20)
 - [globals.css:5-44](file://src/app/globals.css#L5-L44)
 
 ### Global CSS Architecture
@@ -382,5 +414,17 @@ Datafrica’s frontend leverages Next.js App Router for structured routing, a ro
 - Aliases configured for components, utils, and hooks.
 
 **Section sources**
-- [globals.css:1-120](file://src/app/globals.css#L1-L120)
+- [globals.css:1-208](file://src/app/globals.css#L1-L208)
 - [components.json:6-21](file://components.json#L6-L21)
+
+### Semantic Color Variables Reference
+- **Core**: `--color-background`, `--color-foreground`, `--color-primary`, `--color-secondary`
+- **Surface**: `--color-card`, `--color-popover`, `--color-surface`
+- **Text**: `--color-foreground`, `--color-muted-foreground`, `--color-dim`
+- **Borders**: `--color-border`, `--color-input`, `--color-ring`
+- **Actions**: `--color-destructive`, `--color-accent`
+- **Charts**: `--color-chart-1` through `--color-chart-5`
+
+**Section sources**
+- [globals.css:5-49](file://src/app/globals.css#L5-L49)
+- [globals.css:52-126](file://src/app/globals.css#L52-L126)

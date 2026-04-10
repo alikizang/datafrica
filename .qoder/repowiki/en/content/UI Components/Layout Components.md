@@ -17,16 +17,20 @@
 - [postcss.config.mjs](file://postcss.config.mjs)
 - [next.config.ts](file://next.config.ts)
 - [index.ts](file://src/types/index.ts)
+- [admin/page.tsx](file://src/app/admin/page.tsx)
+- [dashboard/page.tsx](file://src/app/dashboard/page.tsx)
+- [admin/analytics/page.tsx](file://src/app/admin/analytics/page.tsx)
+- [admin/users/page.tsx](file://src/app/admin/users/page.tsx)
+- [en.json](file://src/locales/en.json)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated navbar component documentation to reflect dark-themed design with glassmorphism effects
-- Enhanced footer component documentation with improved dark styling and responsive layout
-- Modernized layout system documentation to include consistent dark theme implementation
-- Added details about glassmorphism effects and backdrop blur implementations
-- Updated color scheme documentation to reflect the bright dark navy theme
-- Improved mobile responsiveness documentation with concrete examples
+- Enhanced navbar component documentation to reflect role-based routing implementation with Admin Panel vs Dashboard differentiation
+- Updated authentication state integration documentation to show conditional navigation links based on user permissions
+- Added comprehensive coverage of mobile navigation menu implementation with consistent role-based routing
+- Expanded role-based access control documentation with admin-only features and user-specific dashboards
+- Updated navigation state management documentation to include role-based link generation and conditional rendering
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -41,17 +45,18 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document explains Datafrica's layout and navigation components with a focus on the modernized dark-themed design system. The layout now features:
-- **Dark Navigation Bar**: Glassmorphism-styled navbar with translucent dark blue background and backdrop blur effects
-- **Enhanced Footer**: Consistent dark styling with improved responsive design and brand consistency
-- **Modernized Layout System**: Complete dark theme implementation with custom CSS variables and consistent design tokens
-- **Glassmorphism Effects**: Subtle transparency and blur effects throughout the interface
-- **Responsive Design**: Improved mobile navigation patterns with consistent dark styling across all screen sizes
+This document explains Datafrica's layout and navigation components with a focus on the enhanced role-based routing system. The layout now features:
+- **Role-Based Navigation**: Conditional navigation links based on user permissions (admin vs user roles)
+- **Admin Panel Integration**: Dedicated admin routes with comprehensive management capabilities
+- **Dashboard Differentiation**: Separate user dashboard for non-admin users
+- **Enhanced Mobile Navigation**: Consistent role-based routing across mobile and desktop interfaces
+- **Conditional Feature Access**: Admin-only features like analytics, user management, and dataset uploads
+- **Streamlined User Experience**: Automatic redirection based on user role and authentication state
 
-The documentation covers the complete layout architecture, theme integration, and responsive design patterns with practical examples of the modernized dark theme implementation.
+The documentation covers the complete layout architecture, role-based access control, and responsive design patterns with practical examples of the enhanced navigation system.
 
 ## Project Structure
-The layout system centers around a fully dark-themed design with glassmorphism effects. The root layout composes the theme provider, authentication provider, navbar, page content, footer, and toast notifications. Global styles define a custom dark navy color scheme with design tokens and theme-aware variables.
+The layout system centers around a role-aware navigation architecture with conditional routing. The root layout composes the theme provider, authentication provider, navbar with role-based routing, page content, footer, and toast notifications. Global styles define a custom dark navy color scheme with design tokens and theme-aware variables.
 
 ```mermaid
 graph TB
@@ -61,6 +66,12 @@ Root --> NB["Navbar<br/>src/components/layout/navbar.tsx"]
 Root --> MAIN["Page Content"]
 Root --> FT["Footer<br/>src/components/layout/footer.tsx"]
 Root --> TS["Toaster<br/>src/components/ui/sonner.tsx"]
+subgraph "Role-Based Pages"
+ADMP["Admin Page<br/>src/app/admin/page.tsx"]
+DASH["Dashboard Page<br/>src/app/dashboard/page.tsx"]
+ANAL["Analytics Page<br/>src/app/admin/analytics/page.tsx"]
+USERS["Users Page<br/>src/app/admin/users/page.tsx"]
+end
 subgraph "Global Styles"
 GCSS["globals.css<br/>dark navy theme, design tokens, glassmorphism"]
 end
@@ -72,103 +83,113 @@ end
 NB --> BTN
 NB --> DD
 NB --> AV
-FT --> BTN
+ADMP --> ANAL
+ADMP --> USERS
 ```
 
 **Diagram sources**
-- [layout.tsx:26-49](file://src/app/layout.tsx#L26-L49)
+- [layout.tsx:28-54](file://src/app/layout.tsx#L28-L54)
 - [theme-provider.tsx:6-12](file://src/components/theme-provider.tsx#L6-L12)
-- [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
-- [navbar.tsx:18-198](file://src/components/layout/navbar.tsx#L18-L198)
-- [footer.tsx:4-85](file://src/components/layout/footer.tsx#L4-L85)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+- [navbar.tsx:19-218](file://src/components/layout/navbar.tsx#L19-L218)
+- [footer.tsx:6-56](file://src/components/layout/footer.tsx#L6-L56)
+- [admin/page.tsx:39-204](file://src/app/admin/page.tsx#L39-L204)
+- [dashboard/page.tsx:24-236](file://src/app/dashboard/page.tsx#L24-L236)
+- [admin/analytics/page.tsx:39-232](file://src/app/admin/analytics/page.tsx#L39-L232)
+- [admin/users/page.tsx:30-193](file://src/app/admin/users/page.tsx#L30-L193)
 - [globals.css:1-196](file://src/app/globals.css#L1-L196)
-- [button.tsx:7-35](file://src/components/ui/button.tsx#L7-L35)
-- [dropdown-menu.tsx:54-70](file://src/components/ui/dropdown-menu.tsx#L54-L70)
-- [avatar.tsx:8-21](file://src/components/ui/avatar.tsx#L8-L21)
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [globals.css:1-196](file://src/app/globals.css#L1-L196)
 
 ## Core Components
 - **Root Layout**: Orchestrates providers and renders the page shell with sticky navbar, scrollable main content, and footer using the dark theme
-- **Dark Navigation Bar**: Integrates authentication state with glassmorphism effects, responsive mobile menu, and consistent dark styling
-- **Enhanced Footer**: Organizes links into responsive columns with improved dark theme consistency and brand messaging
+- **Enhanced Navigation Bar**: Integrates role-based routing with conditional navigation links, admin panel access, and user dashboard differentiation
+- **Admin Panel System**: Comprehensive administrative interface with analytics, user management, and dataset upload capabilities
+- **User Dashboard**: Personalized dashboard for non-admin users with purchase history and profile management
 - **Theme Provider**: Manages theme preferences via next-themes with system preference detection and hydration-safe mounting
-- **Authentication Provider**: Manages Firebase state, user profile synchronization, and sign-out functionality
+- **Authentication Provider**: Manages Firebase state, user role resolution, and sign-out functionality with role-based access control
 
-**Updated** All components now feature consistent dark theming with glassmorphism effects and improved responsive design.
+**Updated** All components now feature role-aware navigation with conditional rendering based on user permissions and automatic redirection based on role hierarchy.
 
 **Section sources**
-- [layout.tsx:26-49](file://src/app/layout.tsx#L26-L49)
-- [navbar.tsx:18-198](file://src/components/layout/navbar.tsx#L18-L198)
-- [footer.tsx:4-85](file://src/components/layout/footer.tsx#L4-L85)
+- [layout.tsx:28-54](file://src/app/layout.tsx#L28-L54)
+- [navbar.tsx:19-218](file://src/components/layout/navbar.tsx#L19-L218)
+- [footer.tsx:6-56](file://src/components/layout/footer.tsx#L6-L56)
 - [theme-provider.tsx:6-12](file://src/components/theme-provider.tsx#L6-L12)
 - [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
-- [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+- [admin/page.tsx:39-204](file://src/app/admin/page.tsx#L39-L204)
+- [dashboard/page.tsx:24-236](file://src/app/dashboard/page.tsx#L24-L236)
 
 ## Architecture Overview
-The layout architecture follows a modernized dark theme pattern with glassmorphism effects:
-- Providers at the root configure theme and authentication contexts with dark mode as default
-- Navbar uses translucent dark blue background with backdrop blur and consistent dark styling
-- Footer maintains dark theme consistency with improved responsive design
-- UI primitives utilize the custom dark color palette with proper contrast ratios
+The layout architecture follows a role-aware navigation pattern with conditional routing:
+- Providers at the root configure theme and authentication contexts with role resolution
+- Navbar uses conditional rendering based on user role with admin panel and dashboard differentiation
+- Admin pages provide comprehensive management capabilities with role-based access control
+- User dashboard offers personalized experience with purchase history and profile management
+- Mobile navigation maintains consistent role-based routing across all screen sizes
 
 ```mermaid
 graph TB
 HTML["<html> tag<br/>lang, classes, dark theme"] --> BODY["<body> container<br/>min-h-full, flex column"]
 BODY --> THEME["ThemeProvider<br/>next-themes, system default"]
-THEME --> AUTH["AuthProvider<br/>Firebase state"]
-AUTH --> NAV["Navbar<br/>glassmorphism, dark theme, mobile menu"]
+THEME --> LANG["Language Provider<br/>translation context"]
+LANG --> AUTH["AuthProvider<br/>Firebase state, role resolution"]
+AUTH --> NAV["Navbar<br/>role-based routing, conditional links"]
 NAV --> MAIN["<main> content area<br/>flex-1"]
-MAIN --> FOOTER["Footer<br/>responsive columns, dark theme"]
+MAIN --> PAGE["Page Content<br/>role-aware routing"]
+PAGE --> ADMP["Admin Panel<br/>analytics, users, payments"]
+PAGE --> DASH["User Dashboard<br/>purchases, profile"]
+NAV --> FT["Footer<br/>responsive columns, dark theme"]
 THEME --> TOAST["Toaster<br/>notifications"]
 ```
 
 **Diagram sources**
-- [layout.tsx:32-47](file://src/app/layout.tsx#L32-L47)
+- [layout.tsx:33-53](file://src/app/layout.tsx#L33-L53)
 - [theme-provider.tsx:8-10](file://src/components/theme-provider.tsx#L8-L10)
-- [use-auth.tsx:34-108](file://src/hooks/use-auth.tsx#L34-L108)
-- [navbar.tsx:22-196](file://src/components/layout/navbar.tsx#L22-L196)
-- [footer.tsx:5-82](file://src/components/layout/footer.tsx#L5-L82)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+- [navbar.tsx:29-218](file://src/components/layout/navbar.tsx#L29-L218)
+- [footer.tsx:9-56](file://src/components/layout/footer.tsx#L9-L56)
 
 ## Detailed Component Analysis
 
-### Dark Navigation Bar Component
-**Updated** The navbar now features a complete dark theme transformation with glassmorphism effects and improved responsive design.
+### Enhanced Navigation Bar Component
+**Updated** The navbar now features comprehensive role-based routing with conditional navigation links and consistent mobile implementation.
 
 **Responsibilities:**
-- Brand identity with dark-themed logo and navigation links
-- Authentication-aware rendering with dark theme support (signed-in vs anonymous)
-- Role-based visibility with consistent dark styling (admin panel)
-- Responsive behavior: desktop nav + mobile hamburger menu with dark backdrop
-- Theme toggle placement integrated into dark theme design
-- User dropdown with profile info, navigation, and sign-out using dark theme
+- Role-aware brand identity with conditional navigation links based on user permissions
+- Authentication-aware rendering with role-based visibility (admin panel vs dashboard)
+- Conditional admin-only links when user role equals admin
+- Responsive behavior: desktop nav + mobile hamburger menu with role-based routing
+- Theme toggle placement integrated into role-aware design
+- User dropdown with role-specific navigation and sign-out using conditional routing
 
-**Dark Theme Features:**
-- Translucent dark blue background (`bg-[#0a1628]/80`) with backdrop blur
-- Glassmorphism effect using `backdrop-blur-xl` for modern appearance
-- Consistent dark color scheme with `#0a1628` base and `#111d32` accents
-- Proper contrast ratios with `#7a8ba3` for secondary text and `#e8ecf4` for primary text
+**Role-Based Navigation Features:**
+- Admin users see "Admin Panel" link in desktop navigation and dropdown menu
+- Non-admin users see "Dashboard" link in both desktop and mobile interfaces
+- Mobile menu automatically adapts to user role with appropriate navigation options
+- Sign-out functionality available to all authenticated users regardless of role
 
 **Responsive Design Patterns:**
-- Desktop: hidden on small screens; uses flex layout with spacing and hover states
-- Mobile: hamburger menu toggles a slide-down overlay with stacked links and actions
-- Breakpoint: md (768px) separates desktop and mobile views
-- Mobile menu uses dark backdrop (`bg-[#0d1a2d]`) with proper border separation
+- Desktop: hidden on small screens; uses flex layout with conditional admin links
+- Mobile: hamburger menu toggles a slide-down overlay with role-appropriate links
+- Breakpoint: md (768px) separates desktop and mobile views with consistent role routing
+- Mobile menu uses backdrop blur with proper border separation and role-aware links
 
 **Accessibility Considerations:**
 - Semantic markup with header, nav, and button elements
-- Keyboard navigable dropdown menu with dark theme support
+- Keyboard navigable dropdown menu with role-aware routing
 - Focus-visible ring utilities from button primitive
-- Icons with appropriate sizing and contrast in dark theme
-- Proper color contrast ratios maintained throughout
+- Icons with appropriate sizing and contrast in role-aware theme
+- Proper color contrast ratios maintained throughout role-based navigation
 
 **Navigation State Management:**
-- Uses authentication hook to derive user state and role
-- Handles sign-out and redirects via dropdown menu
-- Mobile menu closes after selection to improve UX
-- Loading states handled gracefully with dark theme consistency
+- Uses authentication hook to derive user state, role, and loading status
+- Handles sign-out and redirects via dropdown menu with role-aware routing
+- Mobile menu closes after selection to improve UX with role-based navigation
+- Loading states handled gracefully with role-consistent styling
 
 ```mermaid
 sequenceDiagram
@@ -178,29 +199,81 @@ participant AU as "Auth Hook"
 participant DD as "Dropdown Menu"
 U->>NB : Open mobile menu
 NB->>NB : Set mobileOpen=true
-NB->>NB : Apply dark backdrop blur
-U->>NB : Select "Sign out"
-NB->>AU : signOut()
-AU-->>NB : Clear user state
+NB->>NB : Check user role for conditional links
+NB->>NB : Apply role-appropriate backdrop blur
+U->>NB : Select "Admin Panel"
+NB->>AU : Navigate to /admin (admin role)
+AU-->>NB : Redirect to admin page
 NB->>DD : Close dropdown
-NB->>NB : Maintain dark theme consistency
+NB->>NB : Maintain role-aware consistency
 ```
 
 **Diagram sources**
-- [navbar.tsx:18-198](file://src/components/layout/navbar.tsx#L18-L198)
-- [use-auth.tsx:88-92](file://src/hooks/use-auth.tsx#L88-L92)
-- [dropdown-menu.tsx:54-70](file://src/components/ui/dropdown-menu.tsx#L54-L70)
+- [navbar.tsx:19-218](file://src/components/layout/navbar.tsx#L19-L218)
+- [use-auth.tsx:161-165](file://src/hooks/use-auth.tsx#L161-L165)
+- [dropdown-menu.tsx:102-127](file://src/components/ui/dropdown-menu.tsx#L102-L127)
 - [theme-toggle.tsx:8-26](file://src/components/theme-toggle.tsx#L8-L26)
 
 **Section sources**
-- [navbar.tsx:18-198](file://src/components/layout/navbar.tsx#L18-L198)
-- [use-auth.tsx:22-108](file://src/hooks/use-auth.tsx#L22-L108)
-- [dropdown-menu.tsx:54-70](file://src/components/ui/dropdown-menu.tsx#L54-L70)
+- [navbar.tsx:19-218](file://src/components/layout/navbar.tsx#L19-L218)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+- [dropdown-menu.tsx:102-127](file://src/components/ui/dropdown-menu.tsx#L102-L127)
 - [avatar.tsx:8-21](file://src/components/ui/avatar.tsx#L8-L21)
 - [button.tsx:7-35](file://src/components/ui/button.tsx#L7-L35)
 
+### Admin Panel System
+**Updated** The admin panel provides comprehensive management capabilities with role-based access control and conditional navigation.
+
+**Admin Features:**
+- Analytics dashboard with revenue, sales, user, and dataset statistics
+- User management with role assignment and permission control
+- Dataset upload and management interface
+- Payment settings and provider configuration
+- Real-time sales monitoring and reporting
+
+**Role-Based Access Control:**
+- Admin-only pages with automatic redirection for non-admin users
+- Secure API endpoints requiring admin authentication tokens
+- Role-specific navigation links in admin panel interface
+- User management capabilities with admin privilege controls
+
+**Navigation Integration:**
+- Admin panel accessible via dedicated "Admin Panel" link in navbar
+- Contextual navigation within admin pages for analytics, users, payments
+- Consistent role-based routing across all admin interface components
+
+**Section sources**
+- [admin/page.tsx:39-204](file://src/app/admin/page.tsx#L39-L204)
+- [admin/analytics/page.tsx:39-232](file://src/app/admin/analytics/page.tsx#L39-L232)
+- [admin/users/page.tsx:30-193](file://src/app/admin/users/page.tsx#L30-L193)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+
+### User Dashboard
+**Updated** The user dashboard provides personalized experience with role-based access control and conditional content.
+
+**User Features:**
+- Purchase history with dataset previews and download options
+- Profile management with personal information and account details
+- Account statistics including total purchases and available datasets
+- Role display with user permissions and membership information
+
+**Role-Based Access Control:**
+- Automatic redirection from dashboard to admin panel for admin users
+- Conditional content based on user role and authentication state
+- Purchase history integration with authenticated user sessions
+- Profile information management for authenticated users
+
+**Navigation Integration:**
+- Dashboard accessible via "Dashboard" link in navbar for non-admin users
+- Contextual navigation within dashboard for purchases and profile management
+- Consistent role-based routing preventing unauthorized access
+
+**Section sources**
+- [dashboard/page.tsx:24-236](file://src/app/dashboard/page.tsx#L24-L236)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+
 ### Enhanced Footer Component
-**Updated** The footer now features improved dark styling with consistent color scheme and better responsive design.
+**Updated** The footer maintains consistent dark styling with improved responsive design and role-aware navigation.
 
 **Structure and Content Organization:**
 - Grid layout with four responsive columns: brand, marketplace, company, developers
@@ -209,8 +282,8 @@ NB->>NB : Maintain dark theme consistency
 - Responsive design adapts from single column on small screens to four-column grid on medium screens and above
 
 **Dark Theme Implementation:**
-- Uses dark blue background (`bg-[#080f1e]`) with subtle border separation
-- Consistent color scheme with `#7a8ba3` for secondary text and `#e8ecf4` for primary text
+- Uses dark blue background (`bg-card`) with subtle border separation
+- Consistent color scheme with `text-muted-foreground` for secondary text and `text-foreground` for primary text
 - Proper spacing and padding for optimal readability in dark theme
 - Gradient accents and brand elements maintain visual consistency
 
@@ -235,13 +308,13 @@ F --> BTM["Bottom Bar<br/>copyright + message<br/>dark theme"]
 ```
 
 **Diagram sources**
-- [footer.tsx:4-85](file://src/components/layout/footer.tsx#L4-L85)
+- [footer.tsx:6-56](file://src/components/layout/footer.tsx#L6-L56)
 
 **Section sources**
-- [footer.tsx:4-85](file://src/components/layout/footer.tsx#L4-L85)
+- [footer.tsx:6-56](file://src/components/layout/footer.tsx#L6-L56)
 
 ### Theme Provider and Theme Toggle
-**Updated** The theme system now works seamlessly with the dark theme implementation.
+**Updated** The theme system now works seamlessly with the role-aware navigation design.
 
 **Theme Provider:**
 - Wraps the app with next-themes provider
@@ -252,12 +325,12 @@ F --> BTM["Bottom Bar<br/>copyright + message<br/>dark theme"]
 - Uses next-themes to switch between light and dark modes
 - Hydration guard prevents mismatched SSR/CSS during initial render
 - Renders icon button with accessible sizing and click handler
-- Maintains consistency with the dark theme design system
+- Maintains consistency with the role-aware design system
 
 **Integration:**
-- Navbar includes theme toggle in both desktop and mobile layouts
+- Navbar includes theme toggle in both desktop and mobile layouts with role-aware positioning
 - Global CSS variables react to theme changes via `.dark` selector
-- Custom dark theme variables override default values for consistent appearance
+- Custom dark theme variables override default values for consistent appearance across role-based interfaces
 
 ```mermaid
 sequenceDiagram
@@ -268,7 +341,7 @@ participant DOM as "DOM"
 U->>TT : Click toggle
 TT->>TP : setTheme(theme === "dark" ? "light" : "dark")
 TP->>DOM : Update class attribute on html/body
-DOM-->>U : Visual theme change applied with dark consistency
+DOM-->>U : Visual theme change applied with role-aware consistency
 ```
 
 **Diagram sources**
@@ -282,12 +355,12 @@ DOM-->>U : Visual theme change applied with dark consistency
 - [globals.css:1-196](file://src/app/globals.css#L1-L196)
 
 ### Root Layout and Global Styling
-**Updated** The root layout now features a complete dark theme implementation with custom CSS variables and glassmorphism effects.
+**Updated** The root layout now features a complete role-aware dark theme implementation with custom CSS variables and glassmorphism effects.
 
 **Root Layout:**
 - Defines metadata and font variables with dark theme support
 - Applies body layout with min-height and flex column using dark theme
-- Composes providers and page content with consistent dark styling
+- Composes providers and page content with consistent role-aware styling
 
 **Global Styling:**
 - Tailwind v4 configured via PostCSS plugin with dark theme support
@@ -295,7 +368,7 @@ DOM-->>U : Visual theme change applied with dark consistency
 - Design tokens mapped to CSS variables for theme-aware components
 - Dark mode variables override light mode values under `.dark` class
 - Fonts injected via Next Font with CSS variables for typography
-- Glassmorphism effects implemented throughout the design system
+- Glassmorphism effects implemented throughout the role-aware design system
 
 **Custom Dark Theme Variables:**
 - Background: `#0a1628` (dark navy blue)
@@ -314,29 +387,36 @@ CSS --> UI["UI Primitives<br/>button, dropdown, avatar<br/>dark theme"]
 ```
 
 **Diagram sources**
-- [layout.tsx:10-37](file://src/app/layout.tsx#L10-L37)
+- [layout.tsx:28-54](file://src/app/layout.tsx#L28-L54)
 - [globals.css:1-196](file://src/app/globals.css#L1-L196)
 - [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
 
 **Section sources**
-- [layout.tsx:1-50](file://src/app/layout.tsx#L1-L50)
+- [layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
 - [globals.css:1-196](file://src/app/globals.css#L1-L196)
 - [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
 - [components.json:6-12](file://components.json#L6-L12)
 
-### Authentication State Integration
-**Updated** The authentication system now seamlessly integrates with the dark theme design.
+### Role-Based Authentication State Integration
+**Updated** The authentication system now seamlessly integrates with role-aware navigation and conditional routing.
 
-The navbar consumes authentication state to conditionally render with dark theme support:
+The navbar consumes authentication state to conditionally render role-appropriate navigation with dark theme support:
 - Admin-only links when user role equals admin, styled consistently with dark theme
-- User avatar dropdown with profile and sign-out using dark theme styling
+- User dashboard vs admin panel routing based on role hierarchy
+- Role-aware user avatar dropdown with profile and sign-out using dark theme styling
 - Anonymous login/register buttons with dark theme consistency
 
 **Auth Provider Enhancements:**
-- Subscribes to Firebase auth state changes with dark theme awareness
-- Synchronizes user profile in Firestore with proper dark theme handling
-- Provides sign-out and ID token retrieval with consistent styling
-- Maintains authentication state across theme changes
+- Subscribes to Firebase auth state changes with role resolution
+- Synchronizes user profile in Firestore with proper role assignment
+- Provides sign-out and ID token retrieval with role-aware routing
+- Maintains authentication state across theme and role changes
+
+**Role-Based Routing Logic:**
+- Admin users automatically redirected to admin panel from dashboard
+- Non-admin users redirected to dashboard from admin panel
+- Conditional navigation links based on user role in navbar
+- Role-aware mobile navigation with appropriate routing options
 
 ```mermaid
 sequenceDiagram
@@ -344,23 +424,24 @@ participant FB as "Firebase Auth"
 participant AP as "Auth Provider"
 participant NB as "Navbar"
 FB-->>AP : onAuthStateChanged(user)
-AP->>AP : Load or create user profile in Firestore
+AP->>AP : Resolve user role (admin/user)
 AP-->>NB : Provide user, loading, signOut
-NB->>NB : Render admin/admin dropdown based on role<br/>with dark theme consistency
+NB->>NB : Render role-appropriate navigation<br/>Admin : Admin Panel link<br/>User : Dashboard link
+NB->>NB : Apply role-aware styling and routing
 ```
 
 **Diagram sources**
-- [use-auth.tsx:39-67](file://src/hooks/use-auth.tsx#L39-L67)
-- [navbar.tsx:18-93](file://src/components/layout/navbar.tsx#L18-L93)
+- [use-auth.tsx:109-128](file://src/hooks/use-auth.tsx#L109-L128)
+- [navbar.tsx:49-53](file://src/components/layout/navbar.tsx#L49-L53)
 - [index.ts:3-9](file://src/types/index.ts#L3-L9)
 
 **Section sources**
-- [use-auth.tsx:22-108](file://src/hooks/use-auth.tsx#L22-L108)
-- [navbar.tsx:18-93](file://src/components/layout/navbar.tsx#L18-L93)
+- [use-auth.tsx:44-181](file://src/hooks/use-auth.tsx#L44-L181)
+- [navbar.tsx:19-218](file://src/components/layout/navbar.tsx#L19-L218)
 - [index.ts:3-9](file://src/types/index.ts#L3-L9)
 
 ## Dependency Analysis
-**Updated** External dependencies support the modernized dark theme implementation.
+**Updated** External dependencies support the role-aware navigation implementation.
 
 External dependencies relevant to layout and navigation:
 - next-themes: theme management and persistence with dark theme support
@@ -370,9 +451,10 @@ External dependencies relevant to layout and navigation:
 - tailwind-merge, class-variance-authority: utility-first styling and variants with dark theme support
 
 **New Dependencies:**
-- Custom dark theme implementation with glassmorphism effects
-- Enhanced responsive design patterns
-- Improved accessibility with proper color contrast ratios
+- Role-based routing system with conditional navigation
+- Enhanced responsive design patterns with role-aware mobile navigation
+- Improved accessibility with proper color contrast ratios in role-based contexts
+- Admin panel integration with comprehensive management capabilities
 
 ```mermaid
 graph TB
@@ -383,7 +465,8 @@ P --> NEXT["next"]
 P --> TWCSS["tailwindcss + postcss"]
 P --> CLX["class-variance-authority"]
 P --> TM["tailwind-merge"]
-P --> CUSTOM["Custom Dark Theme<br/>Glassmorphism Effects"]
+P --> CUSTOM["Custom Dark Theme<br/>Role-Aware Navigation"]
+P --> ROLE["Role-Based Routing<br/>Admin/User Differentiation"]
 ```
 
 **Diagram sources**
@@ -395,41 +478,48 @@ P --> CUSTOM["Custom Dark Theme<br/>Glassmorphism Effects"]
 - [postcss.config.mjs:1-8](file://postcss.config.mjs#L1-L8)
 
 ## Performance Considerations
-**Updated** Performance optimizations for the dark theme implementation.
+**Updated** Performance optimizations for the role-aware navigation implementation.
 
 - **Hydration Safety**: theme toggle guards against SSR/CSS mismatches with dark theme awareness
-- **Minimal Re-renders**: navbar state isolated to mobileOpen and auth context with dark theme caching
+- **Minimal Re-renders**: navbar state isolated to mobileOpen and auth context with role-aware caching
+- **Role-Based Memoization**: Conditional rendering optimized for role changes and navigation updates
 - **Font Optimization**: Next Font with CSS variables reduces layout shifts with dark theme consistency
 - **Tailwind v4**: Efficient CSS generation via PostCSS pipeline with dark theme optimization
 - **Glassmorphism Performance**: Backdrop blur effects optimized for modern browsers
 - **Dark Theme Caching**: Custom CSS variables reduce reflow and repaint operations
+- **Conditional Rendering**: Role-based navigation links minimize unnecessary component rendering
 
 ## Troubleshooting Guide
-**Updated** Common issues and resolutions for the dark theme implementation.
+**Updated** Common issues and resolutions for the role-aware navigation implementation.
 
 Common issues and resolutions:
 - **Theme toggle not switching**: verify next-themes provider wraps the app and mounted guard is active with dark theme support
-- **Navbar shows loading state indefinitely**: check auth subscription cleanup and ensure onAuthStateChanged is firing with dark theme consistency
-- **Mobile menu does not close**: confirm click handlers reset mobileOpen and preventDefault is not interfering with dark theme effects
+- **Navbar shows loading state indefinitely**: check auth subscription cleanup and ensure onAuthStateChanged is firing with role-aware consistency
+- **Mobile menu does not close**: confirm click handlers reset mobileOpen and preventDefault is not interfering with role-based navigation effects
+- **Admin panel accessible to non-admins**: verify role-based access control in admin pages and proper redirection logic
+- **Dashboard shows admin content**: check role-based routing logic and ensure proper redirection for admin users
+- **Role-based links not appearing**: confirm user role is properly resolved and stored in Firestore with role-aware navigation
 - **Footer layout breaks on small screens**: ensure grid classes and responsive variants are present with proper dark theme styling
-- **Glassmorphism effects not appearing**: verify backdrop blur classes are applied correctly in dark theme context
-- **Color contrast issues**: check that dark theme color ratios meet accessibility standards
+- **Glassmorphism effects not appearing**: verify backdrop blur classes are applied correctly in role-aware dark theme context
+- **Color contrast issues**: check that role-aware dark theme color ratios meet accessibility standards
 
 **Section sources**
 - [theme-toggle.tsx:12-14](file://src/components/theme-toggle.tsx#L12-L14)
-- [use-auth.tsx:66-67](file://src/hooks/use-auth.tsx#L66-L67)
-- [navbar.tsx:109-196](file://src/components/layout/navbar.tsx#L109-L196)
-- [footer.tsx:8-82](file://src/components/layout/footer.tsx#L8-L82)
+- [use-auth.tsx:109-128](file://src/hooks/use-auth.tsx#L109-L128)
+- [navbar.tsx:160-218](file://src/components/layout/navbar.tsx#L160-L218)
+- [footer.tsx:10-56](file://src/components/layout/footer.tsx#L10-L56)
 
 ## Conclusion
-**Updated** Datafrica's modernized layout system combines a dark-themed root layout with robust providers, an authentication-aware navbar featuring glassmorphism effects, a responsive footer with enhanced dark styling, and a theme system built on next-themes. The UI primitives ensure consistent styling and accessibility within the custom dark navy color scheme. Together, these components deliver a cohesive, responsive, and user-friendly experience across devices and themes with improved performance and modern design patterns.
+**Updated** Datafrica's enhanced layout system combines a role-aware root layout with robust providers, an authentication-aware navbar featuring conditional navigation links, comprehensive admin panel with role-based access control, personalized user dashboard, and a theme system built on next-themes. The UI primitives ensure consistent styling and accessibility within the custom dark navy color scheme. Together, these components deliver a cohesive, responsive, and user-friendly experience across devices and themes with improved role-based navigation, conditional routing, and modern design patterns.
 
 ## Appendices
-**Updated** Enhanced responsive breakpoints and design guidelines.
+**Updated** Enhanced responsive breakpoints and design guidelines with role-based navigation.
 
-- **Responsive Breakpoints**: md (768px) separates desktop and mobile layouts with improved dark theme adaptation
-- **Accessibility**: Semantic elements, keyboard navigation, focus-visible rings, and proper contrast via design tokens with dark theme support
-- **Example Composition**: Place the navbar inside the root layout with dark theme, wrap providers around it, and render page content in main
-- **Dark Theme Guidelines**: Use `#0a1628` base color, `#3d7eff` accents, and maintain proper contrast ratios throughout
-- **Glassmorphism Effects**: Implement backdrop blur and translucent backgrounds for modern appearance
+- **Responsive Breakpoints**: md (768px) separates desktop and mobile layouts with improved role-aware adaptation
+- **Accessibility**: Semantic elements, keyboard navigation, focus-visible rings, and proper contrast via design tokens with role-aware support
+- **Example Composition**: Place the role-aware navbar inside the root layout with dark theme, wrap providers around it, and render role-appropriate page content in main
+- **Dark Theme Guidelines**: Use `#0a1628` base color, `#3d7eff` accents, and maintain proper contrast ratios throughout role-based interfaces
+- **Glassmorphism Effects**: Implement backdrop blur and translucent backgrounds for modern appearance in role-aware contexts
+- **Role-Based Navigation Guidelines**: Use conditional rendering for admin-only features, implement proper redirection logic, and maintain consistent role-aware styling
 - **Color Scheme Reference**: Dark navy blue base (`#0a1628`), bright blue accents (`#3d7eff`), deep blue (`#1a2a42`), and light text (`#e8ecf4`)
+- **Role-Based Access Control**: Implement proper role validation, secure API endpoints, and automatic redirection based on user permissions

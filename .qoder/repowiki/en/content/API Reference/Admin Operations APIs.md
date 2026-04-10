@@ -12,8 +12,16 @@
 - [page.tsx](file://src/app/admin/users/page.tsx)
 - [index.ts](file://src/types/index.ts)
 - [use-auth.tsx](file://src/hooks/use-auth.tsx)
+- [use-language.tsx](file://src/hooks/use-language.tsx)
 - [package.json](file://package.json)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated POST /api/admin/upload endpoint documentation to include multi-language description support
+- Added descriptions field with JSON-encoded map handling
+- Enhanced validation logic for language entries
+- Updated request/response schemas to reflect new multi-language capabilities
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -27,9 +35,9 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document provides comprehensive API documentation for Datafrica’s administrative operation endpoints. It covers:
+This document provides comprehensive API documentation for Datafrica's administrative operation endpoints. It covers:
 - GET /api/admin/analytics: Revenue analytics, sales aggregation, user activity metrics, and response format
-- POST /api/admin/upload: Dataset upload management, CSV validation, metadata extraction, and storage integration
+- POST /api/admin/upload: Dataset upload management with enhanced multi-language description support, CSV validation, metadata extraction, and storage integration
 - GET /api/admin/users: User management operations, user retrieval, and administrative controls
 
 It also documents authentication requirements, role-based access control, request/response schemas, error handling, and security considerations for sensitive data access.
@@ -52,6 +60,7 @@ end
 subgraph "Middleware & Services"
 M["requireAdmin()<br/>(auth-middleware.ts)"]
 F["Firebase Admin SDK<br/>(firebase-admin.ts)"]
+L["Multi-Language Support<br/>(use-language.tsx)"]
 end
 A --> R1
 B --> R2
@@ -60,21 +69,24 @@ R1 --> M
 R2 --> M
 R3 --> M
 M --> F
+B --> L
 ```
 
 **Diagram sources**
 - [route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
-- [route.ts:1-93](file://src/app/api/admin/upload/route.ts#L1-L93)
+- [route.ts:1-112](file://src/app/api/admin/upload/route.ts#L1-L112)
 - [route.ts:1-54](file://src/app/api/admin/users/route.ts#L1-L54)
 - [auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
+- [use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
 
 **Section sources**
 - [route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
-- [route.ts:1-93](file://src/app/api/admin/upload/route.ts#L1-L93)
+- [route.ts:1-112](file://src/app/api/admin/upload/route.ts#L1-L112)
 - [route.ts:1-54](file://src/app/api/admin/users/route.ts#L1-L54)
 - [auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
+- [use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
 
 ## Core Components
 - Authentication and Authorization Middleware
@@ -85,14 +97,14 @@ M --> F
   - Lazy-initialized adminAuth, adminDb, adminStorage for secure server-side operations
 - Admin API Routes
   - GET /api/admin/analytics: Aggregates revenue, sales, users, datasets, recent sales, and top datasets
-  - POST /api/admin/upload: Parses CSV, validates metadata, stores dataset metadata and full data in batches
+  - POST /api/admin/upload: Parses CSV, validates metadata, extracts multi-language descriptions, stores dataset metadata and full data in batches
   - GET /api/admin/users: Lists all users; PATCH updates user roles
 
 **Section sources**
 - [auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
 - [route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
-- [route.ts:1-93](file://src/app/api/admin/upload/route.ts#L1-L93)
+- [route.ts:1-112](file://src/app/api/admin/upload/route.ts#L1-L112)
 - [route.ts:1-54](file://src/app/api/admin/users/route.ts#L1-L54)
 
 ## Architecture Overview
@@ -170,28 +182,35 @@ Err403 --> Done
 - [auth-middleware.ts:30-47](file://src/lib/auth-middleware.ts#L30-L47)
 
 ### POST /api/admin/upload
-- Purpose: Upload a CSV dataset, parse and validate, extract metadata, and persist dataset metadata and full data in batches.
+- Purpose: Upload a CSV dataset, parse and validate, extract metadata including multi-language descriptions, and persist dataset metadata and full data in batches.
 - Authentication: Requires admin role via Bearer token.
 - Request Body (multipart/form-data):
   - file: CSV file (required)
   - title: string (required)
-  - description: string (optional)
+  - description: string (optional, fallback for single language)
+  - **descriptions: string (JSON-encoded map, optional)** - Multi-language descriptions map
   - category: string (required)
   - country: string (required)
   - price: number (required)
   - currency: string (optional, default "XOF")
   - previewRows: number (optional, default 10)
   - featured: boolean (optional, default false)
+  - allowDownload: boolean (optional, default true)
 - Processing Logic:
   - Validates presence of required fields
   - Parses CSV with Papa Parse; returns 400 on parsing errors
-  - Creates dataset document with metadata (title, description, category, country, price, currency, recordCount, columns, previewData, flags)
+  - **Enhanced**: Processes multi-language descriptions from JSON-encoded map**
+  - **Enhanced**: Validates language entries and trims whitespace**
+  - **Enhanced**: Only accepts non-empty string values for descriptions**
+  - Creates dataset document with metadata (title, description, **descriptions map**, category, country, price, currency, recordCount, columns, previewData, flags)
   - Stores full data in batches (500 rows per batch) into datasetId/fullData subcollection
 - Response Format:
   - success: boolean
   - datasetId: string
   - recordCount: number
   - columns: string[]
+
+**Updated** Enhanced upload API now supports multi-language descriptions through a JSON-encoded map field that allows administrators to provide localized descriptions for different languages.
 
 ```mermaid
 sequenceDiagram
@@ -200,7 +219,7 @@ participant API as "POST /api/admin/upload<br/>(route.ts)"
 participant MW as "requireAdmin()<br/>(auth-middleware.ts)"
 participant FS as "Firestore<br/>(firebase-admin.ts)"
 participant PC as "Papa Parse"
-FE->>API : multipart/form-data (file + metadata)
+FE->>API : multipart/form-data (file + metadata + descriptions JSON)
 API->>MW : requireAdmin(request)
 MW-->>API : {user,error}
 alt Invalid request
@@ -211,7 +230,8 @@ PC-->>API : Parsed data or errors
 alt Parsing errors
 API-->>FE : 400 CSV parsing errors
 else Parsed successfully
-API->>FS : Create dataset document
+API->>API : Process descriptions JSON map
+API->>FS : Create dataset document with multi-language descriptions
 API->>FS : Batch write fullData (500 rows/chunk)
 API-->>FE : 200 success, datasetId, recordCount, columns
 end
@@ -220,13 +240,14 @@ end
 
 **Diagram sources**
 - [page.tsx:77-81](file://src/app/admin/upload/page.tsx#L77-L81)
-- [route.ts:6-93](file://src/app/api/admin/upload/route.ts#L6-L93)
+- [route.ts:6-112](file://src/app/api/admin/upload/route.ts#L6-L112)
 - [auth-middleware.ts:30-47](file://src/lib/auth-middleware.ts#L30-L47)
 
 **Section sources**
-- [route.ts:1-93](file://src/app/api/admin/upload/route.ts#L1-L93)
+- [route.ts:1-112](file://src/app/api/admin/upload/route.ts#L1-L112)
 - [page.tsx:44-98](file://src/app/admin/upload/page.tsx#L44-L98)
 - [auth-middleware.ts:30-47](file://src/lib/auth-middleware.ts#L30-L47)
+- [use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
 
 ### GET /api/admin/users
 - Purpose: List all users ordered by creation date.
@@ -301,13 +322,16 @@ end
 ## Dependency Analysis
 - Frontend Pages
   - Admin pages call API routes with Authorization: Bearer <token> obtained from useAuth hook
+  - Upload page utilizes multi-language support for description input
 - Backend Routes
   - All admin routes depend on requireAdmin for authorization
   - requireAdmin depends on Firebase Admin Auth for token verification and Firestore for user role
+  - Upload route processes multi-language descriptions using JSON parsing
 - External Dependencies
   - Firebase Admin SDK for Auth, Firestore, and Storage
   - Papa Parse for CSV parsing
   - Next.js App Router for API routes
+  - Multi-language support system for internationalization
 
 ```mermaid
 graph LR
@@ -324,6 +348,8 @@ A3 --> M
 A4 --> M
 M --> FA["Firebase Admin Auth"]
 M --> FD["Firestore"]
+P2 --> ML["Multi-Language System"]
+ML --> UL["use-language.tsx"]
 ```
 
 **Diagram sources**
@@ -336,6 +362,7 @@ M --> FD["Firestore"]
 - [route.ts:5-9](file://src/app/api/admin/users/route.ts#L5-L9)
 - [auth-middleware.ts:30-47](file://src/lib/auth-middleware.ts#L30-L47)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
+- [use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
 
 **Section sources**
 - [use-auth.tsx:94-99](file://src/hooks/use-auth.tsx#L94-L99)
@@ -347,14 +374,14 @@ M --> FD["Firestore"]
 - [route.ts:5-9](file://src/app/api/admin/users/route.ts#L5-L9)
 - [auth-middleware.ts:30-47](file://src/lib/auth-middleware.ts#L30-L47)
 - [firebase-admin.ts:1-50](file://src/lib/firebase-admin.ts#L1-L50)
+- [use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
 - [package.json:24-37](file://package.json#L24-L37)
 
 ## Performance Considerations
 - CSV Upload Batching: Full dataset rows are written in batches of 500 to Firestore to avoid large single writes and reduce memory pressure during ingestion.
 - Firestore Aggregation: Analytics queries use filtered and limited collections to keep computations efficient.
 - Token Verification: Firebase Admin Auth verifies tokens server-side to prevent client-side tampering.
-
-[No sources needed since this section provides general guidance]
+- **Enhanced**: Multi-language description processing is optimized with JSON parsing and validation to minimize unnecessary operations.
 
 ## Troubleshooting Guide
 - Authentication Failures
@@ -364,6 +391,7 @@ M --> FD["Firestore"]
 - CSV Upload Issues
   - Missing required fields: Returns 400 Missing required fields
   - CSV parsing errors: Returns 400 with details array
+  - **Enhanced**: Invalid JSON in descriptions field: Returns 400 with error details
   - Internal errors: Returns 500 Failed to upload dataset
 - Analytics Errors
   - Internal errors: Returns 500 Failed to fetch analytics
@@ -382,4 +410,4 @@ M --> FD["Firestore"]
 - [route.ts:46-52](file://src/app/api/admin/users/route.ts#L46-L52)
 
 ## Conclusion
-The admin APIs provide secure, role-based access to analytics, dataset uploads, and user management. They rely on Firebase Admin for authentication and Firestore for data operations, with robust error handling and performance-conscious batching for large datasets. Frontend pages integrate seamlessly with these endpoints using Bearer tokens obtained from the useAuth hook.
+The admin APIs provide secure, role-based access to analytics, dataset uploads, and user management. They rely on Firebase Admin for authentication and Firestore for data operations, with robust error handling and performance-conscious batching for large datasets. The enhanced upload API now supports multi-language descriptions through a JSON-encoded map system, allowing administrators to provide localized content for different languages. Frontend pages integrate seamlessly with these endpoints using Bearer tokens obtained from the useAuth hook, with additional multi-language support for description input.

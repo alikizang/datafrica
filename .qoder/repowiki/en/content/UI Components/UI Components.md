@@ -5,8 +5,10 @@
 - [package.json](file://package.json)
 - [components.json](file://components.json)
 - [src/app/globals.css](file://src/app/globals.css)
+- [src/app/layout.tsx](file://src/app/layout.tsx)
 - [src/components/theme-provider.tsx](file://src/components/theme-provider.tsx)
 - [src/components/theme-toggle.tsx](file://src/components/theme-toggle.tsx)
+- [src/hooks/use-language.tsx](file://src/hooks/use-language.tsx)
 - [src/lib/utils.ts](file://src/lib/utils.ts)
 - [src/components/ui/button.tsx](file://src/components/ui/button.tsx)
 - [src/components/ui/card.tsx](file://src/components/ui/card.tsx)
@@ -19,16 +21,18 @@
 - [src/components/ui/select.tsx](file://src/components/ui/select.tsx)
 - [src/components/layout/navbar.tsx](file://src/components/layout/navbar.tsx)
 - [src/components/layout/footer.tsx](file://src/components/layout/footer.tsx)
+- [src/locales/en.json](file://src/locales/en.json)
+- [src/locales/fr.json](file://src/locales/fr.json)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated theme system documentation to reflect the new always-dark implementation with Bright Data-inspired color scheme
-- Added comprehensive documentation for new glass-morphism styling features including glass-card, gradient-border, and hero-gradient effects
-- Enhanced typography documentation with new gradient text and stat glow effects
-- Updated component styling to include modern design patterns like backdrop blur, gradient accents, and advanced shadow effects
-- Expanded layout components documentation to include new mobile-first responsive design patterns
-- Added documentation for new utility classes including btn-pill, no-select, and blur-row effects
+- Enhanced navigation bar with integrated language switcher and theme toggle functionality
+- Redesigned footer with semantic HTML structure and improved responsive behavior
+- Added comprehensive internationalization system with five languages (English, French, Portuguese, Spanish, Arabic)
+- Implemented RTL language support for Arabic with automatic direction switching
+- Improved mobile menu with language selector and enhanced responsive design patterns
+- Updated theme toggle to work seamlessly with the language switcher in both desktop and mobile contexts
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -36,89 +40,68 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
-10. [Appendices](#appendices)
+6. [Internationalization System](#internationalization-system)
+7. [Dependency Analysis](#dependency-analysis)
+8. [Performance Considerations](#performance-considerations)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
+11. [Appendices](#appendices)
 
 ## Introduction
-This document describes the UI components, design system, and styling architecture used in the Datafrica application. The system has undergone comprehensive modernization featuring a dark theme implementation with glass-morphism effects, enhanced typography with gradient accents, and consistent styling across all components including authentication pages and dashboard. It focuses on the shadcn/ui-inspired component library, theme system (always-dark mode), and layout primitives with modern design patterns.
+This document describes the UI components, design system, and styling architecture used in the Datafrica application. The system features a comprehensive internationalization framework with five languages, enhanced navigation with language switching capabilities, and modern responsive design patterns. It focuses on the shadcn/ui-inspired component library, theme system with forced dark mode, and layout primitives with glass-morphism effects and semantic HTML structure.
 
 ## Project Structure
 The UI system is organized around:
-- A modern dark-themed design system built on Tailwind CSS v4 with Bright Data-inspired color palette
-- A theme provider enabling system-aware dark mode with forced dark implementation
-- A comprehensive set of shadcn/ui-inspired components under src/components/ui
-- Advanced layout primitives with glass-morphism and gradient effects under src/components/layout
-- Utility helpers for class merging and component composition with enhanced styling capabilities
+- A modern dark-themed design system built on Tailwind CSS with Bright Data-inspired color palette
+- Comprehensive internationalization system with five supported languages and RTL support
+- Enhanced navigation bar with language switcher and theme toggle integration
+- Redesigned footer with semantic HTML structure and improved responsive behavior
+- Advanced layout primitives with glass-morphism and gradient effects
+- Utility helpers for class merging and component composition
 
 ```mermaid
 graph TB
-subgraph "Modern Dark Theme System"
-RootLayout["App Root Layout<br/>src/app/layout.tsx"]
-GlobalsCSS["Global Styles<br/>src/app/globals.css<br/>Always Dark Mode"]
+subgraph "Internationalization System"
+LanguageProvider["LanguageProvider<br/>src/hooks/use-language.tsx<br/>5 Languages + RTL Support"]
+Languages["Supported Languages<br/>English, French, Portuguese,<br/>Spanish, Arabic"]
+RTLSupport["RTL Support<br/>Arabic Directionality<br/>Automatic HTML dir switching"]
+end
+subgraph "Enhanced Navigation"
+Navbar["Navbar<br/>src/components/layout/navbar.tsx<br/>Language Switcher + Theme Toggle"]
+LanguageSwitcher["Language Switcher<br/>Dropdown Menu<br/>Desktop + Mobile"]
+ThemeToggle["Theme Toggle<br/>Integrated in Navbar<br/>Responsive Design"]
+MobileMenu["Mobile Menu<br/>Enhanced with Language Selector"]
+end
+subgraph "Redesigned Footer"
+Footer["Footer<br/>src/components/layout/footer.tsx<br/>Semantic HTML Structure"]
+FooterGrid["Footer Grid<br/>4 Columns + Responsive<br/>Semantic Headings"]
+end
+subgraph "Theme System"
+ThemeProvider["Theme Provider<br/>Always Dark Mode"]
 GlassEffects["Glass Effects<br/>.glass-card, .gradient-border,<br/>.hero-gradient, .stat-glow"]
 GradientAccents["Gradient Accents<br/>.gradient-text, .btn-pill"]
-AntiScrape["Anti-Scrape Features<br/>.no-select, .blur-row"]
 end
-subgraph "Theme Provider"
-ThemeProvider["Theme Provider<br/>src/components/theme-provider.tsx<br/>Always Dark Implementation"]
-ThemeToggle["Theme Toggle<br/>src/components/theme-toggle.tsx<br/>Force Dark Mode"]
-end
-subgraph "Enhanced UI Components"
-Button["Button<br/>src/components/ui/button.tsx<br/>With Modern Variants"]
-Card["Card (Glass)<br/>src/components/ui/card.tsx<br/>Backdrop Filter Effects"]
-Dialog["Dialog<br/>src/components/ui/dialog.tsx<br/>Glass Background"]
-Input["Input<br/>src/components/ui/input.tsx<br/>Enhanced Styling"]
-Table["Table<br/>src/components/ui/table.tsx<br/>Modern Borders"]
-Badge["Badge<br/>src/components/ui/badge.tsx<br/>Gradient Variants"]
-Avatar["Avatar<br/>src/components/ui/avatar.tsx<br/>Glass Background"]
-Label["Label<br/>src/components/ui/label.tsx<br/>Enhanced Typography"]
-Select["Select<br/>src/components/ui/select.tsx<br/>Glass Dropdown"]
-end
-subgraph "Modern Layout"
-Navbar["Navbar<br/>src/components/layout/navbar.tsx<br/>Backdrop Blur, Gradient Accents"]
-Footer["Footer<br/>src/components/layout/footer.tsx<br/>Glass Effects"]
-end
-RootLayout --> ThemeProvider
-ThemeProvider --> GlobalsCSS
-ThemeProvider --> GlassEffects
-ThemeProvider --> GradientAccents
-ThemeProvider --> AntiScrape
+LanguageProvider --> Navbar
+LanguageProvider --> Footer
+Navbar --> LanguageSwitcher
 Navbar --> ThemeToggle
-Button --> Utils
-Card --> Utils
-Dialog --> Utils
-Input --> Utils
-Table --> Utils
-Badge --> Utils
-Avatar --> Utils
-Label --> Utils
-Select --> Utils
+Navbar --> MobileMenu
+Footer --> FooterGrid
 ```
 
 **Diagram sources**
-- [src/app/globals.css:128-196](file://src/app/globals.css#L128-L196)
-- [src/components/theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [src/components/theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
-- [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
-- [src/components/ui/button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
-- [src/components/ui/card.tsx:1-104](file://src/components/ui/card.tsx#L1-L104)
-- [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
-- [src/components/ui/input.tsx:1-20](file://src/components/ui/input.tsx#L1-L20)
-- [src/components/ui/table.tsx:1-117](file://src/components/ui/table.tsx#L1-L117)
-- [src/components/ui/badge.tsx:1-37](file://src/components/ui/badge.tsx#L1-L37)
-- [src/components/ui/avatar.tsx:1-51](file://src/components/ui/avatar.tsx#L1-L51)
-- [src/components/ui/label.tsx:1-21](file://src/components/ui/label.tsx#L1-L21)
-- [src/components/ui/select.tsx:1-158](file://src/components/ui/select.tsx#L1-L158)
-- [src/components/layout/navbar.tsx:1-198](file://src/components/layout/navbar.tsx#L1-L198)
-- [src/components/layout/footer.tsx:1-85](file://src/components/layout/footer.tsx#L1-L85)
+- [src/hooks/use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
+- [src/hooks/use-language.tsx:59-64](file://src/hooks/use-language.tsx#L59-L64)
+- [src/components/layout/navbar.tsx:57-87](file://src/components/layout/navbar.tsx#L57-L87)
+- [src/components/layout/navbar.tsx:171-182](file://src/components/layout/navbar.tsx#L171-L182)
+- [src/components/layout/footer.tsx:12-48](file://src/components/layout/footer.tsx#L12-L48)
+- [src/app/layout.tsx:40-50](file://src/app/layout.tsx#L40-L50)
 
 **Section sources**
-- [package.json:1-51](file://package.json#L1-L51)
-- [components.json:1-26](file://components.json#L1-L26)
-- [src/app/globals.css:1-196](file://src/app/globals.css#L1-L196)
+- [src/app/layout.tsx:1-55](file://src/app/layout.tsx#L1-L55)
+- [src/hooks/use-language.tsx:1-86](file://src/hooks/use-language.tsx#L1-L86)
+- [src/components/layout/navbar.tsx:1-216](file://src/components/layout/navbar.tsx#L1-L216)
+- [src/components/layout/footer.tsx:1-57](file://src/components/layout/footer.tsx#L1-L57)
 
 ## Core Components
 This section documents the primary UI components and their props, variants, and modern styling patterns.
@@ -173,6 +156,17 @@ This section documents the primary UI components and their props, variants, and 
   - Parts: Root, Group, Value, Trigger, Content, Label, Item, Separator, ScrollUpButton, ScrollDownButton
   - **Updated**: Content now features glass background with backdrop blur
 
+- **New**: Language Switcher
+  - **New**: Integrated dropdown language selector with five supported languages
+  - Features: Globe icon, uppercase language codes, dropdown menu with language options
+  - Props: setLang function for language switching, current language display
+  - Accessibility: Keyboard navigation, focus management, screen reader friendly
+
+- **New**: Enhanced Footer
+  - **New**: Redesigned with semantic HTML structure and improved responsive behavior
+  - Features: Four-column grid layout, semantic headings, improved spacing
+  - Props: Uses translation keys for all text content, responsive design patterns
+
 **Section sources**
 - [src/components/ui/button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
 - [src/components/ui/card.tsx:1-104](file://src/components/ui/card.tsx#L1-L104)
@@ -183,46 +177,142 @@ This section documents the primary UI components and their props, variants, and 
 - [src/components/ui/avatar.tsx:1-51](file://src/components/ui/avatar.tsx#L1-L51)
 - [src/components/ui/label.tsx:1-21](file://src/components/ui/label.tsx#L1-L21)
 - [src/components/ui/select.tsx:1-158](file://src/components/ui/select.tsx#L1-L158)
+- [src/components/layout/navbar.tsx:57-87](file://src/components/layout/navbar.tsx#L57-L87)
+- [src/components/layout/footer.tsx:12-48](file://src/components/layout/footer.tsx#L12-L48)
 
 ## Architecture Overview
-The modernized UI architecture centers on:
-- Tailwind CSS v4 with CSS variables for theme tokens and glass-morphism effects
+The enhanced UI architecture centers on:
+- Tailwind CSS with CSS variables for theme tokens and glass-morphism effects
 - **Updated**: Forced dark theme implementation with Bright Data-inspired color palette
+- **New**: Comprehensive internationalization system with five languages and RTL support
 - class-variance-authority (CVA) and clsx/tailwind-merge for variant composition
 - Radix UI primitives for accessible overlays and controls
 - Lucide icons for consistent iconography
-- **New**: Comprehensive utility classes for glass effects, gradients, and modern styling
+- **New**: Semantic HTML structure for improved accessibility and SEO
 
 ```mermaid
 graph TB
 CSSVars["CSS Variables<br/>Bright Data Palette<br/>Always Dark Mode<br/>src/app/globals.css"]
-ThemeProvider["ThemeProvider<br/>attribute='class'<br/>defaultTheme='system'<br/>Always Dark<br/>src/components/theme-provider.tsx"]
-ThemeToggle["ThemeToggle<br/>Force Dark Mode<br/>src/components/theme-toggle.tsx"]
+ThemeProvider["ThemeProvider<br/>attribute='class'<br/>defaultTheme='dark'<br/>Always Dark<br/>src/components/theme-provider.tsx"]
+LanguageProvider["LanguageProvider<br/>5 Languages + RTL Support<br/>src/hooks/use-language.tsx"]
 GlassEffects["Glass Effects<br/>.glass-card<br/>.gradient-border<br/>.hero-gradient<br/>src/app/globals.css"]
 GradientAccents["Gradient Accents<br/>.gradient-text<br/>.btn-pill<br/>.stat-glow"]
 CVA["CVA Variants<br/>class-variance-authority<br/>src/components/ui/*.tsx"]
 CLX["Class Merging<br/>clsx + tailwind-merge<br/>src/lib/utils.ts"]
+Navbar["Enhanced Navbar<br/>Language + Theme Integration"]
+Footer["Redesigned Footer<br/>Semantic HTML Structure"]
 ThemeProvider --> CSSVars
-ThemeToggle --> ThemeProvider
+LanguageProvider --> Navbar
+LanguageProvider --> Footer
 ThemeProvider --> GlassEffects
 ThemeProvider --> GradientAccents
 CVA --> CLX
+Navbar --> ThemeToggle
+Navbar --> LanguageSwitcher
 ```
 
 **Diagram sources**
 - [src/app/globals.css:46-196](file://src/app/globals.css#L46-L196)
 - [src/components/theme-provider.tsx:1-13](file://src/components/theme-provider.tsx#L1-L13)
-- [src/components/theme-toggle.tsx:1-27](file://src/components/theme-toggle.tsx#L1-L27)
+- [src/hooks/use-language.tsx:49-77](file://src/hooks/use-language.tsx#L49-L77)
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
 - [src/components/ui/button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
+- [src/components/layout/navbar.tsx:57-87](file://src/components/layout/navbar.tsx#L57-L87)
+- [src/components/layout/footer.tsx:12-48](file://src/components/layout/footer.tsx#L12-L48)
 
 ## Detailed Component Analysis
 
-### Modern Theme System
+### Enhanced Navigation Bar
+The navigation bar has been significantly enhanced with integrated language switching and improved responsive behavior.
+
+- **Updated Features**
+  - Branding with gradient accents, desktop navigation, language switcher, theme toggle, user menu, mobile menu
+  - **New**: Integrated language switcher with dropdown menu containing five supported languages
+  - **New**: Enhanced mobile menu with language selector and improved responsive design
+  - Backdrop blur effect with glass-morphism styling
+  - Conditional rendering based on authentication state and role
+  - **New**: Enhanced mobile menu with glass effects and language selector
+
+- **New Language Switcher Features**
+  - Dropdown menu with Globe icon and uppercase language codes
+  - Five supported languages: English, French, Portuguese, Spanish, Arabic
+  - Real-time language switching with localStorage persistence
+  - Automatic RTL direction switching for Arabic language
+  - Mobile-friendly language selector with tag-style buttons
+
+- **Enhanced Responsive Behavior**
+  - Desktop: Full navigation with language switcher and theme toggle
+  - Tablet/Mobile: Collapsed navigation with hamburger menu
+  - Mobile: Enhanced menu with language selector and improved spacing
+  - Responsive typography and spacing adjustments
+
+- **Accessibility**
+  - Dropdown menus use Radix primitives; focus management and keyboard navigation supported
+  - Enhanced contrast ratios for glass theme compatibility
+  - Screen reader friendly language labels and icons
+
+```mermaid
+flowchart TD
+Start(["Render Enhanced Navbar"]) --> GlassEffect["Apply Backdrop Blur<br/>.backdrop-blur-xl"]
+GlassEffect --> CheckAuth["Check user auth state"]
+CheckAuth --> |Authenticated| UserMenu["Show glass avatar dropdown<br/>.glass-card"]
+CheckAuth --> |Not Authenticated| GuestLinks["Show styled sign in / register"]
+UserMenu --> Admin{"Role is admin?"}
+Admin --> |Yes| AdminLink["Show styled Admin link"]
+Admin --> |No| NoAdmin["Skip admin link"]
+GuestLinks --> LangSwitcher["Show language switcher<br/>Dropdown with 5 languages"]
+UserMenu --> LangSwitcher
+LangSwitcher --> ThemeToggle["Show theme toggle with glass styling"]
+ThemeToggle --> Mobile["Show mobile menu with enhanced glass toggle"]
+NoAdmin --> LangSwitcher
+Mobile --> LangSelector["Mobile language selector<br/>Tag-style buttons"]
+Mobile --> End(["Done"])
+```
+
+**Diagram sources**
+- [src/components/layout/navbar.tsx:57-87](file://src/components/layout/navbar.tsx#L57-L87)
+- [src/components/layout/navbar.tsx:171-182](file://src/components/layout/navbar.tsx#L171-L182)
+- [src/components/layout/navbar.tsx:140-155](file://src/components/layout/navbar.tsx#L140-L155)
+
+**Section sources**
+- [src/components/layout/navbar.tsx:1-216](file://src/components/layout/navbar.tsx#L1-L216)
+- [src/app/globals.css:128-137](file://src/app/globals.css#L128-L137)
+
+### Redesigned Footer
+The footer has been redesigned with semantic HTML structure and improved responsive behavior.
+
+- **Updated Structure**
+  - **New**: Semantic HTML structure with proper heading hierarchy
+  - Grid layout with four columns on medium screens and above
+  - **New**: Semantic headings (h4) for each column section
+  - Enhanced copyright and branding info with improved styling
+
+- **New Semantic Features**
+  - Proper heading hierarchy with h4 elements for column titles
+  - Semantic link structure with proper text content
+  - Improved accessibility with proper heading semantics
+  - Better screen reader support with meaningful heading structure
+
+- **Enhanced Responsive Behavior**
+  - Stacked layout on small screens; grouped links per column
+  - Enhanced typography with improved readability
+  - Better spacing and alignment with glass theme
+  - Responsive grid layout with proper column distribution
+
+- **Content Organization**
+  - Column 1: Branding and description
+  - Column 2: Marketplace navigation
+  - Column 3: Company information
+  - Column 4: Resources and support
+
+**Section sources**
+- [src/components/layout/footer.tsx:1-57](file://src/components/layout/footer.tsx#L1-L57)
+
+### Enhanced Theme System
 The theme system implements a comprehensive dark theme with glass-morphism effects and Bright Data-inspired color palette.
 
 - **Updated Implementation**
-  - ThemeProvider wraps the app and sets attribute="class" with defaultTheme="system"
+  - ThemeProvider wraps the app and sets attribute="class" with defaultTheme="dark"
   - **New**: Forced dark mode implementation with Bright Data-inspired navy blue palette
   - ThemeToggle maintains toggle functionality but now operates within always-dark constraints
   - CSS variables define comprehensive color tokens for backgrounds, foregrounds, and glass effects
@@ -494,72 +584,44 @@ X->>D : Close
 - [src/components/ui/select.tsx:1-158](file://src/components/ui/select.tsx#L1-L158)
 - [src/app/globals.css:128-142](file://src/app/globals.css#L128-L142)
 
-### Modern Navigation Bar
-- **Updated Features**
-  - Branding with gradient accents, desktop navigation, theme toggle, user menu, mobile menu
-  - **New**: Backdrop blur effect with glass-morphism styling
-  - Conditional rendering based on authentication state and role
-  - **New**: Enhanced mobile menu with glass effects
-  - Responsive behavior using hidden/display utilities with modern styling
+## Internationalization System
+The application now features a comprehensive internationalization system supporting five languages with automatic RTL support for Arabic.
 
-- **New Styling Features**
-  - Backdrop blur effect (.backdrop-blur-xl) for modern glass appearance
-  - Gradient accents in branding and interactive elements
-  - Enhanced dropdown menus with glass background
-  - Improved mobile menu styling with glass effects
+### Language Provider Architecture
+- **New**: Centralized language management through LanguageProvider
+- **New**: Five supported languages: English, French, Portuguese, Spanish, Arabic
+- **New**: Automatic RTL direction switching for Arabic language
+- **New**: LocalStorage persistence for language preferences
+- **New**: Nested translation key support with fallback mechanisms
 
-- Accessibility
-  - Dropdown menus use Radix primitives; focus management and keyboard navigation supported
-  - Enhanced contrast ratios for glass theme compatibility
+### Supported Languages and Features
+- **English (en)**: Default language, LTR direction
+- **French (fr)**: European French, LTR direction  
+- **Portuguese (pt)**: European Portuguese, LTR direction
+- **Spanish (es)**: European Spanish, LTR direction
+- **Arabic (ar)**: Modern Standard Arabic, RTL direction with automatic HTML dir switching
 
-```mermaid
-flowchart TD
-Start(["Render Modern Navbar"]) --> GlassEffect["Apply Backdrop Blur<br/>.backdrop-blur-xl"]
-GlassEffect --> CheckAuth["Check user auth state"]
-CheckAuth --> |Authenticated| UserMenu["Show glass avatar dropdown<br/>.glass-card"]
-CheckAuth --> |Not Authenticated| GuestLinks["Show styled sign in / register"]
-UserMenu --> Admin{"Role is admin?"}
-Admin --> |Yes| AdminLink["Show styled Admin link"]
-Admin --> |No| NoAdmin["Skip admin link"]
-GuestLinks --> Theme["Show theme toggle with glass styling"]
-UserMenu --> Theme
-Theme --> Mobile["Show mobile menu with glass toggle"]
-NoAdmin --> Theme
-Mobile --> End(["Done"])
-```
+### Translation Key Structure
+- **New**: Hierarchical translation keys organized by functional areas
+- **New**: Common translation keys for shared UI elements
+- **New**: Context-specific translations for navigation, footer, and content sections
 
-**Diagram sources**
-- [src/components/layout/navbar.tsx:22-198](file://src/components/layout/navbar.tsx#L22-L198)
-- [src/app/globals.css:128-137](file://src/app/globals.css#L128-L137)
+### Implementation Details
+- **New**: Context-based language switching with React Context API
+- **New**: Automatic HTML direction setting for RTL languages
+- **New**: Fallback mechanism for missing translation keys
+- **New**: Type-safe language code handling with TypeScript
 
 **Section sources**
-- [src/components/layout/navbar.tsx:1-198](file://src/components/layout/navbar.tsx#L1-L198)
-- [src/app/globals.css:128-137](file://src/app/globals.css#L128-L137)
-
-### Enhanced Footer
-- **Updated Structure**
-  - Grid layout with four columns on medium screens and above
-  - **New**: Glass-morphism styling with backdrop blur effects
-  - Copyright and branding info below the grid with enhanced styling
-
-- **New Styling Features**
-  - Glass background with `.glass-card` styling
-  - Enhanced border styling with improved contrast
-  - Better responsive behavior with modern dark theme
-
-- Responsiveness
-  - Stacked layout on small screens; grouped links per column
-  - Enhanced typography with improved readability
-  - Better spacing and alignment with glass theme
-
-**Section sources**
-- [src/components/layout/footer.tsx:1-85](file://src/components/layout/footer.tsx#L1-L85)
-- [src/app/globals.css:128-137](file://src/app/globals.css#L128-L137)
+- [src/hooks/use-language.tsx:1-86](file://src/hooks/use-language.tsx#L1-L86)
+- [src/locales/en.json:1-158](file://src/locales/en.json#L1-L158)
+- [src/locales/fr.json:1-158](file://src/locales/fr.json#L1-L158)
 
 ## Dependency Analysis
-The modernized UI stack relies on:
-- Tailwind CSS v4 for utility-first styling and CSS variables with glass-morphism support
+The enhanced UI stack relies on:
+- Tailwind CSS for utility-first styling and CSS variables with glass-morphism support
 - **Updated**: next-themes for theme orchestration with forced dark mode implementation
+- **New**: Comprehensive internationalization system with React Context API
 - class-variance-authority for variant composition
 - clsx and tailwind-merge for robust class merging
 - Radix UI for accessible primitives with enhanced styling
@@ -568,8 +630,9 @@ The modernized UI stack relies on:
 ```mermaid
 graph LR
 Pkg["package.json"]
-Tailwind["Tailwind CSS v4<br/>Glass Effects Support"]
+Tailwind["Tailwind CSS<br/>Glass Effects Support"]
 Themes["next-themes<br/>Always Dark Mode"]
+LanguageCtx["React Context API<br/>Language Management"]
 CVA["class-variance-authority"]
 CLX["clsx"]
 Merge["tailwind-merge"]
@@ -577,6 +640,7 @@ Radix["@radix-ui/*<br/>Enhanced Styling"]
 Icons["lucide-react<br/>Dark Theme Icons"]
 Pkg --> Tailwind
 Pkg --> Themes
+Pkg --> LanguageCtx
 Pkg --> CVA
 Pkg --> CLX
 Pkg --> Merge
@@ -598,6 +662,8 @@ Pkg --> Icons
 - **New**: Use responsive utilities judiciously to prevent excessive media queries
 - **New**: Consider performance impact of gradient borders and backdrop blur effects
 - **New**: Implement lazy loading for glass effect components when appropriate
+- **New**: Optimize language switching by caching translation objects
+- **New**: Minimize DOM updates during language switching with efficient state management
 
 ## Troubleshooting Guide
 - **Updated**: Hydration mismatch on theme toggle
@@ -620,6 +686,18 @@ Pkg --> Icons
   - Cause: Horizontal scroll missing
   - Fix: Ensure table container applies overflow-x-auto
 
+- **New**: Language switching not persisting
+  - Cause: localStorage not available or blocked
+  - Fix: Implement fallback to session storage or default language
+
+- **New**: RTL language not displaying correctly
+  - Cause: HTML direction not updating or CSS not RTL-aware
+  - Fix: Verify HTML dir attribute updates and RTL CSS rules are applied
+
+- **New**: Language switcher dropdown not working
+  - Cause: Missing DropdownMenu components or incorrect context
+  - Fix: Ensure LanguageProvider wraps Navbar and DropdownMenu components are properly imported
+
 - **New**: Glass effect not appearing
   - Cause: Backdrop blur not supported or disabled
   - Fix: Verify browser support and ensure proper glass class application
@@ -638,10 +716,12 @@ Pkg --> Icons
 - [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
 - [src/components/ui/button.tsx:1-58](file://src/components/ui/button.tsx#L1-L58)
 - [src/components/ui/table.tsx:1-117](file://src/components/ui/table.tsx#L1-L117)
+- [src/hooks/use-language.tsx:59-64](file://src/hooks/use-language.tsx#L59-L64)
+- [src/components/layout/navbar.tsx:57-87](file://src/components/layout/navbar.tsx#L57-L87)
 - [src/app/globals.css:128-142](file://src/app/globals.css#L128-L142)
 
 ## Conclusion
-The Datafrica UI system has undergone comprehensive modernization, combining Tailwind CSS v4, CSS variables, and shadcn/ui-inspired components to deliver a sophisticated, glass-morphism-based design system. The always-dark theme implementation with Bright Data-inspired color palette provides a cohesive, accessible, and visually stunning user experience. The enhanced theme provider and toggle enable seamless dark mode switching, while composite components like Card, Dialog, and Table now feature advanced glass effects and gradient accents. By following the documented patterns and extending via CVA and data-slot hooks with modern styling enhancements, teams can maintain design consistency and scalability while leveraging cutting-edge UI techniques.
+The Datafrica UI system has undergone comprehensive modernization, combining Tailwind CSS, CSS variables, and shadcn/ui-inspired components to deliver a sophisticated, glass-morphism-based design system. The enhanced navigation bar with integrated language switching, redesigned footer with semantic HTML structure, and comprehensive internationalization system provide a cohesive, accessible, and globally-aware user experience. The always-dark theme implementation with Bright Data-inspired color palette, combined with five supported languages including RTL support for Arabic, ensures a visually stunning and culturally appropriate interface for users across Africa and beyond. By following the documented patterns and extending via CVA and data-slot hooks with modern styling enhancements, teams can maintain design consistency and scalability while leveraging cutting-edge UI techniques and comprehensive internationalization capabilities.
 
 ## Appendices
 
@@ -669,16 +749,20 @@ The Datafrica UI system has undergone comprehensive modernization, combining Tai
   - Focus-visible rings, aria-expanded support, sr-only text on close buttons
   - Keyboard navigation via Radix primitives
   - Enhanced contrast ratios for glass theme compatibility
+  - **New**: Semantic HTML structure in footer with proper heading hierarchy
+  - **New**: Screen reader friendly language labels and icons
 - **Updated**: Responsive
   - Hidden/display utilities for mobile/desktop with glass effects
   - Grid layouts adapt to column counts at medium breakpoint
   - Horizontal scrolling for tables on small screens
   - **New**: Backdrop blur effects optimized for different screen sizes
+  - **New**: Enhanced mobile navigation with language selector
 
 **Section sources**
 - [src/components/ui/dialog.tsx:1-120](file://src/components/ui/dialog.tsx#L1-L120)
-- [src/components/layout/navbar.tsx:1-198](file://src/components/layout/navbar.tsx#L1-L198)
+- [src/components/layout/navbar.tsx:1-216](file://src/components/layout/navbar.tsx#L1-L216)
 - [src/components/ui/table.tsx:1-117](file://src/components/ui/table.tsx#L1-L117)
+- [src/components/layout/footer.tsx:12-48](file://src/components/layout/footer.tsx#L12-L48)
 
 ### Extending the Modern Component Library
 - **Updated**: Guidelines
@@ -692,6 +776,8 @@ The Datafrica UI system has undergone comprehensive modernization, combining Tai
   - Add new components under src/components/ui with modern styling patterns
   - **New**: Maintain parity between light and dark tokens with forced dark implementation
   - **New**: Consider performance impact of glass effects and optimize accordingly
+  - **New**: Implement internationalization patterns using React Context API
+  - **New**: Support RTL languages with automatic direction switching
 
 **Section sources**
 - [src/lib/utils.ts:1-7](file://src/lib/utils.ts#L1-L7)
@@ -705,6 +791,7 @@ The Datafrica UI system has undergone comprehensive modernization, combining Tai
 - [src/components/ui/avatar.tsx:1-51](file://src/components/ui/avatar.tsx#L1-L51)
 - [src/components/ui/label.tsx:1-21](file://src/components/ui/label.tsx#L1-L21)
 - [src/components/ui/select.tsx:1-158](file://src/components/ui/select.tsx#L1-L158)
+- [src/hooks/use-language.tsx:49-77](file://src/hooks/use-language.tsx#L49-L77)
 
 ### New Utility Classes and Effects
 - **New**: Glass-morphism utilities
@@ -723,3 +810,16 @@ The Datafrica UI system has undergone comprehensive modernization, combining Tai
 
 **Section sources**
 - [src/app/globals.css:128-196](file://src/app/globals.css#L128-L196)
+
+### Internationalization Implementation Details
+- **New**: Translation key structure organized by functional areas
+- **New**: Nested translation keys with fallback mechanisms
+- **New**: Type-safe language code handling with TypeScript
+- **New**: Automatic RTL direction switching for Arabic language
+- **New**: LocalStorage persistence for language preferences
+- **New**: Context-based language switching with React Context API
+
+**Section sources**
+- [src/hooks/use-language.tsx:17-23](file://src/hooks/use-language.tsx#L17-L23)
+- [src/hooks/use-language.tsx:59-64](file://src/hooks/use-language.tsx#L59-L64)
+- [src/locales/en.json:1-158](file://src/locales/en.json#L1-L158)

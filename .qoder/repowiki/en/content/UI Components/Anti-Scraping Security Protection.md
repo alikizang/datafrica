@@ -16,6 +16,13 @@
 - [index.ts](file://src/types/index.ts)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Enhanced mobile browser detection using user agent strings for improved accuracy
+- Implemented conditional execution of detection methods based on device type
+- Added mobile-specific safeguards to prevent false positives in developer tools detection
+- Updated client-side anti-scraping mechanisms with device-aware detection logic
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Security Architecture Overview](#security-architecture-overview)
@@ -35,6 +42,8 @@ The Datafrica platform implements a comprehensive anti-scraping security protect
 
 The security system protects sensitive datasets by implementing strict access controls, real-time monitoring, and intelligent detection of suspicious activities. The platform ensures that only authorized users with valid purchases can access premium datasets, while simultaneously detecting and blocking attempts to scrape content through developer tools or automated scripts.
 
+**Updated** Enhanced with improved mobile browser detection using user agent strings and conditional execution of detection methods based on device type to prevent false positives on mobile devices.
+
 ## Security Architecture Overview
 
 The anti-scraping security system follows a multi-layered approach combining client-side detection with server-side enforcement:
@@ -48,6 +57,7 @@ KS[Keyboard Shortcut Blocker]
 DR[Drag Blocker]
 CP[Copy Blocker]
 DT[DevTools Detection]
+MD[Mobile Detection]
 end
 subgraph "Network Layer"
 AU[Authentication Middleware]
@@ -70,6 +80,7 @@ KS --> AS
 DR --> AS
 CP --> AS
 DT --> AS
+MD --> AS
 AU --> PV
 AC --> RL
 AT --> DT2
@@ -78,13 +89,35 @@ RL --> AM
 ```
 
 **Diagram sources**
-- [anti-scrape.tsx:1-169](file://src/components/anti-scrape.tsx#L1-L169)
-- [auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
-- [route.ts:1-148](file://src/app/api/datasets/[id]/download/route.ts#L1-L148)
+- [anti-scrape.tsx:1-175](file://src/components/anti-scrape.tsx#L1-L175)
+- [auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
+- [route.ts:1-198](file://src/app/api/datasets/[id]/download/route.ts#L1-L198)
 
 ## Client-Side Anti-Scraping Mechanisms
 
 The client-side anti-scraping component provides comprehensive protection against common scraping techniques through multiple detection and prevention mechanisms.
+
+### Mobile Device Detection Enhancement
+
+**Updated** The system now includes sophisticated mobile device detection using user agent strings to prevent false positives in developer tools detection:
+
+```mermaid
+flowchart TD
+Start([Device Detection]) --> GetUserAgent[Get User Agent String]
+GetUserAgent --> CheckMobile{Mobile Pattern Match?}
+CheckMobile --> |Android| SetMobile[Set isMobile = true]
+CheckMobile --> |iOS| SetMobile
+CheckMobile --> |iPad| SetMobile
+CheckMobile --> |Other| SetDesktop[Set isMobile = false]
+CheckMobile --> |None| SetDesktop
+SetMobile --> SkipDetection[Skip Desktop-only Detection]
+SetDesktop --> ContinueDetection[Continue Full Detection]
+SkipDetection --> End([Skipped])
+ContinueDetection --> End
+```
+
+**Diagram sources**
+- [anti-scrape.tsx:86-91](file://src/components/anti-scrape.tsx#L86-L91)
 
 ### Keyboard Shortcut Blocking
 
@@ -136,21 +169,27 @@ The system prevents right-click context menus and drag operations that could fac
 - **Drag prevention**: Blocks drag-and-drop operations that might be used to capture data
 - **Copy event interception**: Monitors clipboard events to detect unauthorized copying attempts
 
-### Developer Tools Detection
+### Developer Tools Detection with Device Awareness
 
-The platform implements sophisticated detection mechanisms to identify when developer tools are opened:
+**Updated** The platform implements sophisticated detection mechanisms to identify when developer tools are opened, with enhanced accuracy for desktop vs mobile scraping prevention:
 
 ```mermaid
 sequenceDiagram
 participant Timer as "Detection Timer"
+participant MobileCheck as "Mobile Detection"
 participant Window as "Window Monitor"
 participant Console as "Console Detector"
 participant State as "DevTools State"
+Timer->>MobileCheck : isMobile = detectMobile()
+MobileCheck->>MobileCheck : Test user agent strings
+MobileCheck->>State : Set isMobile flag
 Timer->>Window : checkDevTools()
+Window->>State : Skip if isMobile = true
 Window->>Window : Measure width difference
 Window->>Window : Measure height difference
 Window->>State : Set devToolsOpen = true
 Timer->>Console : detectConsole()
+Console->>State : Skip if isMobile = true
 Console->>Console : Override console.log
 Console->>State : Set devToolsOpen = true
 State->>State : Display warning overlay
@@ -161,7 +200,7 @@ State->>State : Block access until closed
 - [anti-scrape.tsx:83-118](file://src/components/anti-scrape.tsx#L83-L118)
 
 **Section sources**
-- [anti-scrape.tsx:1-169](file://src/components/anti-scrape.tsx#L1-L169)
+- [anti-scrape.tsx:1-175](file://src/components/anti-scrape.tsx#L1-L175)
 
 ## Server-Side Authentication and Authorization
 
@@ -189,7 +228,7 @@ AdminValid --> |Yes| ReturnAdmin[Return Admin Access]
 ```
 
 **Diagram sources**
-- [auth-middleware.ts:4-28](file://src/lib/auth-middleware.ts#L4-L28)
+- [auth-middleware.ts:9-33](file://src/lib/auth-middleware.ts#L9-L33)
 
 ### User Authentication Flow
 
@@ -214,11 +253,11 @@ AuthHook->>Client : Provide Auth Context
 ```
 
 **Diagram sources**
-- [use-auth.tsx:50-86](file://src/hooks/use-auth.tsx#L50-L86)
+- [use-auth.tsx:109-128](file://src/hooks/use-auth.tsx#L109-L128)
 
 **Section sources**
-- [auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
-- [use-auth.tsx:1-137](file://src/hooks/use-auth.tsx#L1-L137)
+- [auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
+- [use-auth.tsx:1-190](file://src/hooks/use-auth.tsx#L1-L190)
 
 ## Data Access Control
 
@@ -263,7 +302,7 @@ The system implements time-limited download tokens for secure file distribution:
 | User-Specific Binding | Tokens linked to specific user and dataset | Prevents token sharing |
 
 **Section sources**
-- [route.ts:1-148](file://src/app/api/datasets/[id]/download/route.ts#L1-L148)
+- [route.ts:1-198](file://src/app/api/datasets/[id]/download/route.ts#L1-L198)
 
 ## Payment Verification Security
 
@@ -297,7 +336,7 @@ GenerateToken --> ReturnSuccess[Return Success Response]
 ```
 
 **Diagram sources**
-- [route.ts:6-96](file://src/app/api/payments/verify/route.ts#L6-L96)
+- [route.ts:6-132](file://src/app/api/payments/verify/route.ts#L6-L132)
 
 ### Development Environment Handling
 
@@ -308,7 +347,7 @@ The system includes special handling for development environments to facilitate 
 - **Sandbox compatibility**: Allows testing without actual payment processing
 
 **Section sources**
-- [route.ts:1-135](file://src/app/api/payments/verify/route.ts#L1-L135)
+- [route.ts:1-171](file://src/app/api/payments/verify/route.ts#L1-L171)
 
 ## Administrative Access Control
 
@@ -332,7 +371,7 @@ VerifyRole --> |Yes| GrantAccess[Grant Admin Access]
 ```
 
 **Diagram sources**
-- [auth-middleware.ts:30-47](file://src/lib/auth-middleware.ts#L30-L47)
+- [auth-middleware.ts:35-61](file://src/lib/auth-middleware.ts#L35-L61)
 
 ### Administrative Functions
 
@@ -346,9 +385,9 @@ The system provides several administrative capabilities:
 | Purchase Verification | `/api/admin/purchases` | Verify purchases | Admin Only |
 
 **Section sources**
-- [auth-middleware.ts:1-48](file://src/lib/auth-middleware.ts#L1-L48)
-- [route.ts:1-78](file://src/app/api/admin/analytics/route.ts#L1-L78)
-- [route.ts:1-96](file://src/app/api/admin/upload/route.ts#L1-L96)
+- [auth-middleware.ts:1-62](file://src/lib/auth-middleware.ts#L1-L62)
+- [route.ts:1-137](file://src/app/api/admin/analytics/route.ts#L1-L137)
+- [route.ts:1-112](file://src/app/api/admin/upload/route.ts#L1-L112)
 - [route.ts:1-54](file://src/app/api/admin/users/route.ts#L1-L54)
 
 ## Security Implementation Details
@@ -380,8 +419,8 @@ Comprehensive error handling ensures security events are properly logged:
 - **Graceful degradation**: Maintains system stability even under attack conditions
 
 **Section sources**
-- [route.ts:99-105](file://src/app/api/datasets/[id]/download/route.ts#L99-L105)
-- [route.ts:78-97](file://src/app/api/datasets/[id]/download/route.ts#L78-L97)
+- [route.ts:121-127](file://src/app/api/datasets/[id]/download/route.ts#L121-L127)
+- [route.ts:119-120](file://src/app/api/datasets/[id]/download/route.ts#L119-L120)
 
 ## Performance Considerations
 
@@ -392,6 +431,7 @@ The security system is designed to minimize performance impact while maintaining
 - **Efficient detection**: Uses lightweight interval-based checking for dev tools detection
 - **Selective blocking**: Only blocks specific actions rather than entire browser functionality
 - **Memory management**: Proper cleanup of event listeners and intervals
+- **Device-aware optimization**: Skips expensive detection methods on mobile devices
 
 ### Server-Side Performance
 
@@ -419,6 +459,10 @@ Common security-related issues and their solutions:
 - **Solution**: Check if target is an input field (copy/select allowed in inputs)
 - **Cause**: Intended behavior to allow normal text editing
 
+**Problem**: Mobile device detection false positives
+- **Solution**: Ensure user agent string is properly detected
+- **Cause**: Mobile browser detection using user agent strings
+
 ### Authentication Issues
 
 **Problem**: Users unable to access purchased datasets
@@ -436,19 +480,20 @@ Common security-related issues and their solutions:
 - **Cause**: Expired or already used download token
 
 **Section sources**
-- [anti-scrape.tsx:136-140](file://src/components/anti-scrape.tsx#L136-L140)
+- [anti-scrape.tsx:142-146](file://src/components/anti-scrape.tsx#L142-L146)
 - [route.ts:49-68](file://src/app/api/datasets/[id]/download/route.ts#L49-L68)
 
 ## Conclusion
 
 The Datafrica anti-scraping security protection system provides comprehensive defense against unauthorized data access through a multi-layered approach combining client-side detection, server-side authentication, and intelligent access control. The system successfully balances security with usability, preventing automated scraping while maintaining a smooth experience for legitimate users.
 
-Key security achievements include:
+**Updated** Key security achievements include:
 
 - **Multi-modal detection**: Combines developer tools detection with behavioral analysis
+- **Mobile-aware detection**: Enhanced accuracy through device type detection and conditional execution
 - **Robust authentication**: Implements comprehensive user verification and authorization
 - **Secure data handling**: Protects sensitive datasets through multiple verification layers
 - **Administrative oversight**: Provides granular control for platform administrators
-- **Performance optimization**: Minimizes security overhead on system performance
+- **Performance optimization**: Minimizes security overhead on system performance through device-aware optimizations
 
-The implementation demonstrates best practices in modern web security, providing a solid foundation for protecting premium content while supporting legitimate business operations.
+The implementation demonstrates best practices in modern web security, providing a solid foundation for protecting premium content while supporting legitimate business operations. The enhanced mobile detection system specifically addresses the challenge of preventing false positives in developer tools detection on mobile browsers while maintaining effective protection against desktop scraping attempts.
