@@ -76,65 +76,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (status === "completed" && customData) {
-      const datasetId = customData.datasetId as string | undefined;
-      const userId = customData.userId as string | undefined;
-      const datasetTitle = customData.datasetTitle as string | undefined;
-      const amount = customData.amount as number | undefined;
-      const currency = customData.currency as string | undefined;
+      const paymentType = customData.type as string | undefined;
 
-      if (!datasetId || !userId) {
-        return NextResponse.json({ received: true });
-      }
-
-      // Check if purchase already exists
-      const transactionId = (invoice?.token as string) || `paydunya_${Date.now()}`;
-      const existingPurchase = await adminDb
-        .collection("purchases")
-        .where("userId", "==", userId)
-        .where("datasetId", "==", datasetId)
-        .where("status", "==", "completed")
-        .limit(1)
-        .get();
-
-      if (existingPurchase.empty) {
-        // Fetch dataset if we don't have metadata
-        let title = datasetTitle;
-        let purchaseAmount = amount;
-        let purchaseCurrency = currency;
-
-        if (!title) {
-          const datasetDoc = await adminDb.collection("datasets").doc(datasetId).get();
-          if (datasetDoc.exists) {
-            const ds = datasetDoc.data()!;
-            title = ds.title;
-            purchaseAmount = purchaseAmount || ds.price;
-            purchaseCurrency = purchaseCurrency || ds.currency || "XOF";
-          }
-        }
-
-        // Create purchase record
-        await adminDb.collection("purchases").add({
-          userId,
-          datasetId,
-          datasetTitle: title || "Unknown Dataset",
-          amount: purchaseAmount || 0,
-          currency: purchaseCurrency || "XOF",
-          paymentMethod: "paydunya",
-          transactionId,
-          status: "completed",
-          source: "webhook",
-          createdAt: new Date().toISOString(),
-        });
-
-        // Generate download token
-        const downloadToken = uuidv4();
-        await adminDb.collection("downloadTokens").add({
-          userId,
-          datasetId,
-          token: downloadToken,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          used: false,
-        });
+      if (paymentType === "subscription" || paymentType === "renewal") {
+        // ─── Subscription / Renewal payment ────────────────────────
+        await handleSubscriptionWebhook(customData, invoice);
+      } else {
+        // ─── Dataset purchase (existing flow) ──────────────────────
+        await handlePurchaseWebhook(customData, invoice);
       }
     }
 
@@ -142,5 +91,193 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("PayDunya webhook error:", error);
     return NextResponse.json({ received: true });
+  }
+}
+
+// ─── Handle dataset purchase webhook ─────────────────────────────────
+async function handlePurchaseWebhook(
+  customData: Record<string, unknown>,
+  invoice: Record<string, unknown> | undefined
+) {
+  const datasetId = customData.datasetId as string | undefined;
+  const userId = customData.userId as string | undefined;
+  const datasetTitle = customData.datasetTitle as string | undefined;
+  const amount = customData.amount as number | undefined;
+  const currency = customData.currency as string | undefined;
+
+  if (!datasetId || !userId) return;
+
+  const transactionId = (invoice?.token as string) || `paydunya_${Date.now()}`;
+  const existingPurchase = await adminDb
+    .collection("purchases")
+    .where("userId", "==", userId)
+    .where("datasetId", "==", datasetId)
+    .where("status", "==", "completed")
+    .limit(1)
+    .get();
+
+  if (existingPurchase.empty) {
+    let title = datasetTitle;
+    let purchaseAmount = amount;
+    let purchaseCurrency = currency;
+
+    if (!title) {
+      const datasetDoc = await adminDb.collection("datasets").doc(datasetId).get();
+      if (datasetDoc.exists) {
+        const ds = datasetDoc.data()!;
+        title = ds.title;
+        purchaseAmount = purchaseAmount || ds.price;
+        purchaseCurrency = purchaseCurrency || ds.currency || "XOF";
+      }
+    }
+
+    await adminDb.collection("purchases").add({
+      userId,
+      datasetId,
+      datasetTitle: title || "Unknown Dataset",
+      amount: purchaseAmount || 0,
+      currency: purchaseCurrency || "XOF",
+      paymentMethod: "paydunya",
+      transactionId,
+      status: "completed",
+      source: "webhook",
+      createdAt: new Date().toISOString(),
+    });
+
+    const downloadToken = uuidv4();
+    await adminDb.collection("downloadTokens").add({
+      userId,
+      datasetId,
+      token: downloadToken,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      used: false,
+    });
+  }
+}
+
+// ─── Handle subscription / renewal webhook ───────────────────────────
+async function handleSubscriptionWebhook(
+  customData: Record<string, unknown>,
+  invoice: Record<string, unknown> | undefined
+) {
+  const userId = customData.userId as string | undefined;
+  const planId = customData.planId as string | undefined;
+  const planName = customData.planName as string | undefined;
+  const billingCycle = (customData.billingCycle as string) || "monthly";
+  const amount = customData.amount as number | undefined;
+  const currency = (customData.currency as string) || "XOF";
+  const subscriptionId = customData.subscriptionId as string | undefined; // for renewals
+
+  if (!userId || !planId) return;
+
+  const transactionId = (invoice?.token as string) || `paydunya_sub_${Date.now()}`;
+  const now = new Date();
+  const endDate = new Date(now);
+  endDate.setDate(endDate.getDate() + (billingCycle === "yearly" ? 365 : 30));
+
+  const nowISO = now.toISOString();
+  const endISO = endDate.toISOString();
+
+  const paymentRecord = {
+    amount: amount || 0,
+    currency,
+    paymentMethod: "paydunya",
+    transactionId,
+    paidAt: nowISO,
+    periodStart: nowISO,
+    periodEnd: endISO,
+    billingCycle,
+  };
+
+  if (subscriptionId) {
+    // Renewal of existing subscription
+    const subDoc = await adminDb.collection("subscriptions").doc(subscriptionId).get();
+    if (subDoc.exists) {
+      const subData = subDoc.data()!;
+      const payments = subData.payments || [];
+      payments.push(paymentRecord);
+
+      await subDoc.ref.update({
+        status: "active",
+        billingCycle,
+        startDate: nowISO,
+        endDate: endISO,
+        renewalCount: (subData.renewalCount || 0) + 1,
+        lastPaymentDate: nowISO,
+        lastPaymentAmount: amount || 0,
+        lastPaymentMethod: "paydunya",
+        lastTransactionId: transactionId,
+        payments,
+        cancelledAt: null,
+        updatedAt: nowISO,
+      });
+    }
+  } else {
+    // New subscription - check if one already exists
+    const existing = await adminDb
+      .collection("subscriptions")
+      .where("userId", "==", userId)
+      .where("planId", "==", planId)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) {
+      // Renew it
+      const doc = existing.docs[0];
+      const subData = doc.data();
+      const payments = subData.payments || [];
+      payments.push(paymentRecord);
+
+      await doc.ref.update({
+        status: "active",
+        billingCycle,
+        startDate: nowISO,
+        endDate: endISO,
+        renewalCount: (subData.renewalCount || 0) + 1,
+        lastPaymentDate: nowISO,
+        lastPaymentAmount: amount || 0,
+        lastPaymentMethod: "paydunya",
+        lastTransactionId: transactionId,
+        payments,
+        cancelledAt: null,
+        updatedAt: nowISO,
+      });
+    } else {
+      // Create new subscription
+      const planDoc = await adminDb.collection("membershipPlans").doc(planId).get();
+      const plan = planDoc.exists ? planDoc.data()! : null;
+
+      await adminDb.collection("subscriptions").add({
+        userId,
+        planId,
+        planName: planName || plan?.name || "Unknown Plan",
+        billingCycle,
+        status: "active",
+        startDate: nowISO,
+        endDate: endISO,
+        renewalCount: 0,
+        lastPaymentDate: nowISO,
+        lastPaymentAmount: amount || 0,
+        lastPaymentMethod: "paydunya",
+        lastTransactionId: transactionId,
+        payments: [paymentRecord],
+        cancelledAt: null,
+        createdAt: nowISO,
+        updatedAt: nowISO,
+      });
+
+      // Increment subscriber count
+      if (plan) {
+        await adminDb.collection("membershipPlans").doc(planId).update({
+          subscriberCount: (plan.subscriberCount || 0) + 1,
+          updatedAt: nowISO,
+        });
+      }
+    }
+
+    // Update user's activePlanId
+    await adminDb.collection("users").doc(userId).update({
+      activePlanId: planId,
+    });
   }
 }

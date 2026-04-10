@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb, adminStorage } from "@/lib/firebase-admin";
+import { checkDatasetAccess } from "@/lib/access-check";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 
@@ -19,18 +20,20 @@ export async function GET(
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
-    // Verify purchase exists
-    const purchasesSnap = await adminDb
-      .collection("purchases")
-      .where("userId", "==", user!.uid)
-      .where("datasetId", "==", id)
-      .where("status", "==", "completed")
-      .limit(1)
-      .get();
+    // Check access (purchase OR subscription)
+    const access = await checkDatasetAccess(user!.uid, id);
 
-    if (purchasesSnap.empty) {
+    if (!access.hasAccess) {
       return NextResponse.json(
-        { error: "You have not purchased this dataset" },
+        { error: "You do not have access to this dataset" },
+        { status: 403 }
+      );
+    }
+
+    // Check if download is allowed
+    if (!access.allowDownload) {
+      return NextResponse.json(
+        { error: "Download is not available for your access level" },
         { status: 403 }
       );
     }
@@ -191,7 +194,7 @@ export async function GET(
   }
 }
 
-// HEAD /api/datasets/[id]/download - Check if user has purchased
+// HEAD /api/datasets/[id]/download - Check if user has access
 export async function HEAD(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -201,15 +204,9 @@ export async function HEAD(
     const { user, error } = await requireAuth(request);
     if (error) return new NextResponse(null, { status: 401 });
 
-    const purchasesSnap = await adminDb
-      .collection("purchases")
-      .where("userId", "==", user!.uid)
-      .where("datasetId", "==", id)
-      .where("status", "==", "completed")
-      .limit(1)
-      .get();
+    const access = await checkDatasetAccess(user!.uid, id);
 
-    if (purchasesSnap.empty) {
+    if (!access.hasAccess) {
       return new NextResponse(null, { status: 403 });
     }
 

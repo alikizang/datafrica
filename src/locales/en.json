@@ -8,7 +8,8 @@
     "adminPanel": "Admin Panel",
     "signOut": "Sign out",
     "signIn": "Sign in",
-    "startTrial": "Start free trial"
+    "startTrial": "Start free trial",
+    "pricing": "Pricing"
   },
   "hero": {
     "badge": "Trusted by businesses across",
@@ -118,7 +119,7 @@
     "filterBy": "Filter by",
     "allCategories": "All Categories",
     "allCountries": "All Countries",
-    "search": "Search datasets...",
+    "search": "Search",
     "noResults": "No datasets found",
     "noResultsDesc": "Try adjusting your filters or search terms",
     "browseTitle": "Browse Datasets",
@@ -152,7 +153,6 @@
     "previewDataLink": "Preview data",
     "fullDataset": "Full Dataset",
     "searchDataset": "Search in dataset...",
-    "search": "Search",
     "clearSearch": "Clear",
     "resultsFound": "results found",
     "totalRecords": "total records",
@@ -322,7 +322,9 @@
     "titleLangHelp": "Add titles in multiple languages. The * indicates a language has content.",
     "status_missingKeys": "Missing keys",
     "status_testMode": "Test mode",
-    "status_ready": "Ready"
+    "status_ready": "Ready",
+    "memberships": "Memberships",
+    "managePlans": "Plans & subscriptions"
   },
   "categories": {
     "Business": "Business",
@@ -338,5 +340,41 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "membership": {
+    "pricing": "Pricing",
+    "choosePlan": "Choose your plan",
+    "pricingSubtitle": "Get unlimited access to curated African datasets with a membership plan.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "month": "month",
+    "year": "year",
+    "save": "Save",
+    "vsMonthly": "vs monthly",
+    "noPlans": "No membership plans available yet.",
+    "recommended": "Recommended",
+    "datasetsIncluded": "datasets included",
+    "downloadIncluded": "Download CSV, Excel, JSON",
+    "currentPlan": "Current Plan",
+    "getStarted": "Get Started",
+    "subscribe": "Subscribe",
+    "subscribed": "Successfully subscribed!",
+    "renewed": "Subscription renewed!",
+    "paymentCancelled": "Payment was cancelled.",
+    "membership": "Membership",
+    "activePlan": "Active plan",
+    "active": "Active",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "renewals": "Renewals",
+    "expiringSoon": "Your subscription is expiring soon. Renew to keep access.",
+    "renew": "Renew",
+    "changePlan": "Change Plan",
+    "paymentHistory": "Payment History",
+    "noSubscription": "No active subscription",
+    "noSubscriptionDesc": "Subscribe to a plan to access curated datasets.",
+    "viewPlans": "View Plans",
+    "accessViaPlan": "Access via subscription",
+    "validUntil": "Valid until"
   }
 }

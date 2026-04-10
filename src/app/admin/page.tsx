@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   CreditCard,
   FolderOpen,
+  Crown,
 } from "lucide-react";
 
 interface Analytics {
@@ -87,7 +88,7 @@ export default function AdminPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-10">
         <Link href="/admin/upload" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Upload className="h-5 w-5 text-primary" />
@@ -131,6 +132,15 @@ export default function AdminPage() {
           <div>
             <p className="font-semibold text-foreground">{t("admin.analytics")}</p>
             <p className="text-sm text-muted-foreground">{t("admin.salesAnalytics")}</p>
+          </div>
+        </Link>
+        <Link href="/admin/memberships" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
+            <Crown className="h-5 w-5 text-rose-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{t("admin.memberships")}</p>
+            <p className="text-sm text-muted-foreground">{t("admin.managePlans")}</p>
           </div>
         </Link>
       </div>

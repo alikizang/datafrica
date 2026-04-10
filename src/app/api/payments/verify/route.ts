@@ -3,18 +3,31 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
 import { v4 as uuidv4 } from "uuid";
 
-// POST /api/payments/verify - Verify KKiaPay or Stripe payment
+// POST /api/payments/verify - Verify KKiaPay or Stripe payment (purchases + subscriptions)
 export async function POST(request: NextRequest) {
   try {
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
     const body = await request.json();
-    const { transactionId, datasetId, paymentMethod } = body;
+    const { transactionId, datasetId, paymentMethod, type, planId, billingCycle } = body;
 
-    if (!transactionId || !datasetId || !paymentMethod) {
+    if (!transactionId || !paymentMethod) {
       return NextResponse.json(
-        { error: "Missing required fields: transactionId, datasetId, paymentMethod" },
+        { error: "Missing required fields: transactionId, paymentMethod" },
+        { status: 400 }
+      );
+    }
+
+    // ─── Subscription payment ────────────────────────────────────────
+    if (type === "subscription" && planId) {
+      return handleSubscriptionVerify(user!, transactionId, paymentMethod, planId, billingCycle || "monthly");
+    }
+
+    // ─── Dataset purchase (existing flow) ────────────────────────────
+    if (!datasetId) {
+      return NextResponse.json(
+        { error: "Missing datasetId for purchase verification" },
         { status: 400 }
       );
     }
@@ -44,89 +57,7 @@ export async function POST(request: NextRequest) {
     const dataset = datasetDoc.data()!;
     let verified = false;
 
-    if (paymentMethod === "kkiapay") {
-      // Verify KKiaPay transaction via their API
-      try {
-        const kkiapayResponse = await fetch(
-          "https://api.kkiapay.me/api/v1/transactions/status",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-private-key": process.env.KKIAPAY_PRIVATE_KEY || "",
-              "x-secret-key": process.env.KKIAPAY_SECRET || "",
-              "x-api-key": process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || "",
-            },
-            body: JSON.stringify({ transactionId }),
-          }
-        );
-
-        if (kkiapayResponse.ok) {
-          const kkData = await kkiapayResponse.json();
-          // Verify amount matches
-          if (kkData.status === "SUCCESS" && kkData.amount >= dataset.price) {
-            verified = true;
-          }
-        }
-      } catch (kkError) {
-        console.error("KKiaPay verification error:", kkError);
-        // In sandbox/dev mode, auto-verify
-        if (process.env.NODE_ENV === "development") {
-          verified = true;
-        }
-      }
-    } else if (paymentMethod === "paydunya") {
-      // Verify PayDunya transaction by confirming invoice token
-      try {
-        const settingsDoc = await adminDb.collection("settings").doc("payment").get();
-        const settings = settingsDoc.exists ? settingsDoc.data() : null;
-
-        const isValidKey = (key: string | undefined): key is string =>
-          !!key && key.length > 0 && !key.includes("\u2022");
-
-        const pdSettings = settings?.paydunya;
-        const masterKey = isValidKey(pdSettings?.masterKey) ? pdSettings.masterKey : (process.env.PAYDUNYA_MASTER_KEY || "");
-        const privateKey = isValidKey(pdSettings?.privateKey) ? pdSettings.privateKey : (process.env.PAYDUNYA_PRIVATE_KEY || "");
-        const token = isValidKey(pdSettings?.token) ? pdSettings.token : (process.env.PAYDUNYA_TOKEN || "");
-        const mode = pdSettings?.mode || process.env.PAYDUNYA_MODE || "test";
-
-        const baseURL =
-          mode === "live"
-            ? "https://app.paydunya.com/api/v1"
-            : "https://app.paydunya.com/sandbox-api/v1";
-
-        const confirmRes = await fetch(`${baseURL}/checkout-invoice/confirm/${transactionId}`, {
-          headers: {
-            "PAYDUNYA-MASTER-KEY": masterKey,
-            "PAYDUNYA-PRIVATE-KEY": privateKey,
-            "PAYDUNYA-TOKEN": token,
-          },
-        });
-
-        if (confirmRes.ok) {
-          const confirmData = await confirmRes.json();
-          if (confirmData.response_code === "00" && confirmData.status === "completed") {
-            verified = true;
-          }
-        }
-      } catch (pdError) {
-        console.error("PayDunya verification error:", pdError);
-        if (process.env.NODE_ENV === "development") {
-          verified = true;
-        }
-      }
-    } else if (paymentMethod === "stripe") {
-      // Stripe verification would go here
-      // For now, mark as verified in development
-      if (process.env.NODE_ENV === "development") {
-        verified = true;
-      }
-    }
-
-    // In development mode, always verify for testing
-    if (process.env.NODE_ENV === "development") {
-      verified = true;
-    }
+    verified = await verifyPayment(transactionId, paymentMethod, dataset.price);
 
     if (!verified) {
       return NextResponse.json(
@@ -172,4 +103,203 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// ─── Verify payment with provider ──────────────────────────────────────
+async function verifyPayment(
+  transactionId: string,
+  paymentMethod: string,
+  expectedAmount: number
+): Promise<boolean> {
+  if (paymentMethod === "kkiapay") {
+    try {
+      const kkiapayResponse = await fetch(
+        "https://api.kkiapay.me/api/v1/transactions/status",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-private-key": process.env.KKIAPAY_PRIVATE_KEY || "",
+            "x-secret-key": process.env.KKIAPAY_SECRET || "",
+            "x-api-key": process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || "",
+          },
+          body: JSON.stringify({ transactionId }),
+        }
+      );
+
+      if (kkiapayResponse.ok) {
+        const kkData = await kkiapayResponse.json();
+        if (kkData.status === "SUCCESS" && kkData.amount >= expectedAmount) {
+          return true;
+        }
+      }
+    } catch (kkError) {
+      console.error("KKiaPay verification error:", kkError);
+      if (process.env.NODE_ENV === "development") return true;
+    }
+  } else if (paymentMethod === "paydunya") {
+    try {
+      const settingsDoc = await adminDb.collection("settings").doc("payment").get();
+      const settings = settingsDoc.exists ? settingsDoc.data() : null;
+
+      const isValidKey = (key: string | undefined): key is string =>
+        !!key && key.length > 0 && !key.includes("\u2022");
+
+      const pdSettings = settings?.paydunya;
+      const masterKey = isValidKey(pdSettings?.masterKey) ? pdSettings.masterKey : (process.env.PAYDUNYA_MASTER_KEY || "");
+      const privateKey = isValidKey(pdSettings?.privateKey) ? pdSettings.privateKey : (process.env.PAYDUNYA_PRIVATE_KEY || "");
+      const token = isValidKey(pdSettings?.token) ? pdSettings.token : (process.env.PAYDUNYA_TOKEN || "");
+      const mode = pdSettings?.mode || process.env.PAYDUNYA_MODE || "test";
+
+      const baseURL = mode === "live"
+        ? "https://app.paydunya.com/api/v1"
+        : "https://app.paydunya.com/sandbox-api/v1";
+
+      const confirmRes = await fetch(`${baseURL}/checkout-invoice/confirm/${transactionId}`, {
+        headers: {
+          "PAYDUNYA-MASTER-KEY": masterKey,
+          "PAYDUNYA-PRIVATE-KEY": privateKey,
+          "PAYDUNYA-TOKEN": token,
+        },
+      });
+
+      if (confirmRes.ok) {
+        const confirmData = await confirmRes.json();
+        if (confirmData.response_code === "00" && confirmData.status === "completed") {
+          return true;
+        }
+      }
+    } catch (pdError) {
+      console.error("PayDunya verification error:", pdError);
+      if (process.env.NODE_ENV === "development") return true;
+    }
+  }
+
+  // In development mode, always verify for testing
+  if (process.env.NODE_ENV === "development") return true;
+
+  return false;
+}
+
+// ─── Handle subscription verification ──────────────────────────────────
+async function handleSubscriptionVerify(
+  user: { uid: string; email?: string },
+  transactionId: string,
+  paymentMethod: string,
+  planId: string,
+  billingCycle: string
+) {
+  // Fetch plan
+  const planDoc = await adminDb.collection("membershipPlans").doc(planId).get();
+  if (!planDoc.exists) {
+    return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+  }
+
+  const plan = planDoc.data()!;
+  const cycle = billingCycle === "yearly" ? "yearly" : "monthly";
+  const pricing = plan.pricing[cycle];
+  const amount = pricing.price;
+
+  const verified = await verifyPayment(transactionId, paymentMethod, amount);
+  if (!verified) {
+    return NextResponse.json(
+      { error: "Payment verification failed" },
+      { status: 400 }
+    );
+  }
+
+  const now = new Date();
+  const endDate = new Date(now);
+  endDate.setDate(endDate.getDate() + (cycle === "yearly" ? 365 : 30));
+
+  const nowISO = now.toISOString();
+  const endISO = endDate.toISOString();
+
+  // Check for existing subscription to renew
+  const existingSub = await adminDb
+    .collection("subscriptions")
+    .where("userId", "==", user.uid)
+    .where("planId", "==", planId)
+    .limit(1)
+    .get();
+
+  const paymentRecord = {
+    amount,
+    currency: pricing.currency || "XOF",
+    paymentMethod,
+    transactionId,
+    paidAt: nowISO,
+    periodStart: nowISO,
+    periodEnd: endISO,
+    billingCycle: cycle,
+  };
+
+  let subscriptionId: string;
+
+  if (!existingSub.empty) {
+    // Renew existing subscription
+    const doc = existingSub.docs[0];
+    const subData = doc.data();
+    const payments = subData.payments || [];
+    payments.push(paymentRecord);
+
+    await doc.ref.update({
+      status: "active",
+      billingCycle: cycle,
+      startDate: nowISO,
+      endDate: endISO,
+      renewalCount: (subData.renewalCount || 0) + 1,
+      lastPaymentDate: nowISO,
+      lastPaymentAmount: amount,
+      lastPaymentMethod: paymentMethod,
+      lastTransactionId: transactionId,
+      payments,
+      cancelledAt: null,
+      updatedAt: nowISO,
+    });
+
+    subscriptionId = doc.id;
+  } else {
+    // Create new subscription
+    const subRef = await adminDb.collection("subscriptions").add({
+      userId: user.uid,
+      planId,
+      planName: plan.name,
+      billingCycle: cycle,
+      status: "active",
+      startDate: nowISO,
+      endDate: endISO,
+      renewalCount: 0,
+      lastPaymentDate: nowISO,
+      lastPaymentAmount: amount,
+      lastPaymentMethod: paymentMethod,
+      lastTransactionId: transactionId,
+      payments: [paymentRecord],
+      cancelledAt: null,
+      createdAt: nowISO,
+      updatedAt: nowISO,
+    });
+
+    subscriptionId = subRef.id;
+
+    // Increment subscriber count on plan
+    await adminDb
+      .collection("membershipPlans")
+      .doc(planId)
+      .update({
+        subscriberCount: (plan.subscriberCount || 0) + 1,
+        updatedAt: nowISO,
+      });
+  }
+
+  // Update user's activePlanId
+  await adminDb.collection("users").doc(user.uid).update({
+    activePlanId: planId,
+  });
+
+  return NextResponse.json({
+    success: true,
+    subscriptionId,
+    endDate: endISO,
+  });
 }

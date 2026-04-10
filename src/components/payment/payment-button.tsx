@@ -4,23 +4,51 @@ import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
-import { Loader2, CreditCard } from "lucide-react";
+import { Loader2, CreditCard, Crown } from "lucide-react";
 import Image from "next/image";
-import type { Dataset, PaymentProvider } from "@/types";
+import type {
+  Dataset,
+  PaymentProvider,
+  MembershipPlan,
+  BillingCycle,
+} from "@/types";
 
-interface PaymentButtonProps {
+interface DatasetPaymentProps {
   dataset: Dataset;
+  plan?: never;
+  billingCycle?: never;
   onSuccess: (transactionId: string) => void;
   onError?: (error: string) => void;
 }
 
-export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProps) {
+interface PlanPaymentProps {
+  plan: MembershipPlan;
+  billingCycle: BillingCycle;
+  dataset?: never;
+  onSuccess: (transactionId: string) => void;
+  onError?: (error: string) => void;
+}
+
+type PaymentButtonProps = DatasetPaymentProps | PlanPaymentProps;
+
+export function PaymentButton(props: PaymentButtonProps) {
+  const { onSuccess, onError } = props;
   const { user, getIdToken } = useAuth();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState<PaymentProvider>("paydunya");
   const [kkiapayReady, setKkiapayReady] = useState(false);
   const [kkiapayPublicKey, setKkiapayPublicKey] = useState("");
+
+  const isPlan = "plan" in props && !!props.plan;
+  const dataset = isPlan ? null : props.dataset;
+  const plan = isPlan ? props.plan : null;
+  const billingCycle = isPlan ? props.billingCycle : null;
+
+  const amount = isPlan ? plan!.pricing[billingCycle!].price : dataset!.price;
+  const currency = isPlan
+    ? plan!.pricing[billingCycle!].currency || "XOF"
+    : dataset!.currency;
 
   // Fetch active provider on mount
   useEffect(() => {
@@ -45,7 +73,10 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
   useEffect(() => {
     if (provider !== "kkiapay") return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (typeof window !== "undefined" && !(window as any).openKkiapayWidget) {
+    if (
+      typeof window !== "undefined" &&
+      !(window as any).openKkiapayWidget
+    ) {
       const script = document.createElement("script");
       script.src = "https://cdn.kkiapay.me/k.js";
       script.async = true;
@@ -83,21 +114,31 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
       return;
     }
     setLoading(true);
-    const openWidget = win.openKkiapayWidget as (config: Record<string, unknown>) => void;
+    const openWidget = win.openKkiapayWidget as (
+      config: Record<string, unknown>
+    ) => void;
     openWidget({
-      amount: dataset.price,
+      amount,
       position: "center",
       theme: "#2563eb",
-      key: kkiapayPublicKey || process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || "",
+      key:
+        kkiapayPublicKey || process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || "",
       sandbox: process.env.NODE_ENV === "development",
       email: user?.email || "",
       name: user?.displayName || "",
-      data: JSON.stringify({
-        datasetId: dataset.id,
-        userId: user?.uid,
-      }),
+      data: isPlan
+        ? JSON.stringify({
+            type: "subscription",
+            planId: plan!.id,
+            billingCycle,
+            userId: user?.uid,
+          })
+        : JSON.stringify({
+            datasetId: dataset!.id,
+            userId: user?.uid,
+          }),
     });
-  }, [dataset, user, onError, kkiapayPublicKey]);
+  }, [amount, user, onError, kkiapayPublicKey, isPlan, plan, billingCycle, dataset]);
 
   const handlePaydunyaPayment = useCallback(async () => {
     setLoading(true);
@@ -109,29 +150,53 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
         return;
       }
 
-      const res = await fetch("/api/payments/paydunya/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ datasetId: dataset.id }),
-      });
+      if (isPlan) {
+        // Subscription payment via dedicated subscribe API
+        const res = await fetch("/api/memberships/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            planId: plan!.id,
+            billingCycle,
+          }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (data.success && data.url) {
-        // Redirect to PayDunya checkout page
-        window.location.href = data.url;
+        if (data.success && data.url) {
+          window.location.href = data.url;
+        } else {
+          onError?.(data.error || "Failed to initiate payment");
+          setLoading(false);
+        }
       } else {
-        onError?.(data.error || "Failed to initiate payment");
-        setLoading(false);
+        // Dataset purchase (existing flow)
+        const res = await fetch("/api/payments/paydunya/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ datasetId: dataset!.id }),
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.url) {
+          window.location.href = data.url;
+        } else {
+          onError?.(data.error || "Failed to initiate payment");
+          setLoading(false);
+        }
       }
     } catch {
       onError?.("Payment failed. Please try again.");
       setLoading(false);
     }
-  }, [dataset.id, getIdToken, onError]);
+  }, [isPlan, plan, billingCycle, dataset, getIdToken, onError]);
 
   const handlePayment = () => {
     if (provider === "kkiapay") {
@@ -141,8 +206,8 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
     }
   };
 
-  const formatPrice = (price: number, currency: string) => {
-    if (currency === "XOF" || currency === "CFA") {
+  const formatPrice = (price: number, cur: string) => {
+    if (cur === "XOF" || cur === "CFA") {
       return `${price.toLocaleString()} CFA`;
     }
     return `$${price.toLocaleString()}`;
@@ -163,10 +228,15 @@ export function PaymentButton({ dataset, onSuccess, onError }: PaymentButtonProp
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {t("dataset.processing")}
           </>
+        ) : isPlan ? (
+          <>
+            <Crown className="mr-2 h-4 w-4" />
+            {t("membership.subscribe")} - {formatPrice(amount, currency)}
+          </>
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            {t("dataset.pay")} {formatPrice(dataset.price, dataset.currency)}
+            {t("dataset.pay")} {formatPrice(amount, currency)}
           </>
         )}
       </Button>

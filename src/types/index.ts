@@ -5,6 +5,7 @@ export interface User {
   email: string;
   displayName?: string;
   role: "user" | "admin";
+  activePlanId?: string;
   createdAt: string;
 }
 
@@ -112,3 +113,80 @@ export const DATASET_CATEGORIES: DatasetCategory[] = [
   "Health",
   "Education",
 ];
+
+// ─── Membership / Subscription ───────────────────────────────────────
+
+export type BillingCycle = "monthly" | "yearly";
+export type PlanStatus = "active" | "archived";
+export type SubscriptionStatus = "active" | "expired" | "cancelled";
+
+export interface PlanConditions {
+  allowDownload: boolean;
+  maxDownloadsPerMonth: number | null; // null = unlimited
+}
+
+export interface PlanPricing {
+  price: number;
+  currency: string;
+}
+
+export interface MembershipPlan {
+  id: string;
+  name: string;
+  names: Record<string, string>;
+  description: string;
+  descriptions: Record<string, string>;
+  pricing: {
+    monthly: PlanPricing;
+    yearly: PlanPricing;
+  };
+  datasetIds: string[];
+  conditions: PlanConditions;
+  features: string[];
+  featuresByLang: Record<string, string[]>;
+  displayOrder: number;
+  highlighted: boolean;
+  status: PlanStatus;
+  subscriberCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubscriptionPayment {
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  transactionId: string;
+  paidAt: string;
+  periodStart: string;
+  periodEnd: string;
+  billingCycle: BillingCycle;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  planId: string;
+  planName: string;
+  billingCycle: BillingCycle;
+  status: SubscriptionStatus;
+  startDate: string;
+  endDate: string;
+  renewalCount: number;
+  lastPaymentDate: string;
+  lastPaymentAmount: number;
+  lastPaymentMethod: string;
+  lastTransactionId: string;
+  payments: SubscriptionPayment[];
+  cancelledAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AccessResult {
+  hasAccess: boolean;
+  accessType: "purchase" | "subscription" | "none";
+  allowDownload: boolean;
+  planName?: string;
+  endDate?: string;
+}

@@ -204,6 +204,25 @@ export async function GET(request: NextRequest) {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
+    // --- Membership stats ---
+    let activeSubscriptions = 0;
+    let totalSubscriptionRevenue = 0;
+    let totalPlans = 0;
+    try {
+      const plansSnap = await adminDb.collection("membershipPlans").where("status", "==", "active").get();
+      totalPlans = plansSnap.size;
+
+      const subsSnap = await adminDb.collection("subscriptions").where("status", "==", "active").get();
+      activeSubscriptions = subsSnap.size;
+
+      for (const doc of subsSnap.docs) {
+        const data = doc.data();
+        totalSubscriptionRevenue += data.lastPaymentAmount || 0;
+      }
+    } catch {
+      // collections may not exist yet
+    }
+
     return NextResponse.json({
       totalRevenue,
       totalSales,
@@ -216,6 +235,11 @@ export async function GET(request: NextRequest) {
       categories,
       paymentMethods,
       countries,
+      membership: {
+        totalPlans,
+        activeSubscriptions,
+        totalSubscriptionRevenue,
+      },
     });
   } catch (error) {
     console.error("Analytics error:", error);

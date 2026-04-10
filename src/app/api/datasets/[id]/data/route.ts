@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb, adminStorage } from "@/lib/firebase-admin";
+import { checkDatasetAccess } from "@/lib/access-check";
 import Papa from "papaparse";
 
 // GET /api/datasets/[id]/data?page=1&limit=100&search=xxx
-// Returns full dataset data as JSON for purchased users
+// Returns full dataset data as JSON for users with access (purchase or subscription)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -19,18 +20,12 @@ export async function GET(
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
-    // Verify purchase
-    const purchasesSnap = await adminDb
-      .collection("purchases")
-      .where("userId", "==", user!.uid)
-      .where("datasetId", "==", id)
-      .where("status", "==", "completed")
-      .limit(1)
-      .get();
+    // Check access (purchase OR subscription)
+    const access = await checkDatasetAccess(user!.uid, id);
 
-    if (purchasesSnap.empty) {
+    if (!access.hasAccess) {
       return NextResponse.json(
-        { error: "You have not purchased this dataset" },
+        { error: "You do not have access to this dataset" },
         { status: 403 }
       );
     }

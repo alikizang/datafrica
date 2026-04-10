@@ -41,6 +41,9 @@ export default function DatasetDetailPage({
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchased, setPurchased] = useState(false);
+  const [accessType, setAccessType] = useState<"purchase" | "subscription" | "none">("none");
+  const [allowDownload, setAllowDownload] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<{ planName?: string; endDate?: string } | null>(null);
   const [downloadToken, setDownloadToken] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [showFullViewer, setShowFullViewer] = useState(false);
@@ -110,30 +113,40 @@ export default function DatasetDetailPage({
   }, [searchParams, user, id, getIdToken, router, purchased, t]);
 
   useEffect(() => {
-    async function checkPurchase() {
+    async function checkAccess() {
       if (!user) return;
       const token = await getIdToken();
       if (!token) return;
 
       try {
-        const res = await fetch(`/api/datasets/${id}/download?format=json`, {
-          method: "HEAD",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `/api/memberships/access?datasetId=${encodeURIComponent(id)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         if (res.ok) {
-          setPurchased(true);
-          // Auto-open full viewer if ?fullview=true
-          if (searchParams.get("fullview") === "true") {
-            setShowFullViewer(true);
-            router.replace(`/datasets/${id}`, { scroll: false });
+          const data = await res.json();
+          if (data.hasAccess) {
+            setPurchased(true);
+            setAccessType(data.accessType);
+            setAllowDownload(data.allowDownload);
+            if (data.accessType === "subscription") {
+              setSubscriptionInfo({
+                planName: data.planName,
+                endDate: data.endDate,
+              });
+            }
+            if (searchParams.get("fullview") === "true") {
+              setShowFullViewer(true);
+              router.replace(`/datasets/${id}`, { scroll: false });
+            }
           }
         }
       } catch {
-        // Not purchased
+        // No access
       }
     }
 
-    checkPurchase();
+    checkAccess();
   }, [user, id, getIdToken, searchParams, router]);
 
   const handlePaymentSuccess = useCallback(
@@ -385,10 +398,26 @@ export default function DatasetDetailPage({
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-emerald-400 justify-center">
                   <CheckCircle2 className="h-5 w-5" />
-                  <span className="font-medium">{t("dataset.purchased")}</span>
+                  <span className="font-medium">
+                    {accessType === "subscription"
+                      ? t("membership.accessViaPlan")
+                      : t("dataset.purchased")}
+                  </span>
                 </div>
 
-                {dataset.allowDownload ? (
+                {accessType === "subscription" && subscriptionInfo && (
+                  <div className="text-center text-xs text-muted-foreground space-y-1">
+                    <p>{subscriptionInfo.planName}</p>
+                    {subscriptionInfo.endDate && (
+                      <p>
+                        {t("membership.validUntil")}{" "}
+                        {new Date(subscriptionInfo.endDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {allowDownload ? (
                   <>
                     <p className="text-sm text-muted-foreground text-center">
                       {t("dataset.downloadYour")}

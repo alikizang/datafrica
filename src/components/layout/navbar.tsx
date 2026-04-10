@@ -46,6 +46,9 @@ export function Navbar() {
           <Link href="/datasets?category=Leads" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             {t("nav.leads")}
           </Link>
+          <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            {t("nav.pricing")}
+          </Link>
           {user?.role === "admin" && (
             <Link href="/admin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               {t("nav.admin")}
@@ -167,6 +170,9 @@ export function Navbar() {
           </Link>
           <Link href="/datasets?category=Leads" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
             {t("nav.leads")}
+          </Link>
+          <Link href="/pricing" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+            {t("nav.pricing")}
           </Link>
 
           {/* Mobile language selector */}
