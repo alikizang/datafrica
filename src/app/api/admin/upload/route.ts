@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, adminStorage } from "@/lib/firebase-admin";
 import Papa from "papaparse";
 
 // POST /api/admin/upload - Upload a new dataset
@@ -43,8 +43,24 @@ export async function POST(request: NextRequest) {
     const columns = parsed.meta.fields || [];
     const previewData = allData.slice(0, previewRows);
 
-    // Create dataset document
+    // Create dataset document in Firestore (metadata + preview only)
     const datasetRef = adminDb.collection("datasets").doc();
+
+    // Store the full CSV in Firebase Storage (much cheaper than Firestore subcollections)
+    const bucket = adminStorage.bucket();
+    const storagePath = `datasets/${datasetRef.id}/data.csv`;
+    const storageFile = bucket.file(storagePath);
+    await storageFile.save(Buffer.from(csvText, "utf-8"), {
+      contentType: "text/csv",
+      metadata: {
+        cacheControl: "private, max-age=31536000",
+        metadata: {
+          uploadedBy: user!.uid,
+          datasetTitle: title,
+        },
+      },
+    });
+
     await datasetRef.set({
       title,
       description: description || "",
@@ -57,27 +73,13 @@ export async function POST(request: NextRequest) {
       previewData,
       previewRows,
       allowDownload,
-      fileUrl: "",
+      fileUrl: storagePath,
       featured,
       rating: 0,
       ratingCount: 0,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     });
-
-    // Store full data in a subcollection (batched writes)
-    const batchSize = 500;
-    for (let i = 0; i < allData.length; i += batchSize) {
-      const batch = adminDb.batch();
-      const chunk = allData.slice(i, i + batchSize);
-
-      chunk.forEach((row, index) => {
-        const docRef = datasetRef.collection("fullData").doc();
-        batch.set(docRef, { ...row, rowIndex: i + index });
-      });
-
-      await batch.commit();
-    }
 
     return NextResponse.json({
       success: true,

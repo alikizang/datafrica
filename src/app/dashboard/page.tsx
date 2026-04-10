@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import {
   ShoppingBag,
   Download,
@@ -23,6 +24,7 @@ import type { Purchase } from "@/types";
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, getIdToken } = useAuth();
+  const { t } = useLanguage();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +32,6 @@ export default function DashboardPage() {
     if (!authLoading && !user) {
       router.push("/login");
     }
-    // Redirect admin users to admin dashboard
     if (!authLoading && user && user.role === "admin") {
       router.push("/admin");
     }
@@ -41,7 +42,6 @@ export default function DashboardPage() {
       if (!user) return;
       const token = await getIdToken();
       if (!token) return;
-
       try {
         const res = await fetch("/api/user/purchases", {
           headers: { Authorization: `Bearer ${token}` },
@@ -51,12 +51,11 @@ export default function DashboardPage() {
           setPurchases(data.purchases || []);
         }
       } catch {
-        // Silently fail
+        // fail silently
       } finally {
         setLoading(false);
       }
     }
-
     fetchPurchases();
   }, [user, getIdToken]);
 
@@ -68,18 +67,15 @@ export default function DashboardPage() {
     try {
       const token = await getIdToken();
       if (!token) return;
-
       const res = await fetch(
         `/api/datasets/${datasetId}/download?format=${format}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (!res.ok) {
         const err = await res.json();
         toast.error(err.error || "Download failed");
         return;
       }
-
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -90,8 +86,7 @@ export default function DashboardPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-
-      toast.success(`Downloaded as ${format.toUpperCase()}`);
+      toast.success(`${t("dashboard.downloadedAs")} ${format.toUpperCase()}`);
     } catch {
       toast.error("Download failed");
     }
@@ -110,16 +105,14 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 lg:px-8 py-10">
-      {/* Header */}
       <div className="mb-10">
-        <p className="text-sm font-medium text-primary uppercase tracking-wider mb-2">Account</p>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+        <p className="text-sm font-medium text-primary uppercase tracking-wider mb-2">{t("dashboard.account")}</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">{t("dashboard.dashboard")}</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user.displayName || user.email}
+          {t("dashboard.welcomeBack")}, {user.displayName || user.email}
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         <div className="glass-card rounded-xl p-5 flex items-center gap-4">
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -127,7 +120,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground">{purchases.length}</p>
-            <p className="text-sm text-muted-foreground">Purchases</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.purchases")}</p>
           </div>
         </div>
         <div className="glass-card rounded-xl p-5 flex items-center gap-4">
@@ -136,7 +129,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground">{purchases.length}</p>
-            <p className="text-sm text-muted-foreground">Datasets Available</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.datasetsAvailable")}</p>
           </div>
         </div>
         <div className="glass-card rounded-xl p-5 flex items-center gap-4">
@@ -153,10 +146,10 @@ export default function DashboardPage() {
       <Tabs defaultValue="purchases">
         <TabsList className="bg-card border border-border">
           <TabsTrigger value="purchases" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
-            My Purchases
+            {t("dashboard.myPurchases")}
           </TabsTrigger>
           <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
-            Profile
+            {t("dashboard.profile")}
           </TabsTrigger>
         </TabsList>
 
@@ -175,13 +168,7 @@ export default function DashboardPage() {
                     <div className="space-y-1">
                       <h3 className="font-semibold text-foreground">{purchase.datasetTitle}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge
-                          className={
-                            purchase.status === "completed"
-                              ? "bg-emerald-500/10 text-emerald-400 border-0 text-xs"
-                              : "bg-muted text-muted-foreground border-border text-xs"
-                          }
-                        >
+                        <Badge className={purchase.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-0 text-xs" : "bg-muted text-muted-foreground border-border text-xs"}>
                           {purchase.status}
                         </Badge>
                         <span>{new Date(purchase.createdAt).toLocaleDateString()}</span>
@@ -189,22 +176,15 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {["csv", "excel", "json"].map((format) => (
-                        <button
-                          key={format}
-                          onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format as "csv" | "excel" | "json")}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1"
-                        >
+                      {(["csv", "excel", "json"] as const).map((format) => (
+                        <button key={format} onClick={() => handleDownload(purchase.datasetId, purchase.datasetTitle, format)} className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1">
                           {format === "csv" && <FileText className="h-3 w-3" />}
                           {format === "excel" && <FileSpreadsheet className="h-3 w-3" />}
                           {format === "json" && <FileJson className="h-3 w-3" />}
                           {format.toUpperCase()}
                         </button>
                       ))}
-                      <Link
-                        href={`/datasets/${purchase.datasetId}`}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
-                      >
+                      <Link href={`/datasets/${purchase.datasetId}`} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-colors">
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     </div>
@@ -215,15 +195,10 @@ export default function DashboardPage() {
           ) : (
             <div className="text-center py-20 space-y-4">
               <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/30" />
-              <h3 className="text-lg font-semibold text-foreground">No purchases yet</h3>
-              <p className="text-muted-foreground">
-                Browse our marketplace to find datasets you need
-              </p>
-              <Link
-                href="/datasets"
-                className="inline-flex px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium"
-              >
-                Browse Datasets
+              <h3 className="text-lg font-semibold text-foreground">{t("dashboard.noPurchases")}</h3>
+              <p className="text-muted-foreground">{t("dashboard.noPurchasesDesc")}</p>
+              <Link href="/datasets" className="inline-flex px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium">
+                {t("dashboard.browseDatasets")}
               </Link>
             </div>
           )}
@@ -231,30 +206,26 @@ export default function DashboardPage() {
 
         <TabsContent value="profile" className="mt-6">
           <div className="glass-card rounded-xl p-6 space-y-4">
-            <h3 className="font-semibold text-foreground text-lg">Profile Information</h3>
+            <h3 className="font-semibold text-foreground text-lg">{t("dashboard.profileInfo")}</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium text-foreground">{user.displayName || "Not set"}</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.name")}</p>
+                <p className="font-medium text-foreground">{user.displayName || t("dashboard.notSet")}</p>
               </div>
               <Separator className="bg-border" />
               <div>
-                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="text-sm text-muted-foreground">{t("auth.email")}</p>
                 <p className="font-medium text-foreground">{user.email}</p>
               </div>
               <Separator className="bg-border" />
               <div>
-                <p className="text-sm text-muted-foreground">Role</p>
-                <Badge className="bg-primary/10 text-primary border-0 capitalize">
-                  {user.role}
-                </Badge>
+                <p className="text-sm text-muted-foreground">{t("dashboard.role")}</p>
+                <Badge className="bg-primary/10 text-primary border-0 capitalize">{user.role}</Badge>
               </div>
               <Separator className="bg-border" />
               <div>
-                <p className="text-sm text-muted-foreground">Member since</p>
-                <p className="font-medium text-foreground">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.memberSince")}</p>
+                <p className="font-medium text-foreground">{new Date(user.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { Loader2, Upload, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
@@ -19,6 +20,7 @@ import Link from "next/link";
 export default function UploadDatasetPage() {
   const router = useRouter();
   const { user, loading: authLoading, getIdToken } = useAuth();
+  const { t } = useLanguage();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -57,7 +59,7 @@ export default function UploadDatasetPage() {
     try {
       const token = await getIdToken();
       if (!token) {
-        toast.error("Authentication error");
+        toast.error(t("common.error"));
         return;
       }
 
@@ -87,10 +89,10 @@ export default function UploadDatasetPage() {
           `Dataset uploaded: ${data.recordCount} records, ${data.columns.length} columns`
         );
       } else {
-        toast.error(data.error || "Upload failed");
+        toast.error(data.error || t("common.error"));
       }
     } catch {
-      toast.error("Upload failed. Please try again.");
+      toast.error(t("common.error"));
     } finally {
       setUploading(false);
     }
@@ -102,22 +104,22 @@ export default function UploadDatasetPage() {
     return (
       <div className="container mx-auto px-4 lg:px-8 py-24 text-center space-y-4">
         <CheckCircle2 className="h-16 w-16 text-emerald-400 mx-auto" />
-        <h2 className="text-2xl font-bold text-foreground">Dataset Uploaded Successfully!</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t("admin.uploadSuccess")}</h2>
         <p className="text-muted-foreground">
-          Your dataset is now available on the marketplace.
+          {t("admin.uploadSuccessDesc")}
         </p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => { setSuccess(false); setTitle(""); setDescription(""); setFile(null); }}
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium"
           >
-            Upload Another
+            {t("admin.uploadAnother")}
           </button>
           <Link
             href="/admin"
             className="px-6 py-2.5 border border-border text-foreground rounded-full hover:bg-muted transition-colors font-medium"
           >
-            Back to Admin
+            {t("admin.backToAdmin")}
           </Link>
         </div>
       </div>
@@ -131,7 +133,7 @@ export default function UploadDatasetPage() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Admin
+        {t("admin.backToAdmin")}
       </Link>
 
       <div className="glass-card rounded-2xl p-8">
@@ -140,15 +142,15 @@ export default function UploadDatasetPage() {
             <Upload className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Upload Dataset</h1>
-            <p className="text-sm text-muted-foreground">Add new data to the marketplace</p>
+            <h1 className="text-xl font-bold text-foreground">{t("admin.uploadDataset")}</h1>
+            <p className="text-sm text-muted-foreground">{t("admin.addToMarketplace")}</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* CSV File */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">CSV File *</label>
+            <label className="text-sm font-medium text-foreground">{t("admin.csvFile")} *</label>
             <Input
               type="file"
               accept=".csv"
@@ -156,12 +158,12 @@ export default function UploadDatasetPage() {
               required
               className="bg-muted border-border text-foreground rounded-xl file:bg-card file:text-foreground file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3"
             />
-            <p className="text-xs text-dim">Upload a CSV file with headers in the first row</p>
+            <p className="text-xs text-dim">{t("admin.csvHelp")}</p>
           </div>
 
           {/* Title */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Title *</label>
+            <label className="text-sm font-medium text-foreground">{t("admin.title")} *</label>
             <Input
               placeholder="e.g., Benin Business Directory 2025"
               value={title}
@@ -173,10 +175,10 @@ export default function UploadDatasetPage() {
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Description</label>
+            <label className="text-sm font-medium text-foreground">{t("admin.description")}</label>
             <textarea
               className="flex min-h-[100px] w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-dim focus:outline-none focus:border-primary"
-              placeholder="Describe the dataset content, source, and use cases..."
+              placeholder={t("admin.descPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -185,10 +187,10 @@ export default function UploadDatasetPage() {
           {/* Category + Country */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Category *</label>
+              <label className="text-sm font-medium text-foreground">{t("admin.category")} *</label>
               <Select value={category} onValueChange={setCategory} required>
                 <SelectTrigger className="h-12 bg-muted border-border text-foreground rounded-xl">
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder={t("admin.select")} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
                   {DATASET_CATEGORIES.map((cat) => (
@@ -200,10 +202,10 @@ export default function UploadDatasetPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Country *</label>
+              <label className="text-sm font-medium text-foreground">{t("admin.country")} *</label>
               <Select value={country} onValueChange={setCountry} required>
                 <SelectTrigger className="h-12 bg-muted border-border text-foreground rounded-xl">
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder={t("admin.select")} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
                   {AFRICAN_COUNTRIES.map((c) => (
@@ -219,7 +221,7 @@ export default function UploadDatasetPage() {
           {/* Price + Currency */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Price *</label>
+              <label className="text-sm font-medium text-foreground">{t("admin.price")} *</label>
               <Input
                 type="number"
                 min="0"
@@ -232,7 +234,7 @@ export default function UploadDatasetPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Currency</label>
+              <label className="text-sm font-medium text-foreground">{t("admin.currency")}</label>
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className="h-12 bg-muted border-border text-foreground rounded-xl">
                   <SelectValue />
@@ -250,7 +252,7 @@ export default function UploadDatasetPage() {
 
           {/* Preview Rows */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Preview Rows</label>
+            <label className="text-sm font-medium text-foreground">{t("admin.previewRows")}</label>
             <Input
               type="number"
               min="1"
@@ -260,7 +262,7 @@ export default function UploadDatasetPage() {
               className="h-12 bg-muted border-border text-foreground rounded-xl focus:border-primary"
             />
             <p className="text-xs text-dim">
-              Number of rows visible in the free preview before purchase (default: 10)
+              {t("admin.previewRowsHelp")}
             </p>
           </div>
 
@@ -268,9 +270,9 @@ export default function UploadDatasetPage() {
           <div className="space-y-4 p-4 rounded-xl bg-muted border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-foreground">Allow Download</p>
+                <p className="text-sm font-medium text-foreground">{t("admin.allowDownload")}</p>
                 <p className="text-xs text-dim">
-                  If disabled, users can only view the data online after purchase (no CSV/Excel/JSON download)
+                  {t("admin.allowDownloadDesc")}
                 </p>
               </div>
               <button
@@ -291,9 +293,9 @@ export default function UploadDatasetPage() {
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-foreground">Featured Dataset</p>
+                <p className="text-sm font-medium text-foreground">{t("admin.featuredDataset")}</p>
                 <p className="text-xs text-dim">
-                  Display this dataset prominently on the homepage
+                  {t("admin.featuredDesc")}
                 </p>
               </div>
               <button
@@ -319,12 +321,12 @@ export default function UploadDatasetPage() {
             {uploading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Uploading & Processing...
+                {t("admin.uploadingProcessing")}
               </>
             ) : (
               <>
                 <Upload className="h-4 w-4" />
-                Upload Dataset
+                {t("admin.uploadDataset")}
               </>
             )}
           </button>

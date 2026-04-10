@@ -47,12 +47,19 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<LangCode>("en");
+  const [lang, setLangState] = useState<LangCode>(() => {
+    // Read from localStorage synchronously on client to avoid flash of wrong language
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("datafrica-lang") as LangCode | null;
+      if (saved && locales[saved]) return saved;
+    }
+    return "en";
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("datafrica-lang") as LangCode | null;
-    if (saved && locales[saved]) {
-      setLangState(saved);
+    // Also set html dir on mount for RTL
+    if (lang === "ar") {
+      document.documentElement.dir = "rtl";
     }
   }, []);
 

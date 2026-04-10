@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, adminAuth } from "@/lib/firebase-admin";
 
 // GET /api/admin/analytics - Get sales analytics
 export async function GET(request: NextRequest) {
@@ -18,9 +18,34 @@ export async function GET(request: NextRequest) {
     const totalRevenue = purchases.reduce((sum, p) => sum + (p.amount || 0), 0);
     const totalSales = purchases.length;
 
-    // Users count
-    const usersSnap = await adminDb.collection("users").count().get();
-    const totalUsers = usersSnap.data().count;
+    // Users count - try Firestore first, fallback to Firebase Auth
+    let totalUsers = 0;
+    try {
+      const usersSnap = await adminDb.collection("users").count().get();
+      totalUsers = usersSnap.data().count;
+    } catch {
+      // Fallback: count via Firebase Auth (paginated, but accurate)
+      try {
+        let pageToken: string | undefined;
+        do {
+          const listResult = await adminAuth.listUsers(1000, pageToken);
+          totalUsers += listResult.users.length;
+          pageToken = listResult.pageToken;
+        } while (pageToken);
+      } catch {
+        totalUsers = 0;
+      }
+    }
+
+    // If Firestore count returned 0, try Firebase Auth as verification
+    if (totalUsers === 0) {
+      try {
+        const listResult = await adminAuth.listUsers(1000);
+        totalUsers = listResult.users.length;
+      } catch {
+        // Keep 0
+      }
+    }
 
     // Datasets count
     const datasetsSnap = await adminDb.collection("datasets").count().get();

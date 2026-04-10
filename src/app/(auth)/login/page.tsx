@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Redirect based on role once user state is resolved
   useEffect(() => {
     if (!authLoading && user) {
       router.push(user.role === "admin" ? "/admin" : "/dashboard");
@@ -29,10 +30,29 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       toast.success(t("auth.welcomeBack") + "!");
-      router.push("/dashboard");
+      // Don't router.push here — the useEffect above handles redirect
+      // based on user role once auth state is resolved
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Invalid email or password";
-      toast.error(message);
+      const errorCode =
+        err && typeof err === "object" && "code" in err
+          ? (err as { code: string }).code
+          : "";
+
+      if (
+        errorCode === "auth/invalid-credential" ||
+        errorCode === "auth/invalid-credentials" ||
+        errorCode === "auth/wrong-password" ||
+        errorCode === "auth/user-not-found"
+      ) {
+        // Check if this could be a Google-linked account
+        toast.error(t("auth.googleAccountLinked"), {
+          duration: 6000,
+        });
+      } else {
+        const message =
+          err instanceof Error ? err.message : t("auth.invalidCredentials");
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -41,7 +61,8 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     try {
       await signInWithGoogle();
-      router.push("/dashboard");
+      // Don't router.push here — the useEffect above handles redirect
+      // based on user role once auth state is resolved
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(message);

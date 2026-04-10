@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import {
   ArrowLeft,
   DollarSign,
@@ -38,6 +39,7 @@ interface Analytics {
 export default function AdminAnalyticsPage() {
   const router = useRouter();
   const { user, loading: authLoading, getIdToken } = useAuth();
+  const { t } = useLanguage();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -81,14 +83,14 @@ export default function AdminAnalyticsPage() {
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Admin
+          {t("admin.backToAdmin")}
         </Link>
 
         <div className="flex items-center gap-3 mb-8">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
             <BarChart3 className="h-5 w-5 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Sales Analytics</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("admin.salesAnalytics")}</h1>
         </div>
 
         {loading ? (
@@ -110,7 +112,7 @@ export default function AdminAnalyticsPage() {
                     <p className="text-2xl font-bold text-foreground">
                       {analytics.totalRevenue.toLocaleString()}
                     </p>
-                    <p className="text-sm text-muted-foreground">Revenue (CFA)</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.revenueCFA")}</p>
                   </div>
                 </div>
               </div>
@@ -121,7 +123,7 @@ export default function AdminAnalyticsPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-foreground">{analytics.totalSales}</p>
-                    <p className="text-sm text-muted-foreground">Total Sales</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.totalSales")}</p>
                   </div>
                 </div>
               </div>
@@ -132,7 +134,7 @@ export default function AdminAnalyticsPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-foreground">{analytics.totalUsers}</p>
-                    <p className="text-sm text-muted-foreground">Users</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.users")}</p>
                   </div>
                 </div>
               </div>
@@ -143,7 +145,7 @@ export default function AdminAnalyticsPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-foreground">{analytics.totalDatasets}</p>
-                    <p className="text-sm text-muted-foreground">Datasets</p>
+                    <p className="text-sm text-muted-foreground">{t("admin.datasets")}</p>
                   </div>
                 </div>
               </div>
@@ -155,7 +157,7 @@ export default function AdminAnalyticsPage() {
                 <div className="p-6 border-b border-border">
                   <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
-                    Top Selling Datasets
+                    {t("admin.topSellingDatasets")}
                   </h2>
                 </div>
                 <div className="p-6">
@@ -172,7 +174,7 @@ export default function AdminAnalyticsPage() {
                           <div>
                             <p className="font-medium text-foreground">{ds.title}</p>
                             <p className="text-sm text-muted-foreground">
-                              {ds.count} sales
+                              {ds.count} {t("admin.salesCount")}
                             </p>
                           </div>
                         </div>
@@ -190,7 +192,7 @@ export default function AdminAnalyticsPage() {
             {analytics.recentSales.length > 0 && (
               <div className="glass-card rounded-xl border border-border overflow-hidden">
                 <div className="p-6 border-b border-border">
-                  <h2 className="text-lg font-semibold text-foreground">Recent Sales</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t("admin.recentSales")}</h2>
                 </div>
                 <div className="p-6">
                   <div className="space-y-3">
@@ -219,7 +221,7 @@ export default function AdminAnalyticsPage() {
           <div className="glass-card rounded-xl border border-border p-12 text-center">
             <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground">
-              No analytics data available yet. Sales data will appear here once customers start purchasing datasets.
+              {t("admin.noAnalytics")} {t("admin.noAnalyticsDesc")}
             </p>
           </div>
         )}

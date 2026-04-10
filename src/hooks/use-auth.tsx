@@ -89,13 +89,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const isFallbackAdmin = ADMIN_EMAILS.includes(
         (fbUser.email || "").toLowerCase()
       );
-      return {
+      const fallbackUser: User = {
         uid: fbUser.uid,
         email: fbUser.email || "",
         displayName: fbUser.displayName || "",
         role: isFallbackAdmin ? "admin" : "user",
         createdAt: new Date().toISOString(),
       };
+      // Best-effort: try to create the user doc so the count stays accurate
+      try {
+        await setDoc(doc(db, "users", fbUser.uid), fallbackUser, { merge: true });
+      } catch {
+        // Truly offline, skip
+      }
+      return fallbackUser;
     }
   };
 

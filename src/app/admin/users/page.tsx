@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { ArrowLeft, Shield, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ interface UserRecord {
 export default function AdminUsersPage() {
   const router = useRouter();
   const { user, loading: authLoading, getIdToken } = useAuth();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +55,7 @@ export default function AdminUsersPage() {
           setUsers(data.users);
         }
       } catch {
-        toast.error("Failed to fetch users");
+        toast.error(t("common.error"));
       } finally {
         setLoading(false);
       }
@@ -83,10 +85,10 @@ export default function AdminUsersPage() {
         );
         toast.success(`User role updated to ${newRole}`);
       } else {
-        toast.error("Failed to update user role");
+        toast.error(t("common.error"));
       }
     } catch {
-      toast.error("Failed to update user role");
+      toast.error(t("common.error"));
     }
   };
 
@@ -100,14 +102,14 @@ export default function AdminUsersPage() {
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Admin
+          {t("admin.backToAdmin")}
         </Link>
 
         <div className="flex items-center gap-3 mb-8">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
             <Users className="h-5 w-5 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Manage Users</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("admin.manageUsers")}</h1>
         </div>
 
         <div className="glass-card rounded-xl border border-border overflow-hidden">
@@ -120,18 +122,18 @@ export default function AdminUsersPage() {
           ) : users.length === 0 ? (
             <div className="p-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">No users found</p>
+              <p className="text-muted-foreground">{t("admin.noUsers")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="text-muted-foreground">Email</TableHead>
-                    <TableHead className="text-muted-foreground">Name</TableHead>
-                    <TableHead className="text-muted-foreground">Role</TableHead>
-                    <TableHead className="text-muted-foreground">Joined</TableHead>
-                    <TableHead className="text-muted-foreground text-right">Actions</TableHead>
+                    <TableHead className="text-muted-foreground">{t("admin.email")}</TableHead>
+                    <TableHead className="text-muted-foreground">{t("admin.name")}</TableHead>
+                    <TableHead className="text-muted-foreground">{t("admin.role")}</TableHead>
+                    <TableHead className="text-muted-foreground">{t("admin.joined")}</TableHead>
+                    <TableHead className="text-muted-foreground text-right">{t("admin.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -167,12 +169,12 @@ export default function AdminUsersPage() {
                           {u.role === "admin" ? (
                             <>
                               <ShieldAlert className="h-3.5 w-3.5 mr-1" />
-                              Revoke Admin
+                              {t("admin.revokeAdmin")}
                             </>
                           ) : (
                             <>
                               <Shield className="h-3.5 w-3.5 mr-1" />
-                              Make Admin
+                              {t("admin.makeAdmin")}
                             </>
                           )}
                         </Button>

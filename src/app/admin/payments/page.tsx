@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import {
   ArrowLeft,
   CreditCard,
@@ -37,6 +38,7 @@ interface ProviderSettings {
 export default function AdminPaymentsPage() {
   const router = useRouter();
   const { user, loading: authLoading, getIdToken } = useAuth();
+  const { t } = useLanguage();
   const [settings, setSettings] = useState<ProviderSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -64,7 +66,7 @@ export default function AdminPaymentsPage() {
           setActiveTab(data.activeProvider || "paydunya");
         }
       } catch {
-        toast.error("Failed to load payment settings");
+        toast.error(t("common.error"));
       } finally {
         setLoading(false);
       }
@@ -91,13 +93,13 @@ export default function AdminPaymentsPage() {
       });
 
       if (res.ok) {
-        toast.success("Payment settings saved");
+        toast.success(t("admin.saveSettings"));
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to save settings");
+        toast.error(data.error || t("common.error"));
       }
     } catch {
-      toast.error("Failed to save settings");
+      toast.error(t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -117,7 +119,7 @@ export default function AdminPaymentsPage() {
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Admin
+          {t("admin.backToAdmin")}
         </Link>
 
         <div className="flex items-center gap-3 mb-8">
@@ -125,9 +127,9 @@ export default function AdminPaymentsPage() {
             <CreditCard className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Payment Settings</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("admin.paymentSettings")}</h1>
             <p className="text-sm text-muted-foreground">
-              Configure and switch between payment providers
+              {t("admin.configureProviders")}
             </p>
           </div>
         </div>
@@ -142,7 +144,7 @@ export default function AdminPaymentsPage() {
             {/* Provider Selection */}
             <div className="glass-card rounded-xl p-6">
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-                Active Payment Provider
+                {t("admin.activePaymentProvider")}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(["paydunya", "kkiapay"] as const).map((provider) => (
@@ -195,7 +197,7 @@ export default function AdminPaymentsPage() {
             {activeTab === "paydunya" && (
               <div className="glass-card rounded-xl p-6 space-y-5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">PayDunya Configuration</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t("admin.paydunyaConfig")}</h2>
                   <a
                     href="https://app.paydunya.com/dashboard"
                     target="_blank"
@@ -208,10 +210,10 @@ export default function AdminPaymentsPage() {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Master Key *</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.masterKey")} *</label>
                     <Input
                       type="password"
-                      placeholder="Your PayDunya Master Key"
+                      placeholder={t("admin.masterKey")}
                       value={settings.paydunya.masterKey}
                       onChange={(e) =>
                         setSettings({
@@ -224,10 +226,10 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Private Key *</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.privateKey")} *</label>
                     <Input
                       type="password"
-                      placeholder="Your PayDunya Private Key"
+                      placeholder={t("admin.privateKey")}
                       value={settings.paydunya.privateKey}
                       onChange={(e) =>
                         setSettings({
@@ -240,10 +242,10 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Public Key</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.publicKey")}</label>
                     <Input
                       type="password"
-                      placeholder="Your PayDunya Public Key"
+                      placeholder={t("admin.publicKey")}
                       value={settings.paydunya.publicKey}
                       onChange={(e) =>
                         setSettings({
@@ -256,10 +258,10 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Token *</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.token")} *</label>
                     <Input
                       type="password"
-                      placeholder="Your PayDunya Token"
+                      placeholder={t("admin.token")}
                       value={settings.paydunya.token}
                       onChange={(e) =>
                         setSettings({
@@ -272,7 +274,7 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Mode</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.mode")}</label>
                     <div className="flex gap-3">
                       {(["test", "live"] as const).map((mode) => (
                         <button
@@ -291,7 +293,7 @@ export default function AdminPaymentsPage() {
                               : "border-border text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {mode === "test" ? "Test (Sandbox)" : "Live (Production)"}
+                          {mode === "test" ? t("admin.testSandbox") : t("admin.liveProduction")}
                         </button>
                       ))}
                     </div>
@@ -301,7 +303,7 @@ export default function AdminPaymentsPage() {
                 <div className="pt-2 flex items-start gap-2 text-xs text-dim">
                   <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                   <span>
-                    IPN Webhook URL:{" "}
+                    {t("admin.webhookUrl")}:{" "}
                     <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">
                       {process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/paydunya/webhook
                     </code>
@@ -314,7 +316,7 @@ export default function AdminPaymentsPage() {
             {activeTab === "kkiapay" && (
               <div className="glass-card rounded-xl p-6 space-y-5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">KKiaPay Configuration</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t("admin.kkiapayConfig")}</h2>
                   <a
                     href="https://app.kkiapay.me"
                     target="_blank"
@@ -327,10 +329,10 @@ export default function AdminPaymentsPage() {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Public API Key *</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.publicApiKey")} *</label>
                     <Input
                       type="password"
-                      placeholder="Your KKiaPay Public Key"
+                      placeholder={t("admin.publicApiKey")}
                       value={settings.kkiapay.publicKey}
                       onChange={(e) =>
                         setSettings({
@@ -343,10 +345,10 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Private API Key *</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.privateApiKey")} *</label>
                     <Input
                       type="password"
-                      placeholder="Your KKiaPay Private Key"
+                      placeholder={t("admin.privateApiKey")}
                       value={settings.kkiapay.privateKey}
                       onChange={(e) =>
                         setSettings({
@@ -359,10 +361,10 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Secret Key *</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.secretKey")} *</label>
                     <Input
                       type="password"
-                      placeholder="Your KKiaPay Secret Key"
+                      placeholder={t("admin.secretKey")}
                       value={settings.kkiapay.secret}
                       onChange={(e) =>
                         setSettings({
@@ -375,7 +377,7 @@ export default function AdminPaymentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">Environment</label>
+                    <label className="text-sm font-medium text-foreground">{t("admin.environment")}</label>
                     <div className="flex gap-3">
                       {[true, false].map((sandbox) => (
                         <button
@@ -394,7 +396,7 @@ export default function AdminPaymentsPage() {
                               : "border-border text-muted-foreground hover:text-foreground"
                           }`}
                         >
-                          {sandbox ? "Sandbox (Test)" : "Production"}
+                          {sandbox ? t("admin.sandboxTest") : t("admin.production")}
                         </button>
                       ))}
                     </div>
@@ -404,7 +406,7 @@ export default function AdminPaymentsPage() {
                 <div className="pt-2 flex items-start gap-2 text-xs text-dim">
                   <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                   <span>
-                    Webhook URL:{" "}
+                    {t("admin.webhookUrl")}:{" "}
                     <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">
                       {process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/webhook
                     </code>
@@ -422,17 +424,17 @@ export default function AdminPaymentsPage() {
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
+                  {t("admin.saving")}
                 </>
               ) : (
-                "Save Settings"
+                t("admin.saveSettings")
               )}
             </button>
           </div>
         ) : (
           <div className="glass-card rounded-xl p-12 text-center">
             <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Failed to load payment settings.</p>
+            <p className="text-muted-foreground">{t("admin.failedLoadPayments")}</p>
           </div>
         )}
       </div>

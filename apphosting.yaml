@@ -58,6 +58,28 @@ env:
     availability:
       - RUNTIME
 
+  # PayDunya
+  - variable: PAYDUNYA_MASTER_KEY
+    value: wQsPy2oq-X6kd-XNHf-D6Zc-5aiAoTY3XAfV
+    availability:
+      - RUNTIME
+  - variable: PAYDUNYA_PRIVATE_KEY
+    value: test_private_m77IiQ10C4zBj4HujY1nLHKeLYR
+    availability:
+      - RUNTIME
+  - variable: PAYDUNYA_PUBLIC_KEY
+    value: test_public_Ru1lVG98qUMG6Q7qw4ko7Ge2D5L
+    availability:
+      - RUNTIME
+  - variable: PAYDUNYA_TOKEN
+    value: T9PGdsqSHOEYaXz1rf5s
+    availability:
+      - RUNTIME
+  - variable: PAYDUNYA_MODE
+    value: test
+    availability:
+      - RUNTIME
+
   # KKiaPay
   - variable: NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY
     value: 361f3b30931845fc468d27b188fa94d82ac258c8

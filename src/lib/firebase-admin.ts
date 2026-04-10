@@ -27,10 +27,16 @@ function getAdminApp(): App {
       clientEmail,
       privateKey,
     };
-    _app = initializeApp({ credential: cert(serviceAccount) });
+    _app = initializeApp({
+      credential: cert(serviceAccount),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    });
   } else {
     // Fall back to Application Default Credentials (works in App Hosting / Cloud Run)
-    _app = initializeApp({ projectId: process.env.FIREBASE_ADMIN_PROJECT_ID });
+    _app = initializeApp({
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    });
   }
   return _app;
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, adminStorage } from "@/lib/firebase-admin";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 
@@ -67,7 +67,7 @@ export async function GET(
       await tokenDoc.ref.update({ used: true });
     }
 
-    // Fetch dataset
+    // Fetch dataset metadata
     const datasetDoc = await adminDb.collection("datasets").doc(id).get();
     if (!datasetDoc.exists) {
       return NextResponse.json({ error: "Dataset not found" }, { status: 404 });
@@ -75,25 +75,47 @@ export async function GET(
 
     const dataset = datasetDoc.data()!;
 
-    // Fetch full data from the dataset's data subcollection
-    const dataSnap = await adminDb
-      .collection("datasets")
-      .doc(id)
-      .collection("fullData")
-      .orderBy("rowIndex")
-      .get();
+    // Try to read from Firebase Storage first (new approach - cheap)
+    let fullData: Record<string, unknown>[] = [];
+    const storagePath = dataset.fileUrl || `datasets/${id}/data.csv`;
 
-    let fullData: Record<string, unknown>[];
+    try {
+      const bucket = adminStorage.bucket();
+      const file = bucket.file(storagePath);
+      const [exists] = await file.exists();
 
-    if (dataSnap.empty) {
-      // Fallback to preview data if full data not stored separately
-      fullData = dataset.previewData || [];
-    } else {
-      fullData = dataSnap.docs.map((doc) => {
-        const d = doc.data();
-        delete d.rowIndex;
-        return d;
-      });
+      if (exists) {
+        const [contents] = await file.download();
+        const csvText = contents.toString("utf-8");
+        const parsed = Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        fullData = parsed.data as Record<string, unknown>[];
+      }
+    } catch (storageErr) {
+      console.warn("Storage read failed, falling back to Firestore:", storageErr);
+    }
+
+    // Fallback: read from Firestore subcollection (legacy datasets)
+    if (fullData.length === 0) {
+      const dataSnap = await adminDb
+        .collection("datasets")
+        .doc(id)
+        .collection("fullData")
+        .orderBy("rowIndex")
+        .get();
+
+      if (!dataSnap.empty) {
+        fullData = dataSnap.docs.map((doc) => {
+          const d = doc.data();
+          delete d.rowIndex;
+          return d;
+        });
+      } else {
+        // Last fallback: preview data
+        fullData = dataset.previewData || [];
+      }
     }
 
     // Record download
@@ -143,5 +165,33 @@ export async function GET(
       { error: "Failed to generate download" },
       { status: 500 }
     );
+  }
+}
+
+// HEAD /api/datasets/[id]/download - Check if user has purchased
+export async function HEAD(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { user, error } = await requireAuth(request);
+    if (error) return new NextResponse(null, { status: 401 });
+
+    const purchasesSnap = await adminDb
+      .collection("purchases")
+      .where("userId", "==", user!.uid)
+      .where("datasetId", "==", id)
+      .where("status", "==", "completed")
+      .limit(1)
+      .get();
+
+    if (purchasesSnap.empty) {
+      return new NextResponse(null, { status: 403 });
+    }
+
+    return new NextResponse(null, { status: 200 });
+  } catch {
+    return new NextResponse(null, { status: 500 });
   }
 }

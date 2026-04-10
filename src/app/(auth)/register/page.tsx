@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,19 @@ import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
   const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect based on role once user state is resolved
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(user.role === "admin" ? "/admin" : "/dashboard");
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +35,7 @@ export default function RegisterPage() {
     try {
       await signUp(email, password, name);
       toast.success(t("auth.accountCreated"));
-      router.push("/dashboard");
+      // useEffect handles redirect based on role
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("auth.failedCreate");
       toast.error(message);
@@ -40,7 +47,7 @@ export default function RegisterPage() {
   const handleGoogle = async () => {
     try {
       await signInWithGoogle();
-      router.push("/dashboard");
+      // useEffect handles redirect based on role
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(message);

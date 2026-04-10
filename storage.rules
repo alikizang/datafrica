@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Dataset files - server-only access via Admin SDK
+    match /datasets/{datasetId}/{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
