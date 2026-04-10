@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const body = {
       invoice: {
         items: {
-          item_1: {
+          item_0: {
             name: dataset.title,
             quantity: 1,
             unit_price: dataset.price,
