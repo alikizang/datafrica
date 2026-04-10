@@ -146,7 +146,9 @@
     "secureProcessing": "Paiement securise",
     "dataProtected": "Donnees protegees et verifiees",
     "featured": "En vedette",
-    "ratings": "avis"
+    "ratings": "avis",
+    "viewDataset": "Voir le jeu de donn\u00e9es",
+    "previewDataLink": "Aper\u00e7u des donn\u00e9es"
   },
   "footer": {
     "desc": "Le march\u00e9 de r\u00e9f\u00e9rence pour les donn\u00e9es africaines. Acc\u00e9dez \u00e0 des annuaires d'entreprises, des prospects et des donn\u00e9es institutionnelles v\u00e9rifi\u00e9s \u00e0 travers le continent.",
@@ -209,6 +211,7 @@
     "title": "Titre",
     "description": "Description",
     "descPlaceholder": "Decrivez le contenu, la source et les cas d'utilisation...",
+    "descLangHelp": "Ajoutez des descriptions en plusieurs langues. Le * indique qu'une langue a du contenu.",
     "category": "Categorie",
     "country": "Pays",
     "price": "Prix",
@@ -254,6 +257,16 @@
     "noAnalytics": "Aucune donnee analytique disponible.",
     "noAnalyticsDesc": "Les donnees de vente apparaitront ici lorsque les clients commenceront a acheter des jeux de donnees.",
     "users": "Utilisateurs"
+  },
+  "categories": {
+    "Business": "Affaires",
+    "Leads": "Prospects",
+    "Real Estate": "Immobilier",
+    "Jobs": "Emplois",
+    "E-commerce": "E-commerce",
+    "Finance": "Finance",
+    "Health": "Sant\u00e9",
+    "Education": "\u00c9ducation"
   },
   "theme": {
     "light": "Clair",

@@ -36,7 +36,7 @@ export default function DatasetDetailPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, getIdToken } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchased, setPurchased] = useState(false);
@@ -257,7 +257,7 @@ export default function DatasetDetailPage({
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <Badge className="bg-primary/10 text-primary border-0 text-xs font-medium">
-                {dataset.category}
+                {t(`categories.${dataset.category}`) !== `categories.${dataset.category}` ? t(`categories.${dataset.category}`) : dataset.category}
               </Badge>
               <Badge className="bg-muted text-muted-foreground border-border gap-1 text-xs">
                 <MapPin className="h-3 w-3" />
@@ -276,7 +276,7 @@ export default function DatasetDetailPage({
               )}
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-3">{dataset.title}</h1>
-            <p className="text-muted-foreground text-lg leading-relaxed">{dataset.description}</p>
+            <p className="text-muted-foreground text-lg leading-relaxed">{dataset.descriptions?.[lang] || dataset.description}</p>
           </div>
 
           {/* Stats Grid */}

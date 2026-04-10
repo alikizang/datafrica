@@ -73,7 +73,9 @@ export default function DatasetsPage() {
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               {DATASET_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-muted focus:text-foreground">{cat}</SelectItem>
+                <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-muted focus:text-foreground">
+                  {t(`categories.${cat}`) !== `categories.${cat}` ? t(`categories.${cat}`) : cat}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

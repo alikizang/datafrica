@@ -27,7 +27,8 @@
     "format": "Formato", "onlineView": "Visualizacion en linea", "access": "Acceso",
     "dataColumns": "Columnas de datos", "dataPreview": "Vista previa de los datos",
     "secureProcessing": "Procesamiento de pago seguro", "dataProtected": "Datos protegidos y verificados",
-    "featured": "Destacado", "ratings": "valoraciones"
+    "featured": "Destacado", "ratings": "valoraciones",
+    "viewDataset": "Ver conjunto de datos", "previewDataLink": "Vista previa de datos"
   },
   "footer": { "desc": "El mercado de referencia para datos africanos. Acceda a directorios de empresas, prospectos y datos institucionales verificados en todo el continente.", "marketplace": "Mercado", "browseDatasets": "Explorar Datos", "businessData": "Datos Empresariales", "leadsContacts": "Prospectos & Contactos", "ecommerce": "E-commerce", "company": "Empresa", "about": "Acerca de", "contact": "Contacto", "privacy": "Politica de Privacidad", "terms": "Terminos de Servicio", "resources": "Recursos", "apiDocs": "Documentacion API", "dataQuality": "Calidad de Datos", "getStarted": "Comenzar", "allRights": "Todos los derechos reservados.", "tagline": "Los datos de Africa, desbloqueados." },
   "common": { "loading": "Cargando...", "error": "Ocurrio un error", "back": "Volver", "save": "Guardar", "cancel": "Cancelar", "delete": "Eliminar", "edit": "Editar", "close": "Cerrar", "search": "Buscar" },
@@ -45,6 +46,7 @@
     "csvFile": "Archivo CSV", "csvHelp": "Cargue un archivo CSV con encabezados en la primera fila",
     "title": "Titulo", "description": "Descripcion",
     "descPlaceholder": "Describa el contenido, la fuente y los casos de uso...",
+    "descLangHelp": "Agregue descripciones en varios idiomas. El * indica que un idioma tiene contenido.",
     "category": "Categoria", "country": "Pais", "price": "Precio", "currency": "Moneda",
     "previewRows": "Filas de vista previa",
     "previewRowsHelp": "Numero de filas visibles en la vista previa gratuita antes de la compra (predeterminado: 10)",
@@ -86,6 +88,16 @@
     "noAnalytics": "No hay datos analiticos disponibles.",
     "noAnalyticsDesc": "Los datos de ventas apareceran aqui cuando los clientes comiencen a comprar conjuntos de datos.",
     "users": "Usuarios"
+  },
+  "categories": {
+    "Business": "Negocios",
+    "Leads": "Prospectos",
+    "Real Estate": "Inmobiliaria",
+    "Jobs": "Empleos",
+    "E-commerce": "E-commerce",
+    "Finance": "Finanzas",
+    "Health": "Salud",
+    "Education": "Educacion"
   },
   "theme": { "light": "Claro", "dark": "Oscuro", "system": "Sistema" }
 }

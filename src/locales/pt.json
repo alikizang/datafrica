@@ -27,7 +27,8 @@
     "format": "Formato", "onlineView": "Visualizacao online", "access": "Acesso",
     "dataColumns": "Colunas de dados", "dataPreview": "Pre-visualizacao dos dados",
     "secureProcessing": "Processamento de pagamento seguro", "dataProtected": "Dados protegidos e verificados",
-    "featured": "Destaque", "ratings": "avaliacoes"
+    "featured": "Destaque", "ratings": "avaliacoes",
+    "viewDataset": "Ver conjunto de dados", "previewDataLink": "Pre-visualizar dados"
   },
   "footer": { "desc": "O mercado de referencia para dados africanos. Aceda a directorios de empresas, leads e dados institucionais verificados em todo o continente.", "marketplace": "Mercado", "browseDatasets": "Explorar Dados", "businessData": "Dados Empresariais", "leadsContacts": "Leads & Contactos", "ecommerce": "E-commerce", "company": "Empresa", "about": "Sobre", "contact": "Contacto", "privacy": "Politica de Privacidade", "terms": "Termos de Servico", "resources": "Recursos", "apiDocs": "Documentacao API", "dataQuality": "Qualidade dos Dados", "getStarted": "Comecar", "allRights": "Todos os direitos reservados.", "tagline": "Os dados de Africa, desbloqueados." },
   "common": { "loading": "A carregar...", "error": "Ocorreu um erro", "back": "Voltar", "save": "Guardar", "cancel": "Cancelar", "delete": "Eliminar", "edit": "Editar", "close": "Fechar", "search": "Pesquisar" },
@@ -45,6 +46,7 @@
     "csvFile": "Ficheiro CSV", "csvHelp": "Carregue um ficheiro CSV com cabecalhos na primeira linha",
     "title": "Titulo", "description": "Descricao",
     "descPlaceholder": "Descreva o conteudo, a origem e os casos de uso...",
+    "descLangHelp": "Adicione descricoes em varios idiomas. O * indica que um idioma tem conteudo.",
     "category": "Categoria", "country": "Pais", "price": "Preco", "currency": "Moeda",
     "previewRows": "Linhas de pre-visualizacao",
     "previewRowsHelp": "Numero de linhas visiveis na pre-visualizacao gratuita antes da compra (padrao: 10)",
@@ -86,6 +88,16 @@
     "noAnalytics": "Nenhum dado analitico disponivel.",
     "noAnalyticsDesc": "Os dados de vendas aparecerao aqui quando os clientes comecarem a comprar conjuntos de dados.",
     "users": "Utilizadores"
+  },
+  "categories": {
+    "Business": "Negocios",
+    "Leads": "Leads",
+    "Real Estate": "Imobiliario",
+    "Jobs": "Empregos",
+    "E-commerce": "E-commerce",
+    "Finance": "Financas",
+    "Health": "Saude",
+    "Education": "Educacao"
   },
   "theme": { "light": "Claro", "dark": "Escuro", "system": "Sistema" }
 }

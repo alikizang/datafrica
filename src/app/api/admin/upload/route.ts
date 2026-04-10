@@ -13,6 +13,19 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
+    const descriptionsRaw = formData.get("descriptions") as string;
+    let descriptions: Record<string, string> = {};
+    try {
+      const parsed = JSON.parse(descriptionsRaw || "{}");
+      // Only keep non-empty entries
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof v === "string" && v.trim()) {
+          descriptions[k] = v.trim();
+        }
+      }
+    } catch {
+      // Ignore parse errors, use empty descriptions
+    }
     const category = formData.get("category") as string;
     const country = formData.get("country") as string;
     const price = parseFloat(formData.get("price") as string);
@@ -64,6 +77,7 @@ export async function POST(request: NextRequest) {
     await datasetRef.set({
       title,
       description: description || "",
+      descriptions,
       category,
       country,
       price,

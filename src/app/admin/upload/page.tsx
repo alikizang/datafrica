@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
-import { useLanguage } from "@/hooks/use-language";
+import { useLanguage, LANGUAGES } from "@/hooks/use-language";
 import { Loader2, Upload, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
@@ -23,7 +23,10 @@ export default function UploadDatasetPage() {
   const { t } = useLanguage();
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [descriptions, setDescriptions] = useState<Record<string, string>>({
+    en: "", fr: "", pt: "", es: "", ar: "",
+  });
+  const [descLang, setDescLang] = useState("en");
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [price, setPrice] = useState("");
@@ -66,7 +69,8 @@ export default function UploadDatasetPage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("title", title);
-      formData.append("description", description);
+      formData.append("description", descriptions.en || Object.values(descriptions).find(v => v) || "");
+      formData.append("descriptions", JSON.stringify(descriptions));
       formData.append("category", category);
       formData.append("country", country);
       formData.append("price", price);
@@ -110,7 +114,7 @@ export default function UploadDatasetPage() {
         </p>
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => { setSuccess(false); setTitle(""); setDescription(""); setFile(null); }}
+            onClick={() => { setSuccess(false); setTitle(""); setDescriptions({ en: "", fr: "", pt: "", es: "", ar: "" }); setFile(null); }}
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors font-medium"
           >
             {t("admin.uploadAnother")}
@@ -173,15 +177,35 @@ export default function UploadDatasetPage() {
             />
           </div>
 
-          {/* Description */}
+          {/* Description (multi-language) */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">{t("admin.description")}</label>
+            <div className="flex gap-1 mb-2">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => setDescLang(l.code)}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                    descLang === l.code
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:text-foreground border border-border"
+                  }`}
+                >
+                  {l.code.toUpperCase()}
+                  {descriptions[l.code] ? " *" : ""}
+                </button>
+              ))}
+            </div>
             <textarea
               className="flex min-h-[100px] w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-dim focus:outline-none focus:border-primary"
               placeholder={t("admin.descPlaceholder")}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={descriptions[descLang] || ""}
+              onChange={(e) => setDescriptions(prev => ({ ...prev, [descLang]: e.target.value }))}
             />
+            <p className="text-xs text-dim">
+              {t("admin.descLangHelp")}
+            </p>
           </div>
 
           {/* Category + Country */}
@@ -195,7 +219,7 @@ export default function UploadDatasetPage() {
                 <SelectContent className="bg-popover border-border">
                   {DATASET_CATEGORIES.map((cat) => (
                     <SelectItem key={cat} value={cat} className="text-popover-foreground focus:bg-muted focus:text-foreground">
-                      {cat}
+                      {t(`categories.${cat}`) !== `categories.${cat}` ? t(`categories.${cat}`) : cat}
                     </SelectItem>
                   ))}
                 </SelectContent>

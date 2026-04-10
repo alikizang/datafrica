@@ -80,10 +80,15 @@ export function AntiScrape() {
       }
     };
 
-    // DevTools detection using debugger timing
+    // DevTools detection using window size (desktop only - mobile has false positives)
     let devtoolsCheckInterval: ReturnType<typeof setInterval>;
 
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+
     const checkDevTools = () => {
+      if (isMobile) return; // Skip on mobile - browser chrome causes false positives
       const threshold = 160;
       const widthDiff = window.outerWidth - window.innerWidth > threshold;
       const heightDiff = window.outerHeight - window.innerHeight > threshold;
@@ -95,8 +100,9 @@ export function AntiScrape() {
       }
     };
 
-    // Additional detection: override console methods
+    // Additional detection: override console methods (desktop only)
     const detectConsole = () => {
+      if (isMobile) return;
       const element = new Image();
       Object.defineProperty(element, "id", {
         get: function () {

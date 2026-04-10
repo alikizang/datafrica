@@ -146,7 +146,9 @@
     "secureProcessing": "Secure payment processing",
     "dataProtected": "Data protected & verified",
     "featured": "Featured",
-    "ratings": "ratings"
+    "ratings": "ratings",
+    "viewDataset": "View dataset",
+    "previewDataLink": "Preview data"
   },
   "footer": {
     "desc": "The premier marketplace for African datasets. Access verified business directories, leads, and institutional data across the continent.",
@@ -209,6 +211,7 @@
     "title": "Title",
     "description": "Description",
     "descPlaceholder": "Describe the dataset content, source, and use cases...",
+    "descLangHelp": "Add descriptions in multiple languages. The * indicates a language has content.",
     "category": "Category",
     "country": "Country",
     "price": "Price",
@@ -254,6 +257,16 @@
     "noAnalytics": "No analytics data available yet.",
     "noAnalyticsDesc": "Sales data will appear here once customers start purchasing datasets.",
     "users": "Users"
+  },
+  "categories": {
+    "Business": "Business",
+    "Leads": "Leads",
+    "Real Estate": "Real Estate",
+    "Jobs": "Jobs",
+    "E-commerce": "E-commerce",
+    "Finance": "Finance",
+    "Health": "Health",
+    "Education": "Education"
   },
   "theme": {
     "light": "Light",

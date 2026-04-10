@@ -107,12 +107,13 @@ export function Navbar() {
                   </div>
                 </div>
                 <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
-                  <Link href="/dashboard">{t("nav.dashboard")}</Link>
-                </DropdownMenuItem>
-                {user.role === "admin" && (
+                {user.role === "admin" ? (
                   <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
                     <Link href="/admin">{t("nav.adminPanel")}</Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild className="text-popover-foreground focus:bg-muted">
+                    <Link href="/dashboard">{t("nav.dashboard")}</Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator className="bg-border" />
@@ -183,12 +184,13 @@ export function Navbar() {
 
           {user ? (
             <>
-              <Link href="/dashboard" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
-                {t("nav.dashboard")}
-              </Link>
-              {user.role === "admin" && (
+              {user.role === "admin" ? (
                 <Link href="/admin" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
                   {t("nav.adminPanel")}
+                </Link>
+              ) : (
+                <Link href="/dashboard" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+                  {t("nav.dashboard")}
                 </Link>
               )}
               <button
