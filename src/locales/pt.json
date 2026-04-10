@@ -41,7 +41,10 @@
     "noSearchResults": "Nenhum resultado corresponde \u00e0 sua pesquisa.",
     "noDataAvailable": "Nenhum dado dispon\u00edvel.",
     "paymentSuccess": "Pagamento realizado com sucesso! Agora pode aceder ao conjunto de dados completo.",
-    "paymentCancelled": "O pagamento foi cancelado."
+    "paymentCancelled": "O pagamento foi cancelado.",
+    "fullView": "Vista completa",
+    "exitFullView": "Sair da vista completa",
+    "viewingFullscreen": "O conjunto de dados est\u00e1 aberto em vista completa"
   },
   "footer": { "desc": "O mercado de referencia para dados africanos. Aceda a directorios de empresas, leads e dados institucionais verificados em todo o continente.", "marketplace": "Mercado", "browseDatasets": "Explorar Dados", "businessData": "Dados Empresariais", "leadsContacts": "Leads & Contactos", "ecommerce": "E-commerce", "company": "Empresa", "about": "Sobre", "contact": "Contacto", "privacy": "Politica de Privacidade", "terms": "Termos de Servico", "resources": "Recursos", "apiDocs": "Documentacao API", "dataQuality": "Qualidade dos Dados", "getStarted": "Comecar", "allRights": "Todos os direitos reservados.", "tagline": "Os dados de Africa, desbloqueados." },
   "common": { "loading": "A carregar...", "error": "Ocorreu um erro", "back": "Voltar", "save": "Guardar", "cancel": "Cancelar", "delete": "Eliminar", "edit": "Editar", "close": "Fechar", "search": "Pesquisar" },

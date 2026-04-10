@@ -162,7 +162,10 @@
     "noSearchResults": "No results match your search.",
     "noDataAvailable": "No data available.",
     "paymentSuccess": "Payment successful! You can now access the full dataset.",
-    "paymentCancelled": "Payment was cancelled."
+    "paymentCancelled": "Payment was cancelled.",
+    "fullView": "Full view",
+    "exitFullView": "Exit full view",
+    "viewingFullscreen": "Dataset is open in full view mode"
   },
   "footer": {
     "desc": "The premier marketplace for African datasets. Access verified business directories, leads, and institutional data across the continent.",

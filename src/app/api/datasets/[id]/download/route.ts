@@ -77,7 +77,29 @@ export async function GET(
 
     // Try to read from Firebase Storage first (new approach - cheap)
     let fullData: Record<string, unknown>[] = [];
-    const storagePath = dataset.fileUrl || `datasets/${id}/data.csv`;
+
+    // Resolve storage path - handle different formats:
+    // - "uploads/{uid}/{id}/data.csv" (app upload)
+    // - "gs://bucket/path/file.csv" (gs:// URL)
+    // - "https://storage.googleapis.com/..." or "https://firebasestorage.googleapis.com/..." (HTTP URL)
+    // - "datasets/{id}/data.csv" (legacy fallback)
+    const rawPath = dataset.fileUrl || dataset.storagePath || "";
+    let storagePath = "";
+
+    if (rawPath.startsWith("gs://")) {
+      storagePath = rawPath.replace(/^gs:\/\/[^/]+\//, "");
+    } else if (rawPath.startsWith("http")) {
+      const match = rawPath.match(/\/o\/(.+?)(\?|$)/);
+      if (match) {
+        storagePath = decodeURIComponent(match[1]);
+      }
+    } else if (rawPath) {
+      storagePath = rawPath;
+    }
+
+    if (!storagePath) {
+      storagePath = `datasets/${id}/data.csv`;
+    }
 
     try {
       const bucket = adminStorage.bucket();

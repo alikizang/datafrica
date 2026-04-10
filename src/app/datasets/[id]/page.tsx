@@ -343,7 +343,7 @@ export default function DatasetDetailPage({
               )}
             </h3>
             {purchased ? (
-              <FullDatasetViewer datasetId={id} />
+              <FullDatasetViewer datasetId={id} datasetTitle={dataset.titles?.[lang] || dataset.title} />
             ) : (
               <DataPreviewTable
                 data={dataset.previewData}

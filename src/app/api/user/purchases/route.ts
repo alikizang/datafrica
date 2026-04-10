@@ -8,16 +8,22 @@ export async function GET(request: NextRequest) {
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
+    // Simple query without orderBy to avoid needing a composite index
     const purchasesSnap = await adminDb
       .collection("purchases")
       .where("userId", "==", user!.uid)
-      .orderBy("createdAt", "desc")
       .get();
 
-    const purchases = purchasesSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const purchases = purchasesSnap.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .sort((a, b) => {
+        const dateA = (a as Record<string, unknown>).createdAt as string || "";
+        const dateB = (b as Record<string, unknown>).createdAt as string || "";
+        return dateB.localeCompare(dateA);
+      });
 
     return NextResponse.json({ purchases });
   } catch (error) {
