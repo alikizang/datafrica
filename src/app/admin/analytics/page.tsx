@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,17 +36,10 @@ interface Analytics {
 }
 
 export default function AdminAnalyticsPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, getIdToken } = useAuth();
+  const { user, getIdToken } = useAuth();
   const { t } = useLanguage();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== "admin")) {
-      router.push("/");
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -72,8 +64,6 @@ export default function AdminAnalyticsPage() {
 
     fetchAnalytics();
   }, [user, getIdToken]);
-
-  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-background">

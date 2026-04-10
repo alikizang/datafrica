@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,8 +17,7 @@ import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
 import Link from "next/link";
 
 export default function UploadDatasetPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, getIdToken } = useAuth();
+  const { user, getIdToken } = useAuth();
   const { t } = useLanguage();
 
   const [title, setTitle] = useState("");
@@ -37,12 +35,6 @@ export default function UploadDatasetPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== "admin")) {
-      router.push("/");
-    }
-  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,8 +93,6 @@ export default function UploadDatasetPage() {
       setUploading(false);
     }
   };
-
-  if (authLoading) return null;
 
   if (success) {
     return (

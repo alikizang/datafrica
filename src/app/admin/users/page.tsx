@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,17 +27,10 @@ interface UserRecord {
 }
 
 export default function AdminUsersPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, getIdToken } = useAuth();
+  const { user, getIdToken } = useAuth();
   const { t } = useLanguage();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== "admin")) {
-      router.push("/");
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -91,8 +83,6 @@ export default function AdminUsersPage() {
       toast.error(t("common.error"));
     }
   };
-
-  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-background">

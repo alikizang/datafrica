@@ -165,8 +165,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const getIdToken = async () => {
-    if (firebaseUser) {
-      return firebaseUser.getIdToken();
+    // Use firebaseUser state first, fall back to auth.currentUser
+    // (auth.currentUser is set synchronously after signIn, before onAuthStateChanged fires)
+    const currentUser = firebaseUser || auth.currentUser;
+    if (currentUser) {
+      return currentUser.getIdToken();
     }
     return null;
   };

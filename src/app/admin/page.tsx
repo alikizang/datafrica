@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,18 +36,11 @@ interface Analytics {
 }
 
 export default function AdminPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, getIdToken } = useAuth();
+  const { user, getIdToken } = useAuth();
   const { t } = useLanguage();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== "admin")) {
-      router.push("/");
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -79,19 +71,6 @@ export default function AdminPage() {
     }
     fetchAnalytics();
   }, [user, getIdToken]);
-
-  if (authLoading || !user || user.role !== "admin") {
-    return (
-      <div className="container mx-auto px-4 lg:px-8 py-10 space-y-6">
-        <Skeleton className="h-8 w-48 bg-muted" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 bg-muted" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 lg:px-8 py-10">

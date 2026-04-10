@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,19 +35,12 @@ interface ProviderSettings {
 }
 
 export default function AdminPaymentsPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, getIdToken } = useAuth();
+  const { user, getIdToken } = useAuth();
   const { t } = useLanguage();
   const [settings, setSettings] = useState<ProviderSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<PaymentProvider>("paydunya");
-
-  useEffect(() => {
-    if (!authLoading && (!user || user.role !== "admin")) {
-      router.push("/");
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function fetchSettings() {
@@ -108,8 +100,6 @@ export default function AdminPaymentsPage() {
   const setActiveProvider = (provider: PaymentProvider) => {
     setSettings((prev) => (prev ? { ...prev, activeProvider: provider } : prev));
   };
-
-  if (authLoading) return null;
 
   return (
     <div className="min-h-screen bg-background">
