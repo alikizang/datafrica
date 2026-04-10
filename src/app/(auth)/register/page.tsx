@@ -33,9 +33,9 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      await signUp(email, password, name);
+      const resolvedUser = await signUp(email, password, name);
       toast.success(t("auth.accountCreated"));
-      // useEffect handles redirect based on role
+      router.push(resolvedUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("auth.failedCreate");
       toast.error(message);
@@ -46,8 +46,8 @@ export default function RegisterPage() {
 
   const handleGoogle = async () => {
     try {
-      await signInWithGoogle();
-      // useEffect handles redirect based on role
+      const resolvedUser = await signInWithGoogle();
+      router.push(resolvedUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(message);

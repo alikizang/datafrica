@@ -28,10 +28,9 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await signIn(email, password);
+      const resolvedUser = await signIn(email, password);
       toast.success(t("auth.welcomeBack") + "!");
-      // Don't router.push here — the useEffect above handles redirect
-      // based on user role once auth state is resolved
+      router.push(resolvedUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const errorCode =
         err && typeof err === "object" && "code" in err
@@ -60,9 +59,8 @@ export default function LoginPage() {
 
   const handleGoogle = async () => {
     try {
-      await signInWithGoogle();
-      // Don't router.push here — the useEffect above handles redirect
-      // based on user role once auth state is resolved
+      const resolvedUser = await signInWithGoogle();
+      router.push(resolvedUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(message);

@@ -32,9 +32,9 @@ interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<User>;
+  signIn: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<User>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string): Promise<User> => {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(credential.user, { displayName: name });
 
@@ -141,16 +141,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     await setDoc(doc(db, "users", credential.user.uid), newUser);
     setUser(newUser);
+    return newUser;
   };
 
-  const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+  const signIn = async (email: string, password: string): Promise<User> => {
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const resolved = await resolveUser(credential.user);
+    setUser(resolved);
+    return resolved;
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (): Promise<User> => {
     const result = await signInWithPopup(auth, googleProvider);
     const resolved = await resolveUser(result.user);
     setUser(resolved);
+    return resolved;
   };
 
   const signOut = async () => {
