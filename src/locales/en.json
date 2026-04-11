@@ -99,7 +99,11 @@
   },
   "dataset": {
     "records": "records",
-    "columns": "columns",
+    "columns": {
+      "label": "Columns",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all"
+    },
     "preview": "Preview",
     "viewOnly": "View only",
     "download": "Download",
@@ -166,7 +170,42 @@
     "fullView": "Full view",
     "exitFullView": "Exit full view",
     "viewingFullscreen": "Dataset is open in full view mode",
-    "loadingData": "Loading dataset..."
+    "loadingData": "Loading dataset...",
+    "filter": {
+      "title": "Filters",
+      "addCondition": "Add condition",
+      "apply": "Apply",
+      "clearAll": "Clear all",
+      "matchAll": "Match ALL",
+      "matchAny": "Match ANY",
+      "column": "Column",
+      "operator": "Operator",
+      "value": "Value",
+      "remove": "Remove filter"
+    },
+    "operator": {
+      "eq": "Equals",
+      "neq": "Not equals",
+      "contains": "Contains",
+      "not_contains": "Does not contain",
+      "starts_with": "Starts with",
+      "ends_with": "Ends with",
+      "gt": "Greater than",
+      "gte": "Greater or equal",
+      "lt": "Less than",
+      "lte": "Less or equal",
+      "empty": "Is empty",
+      "not_empty": "Is not empty"
+    },
+    "sort": {
+      "label": "Sort",
+      "sortedBy": "Sorted by"
+    },
+    "export": {
+      "label": "Export",
+      "filtered": "Export filtered results",
+      "success": "Export complete"
+    }
   },
   "footer": {
     "desc": "The premier marketplace for African datasets. Access verified business directories, leads, and institutional data across the continent.",

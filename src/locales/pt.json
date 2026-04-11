@@ -99,7 +99,11 @@
   },
   "dataset": {
     "records": "registos",
-    "columns": "colunas",
+    "columns": {
+      "label": "Colunas",
+      "selectAll": "Selecionar tudo",
+      "deselectAll": "Desmarcar tudo"
+    },
     "preview": "Pre-visualizacao",
     "viewOnly": "Apenas visualizacao",
     "download": "Descarregar",
@@ -166,7 +170,42 @@
     "fullView": "Vista completa",
     "exitFullView": "Sair da vista completa",
     "viewingFullscreen": "O conjunto de dados está aberto em vista completa",
-    "loadingData": "Carregando dataset..."
+    "loadingData": "Carregando dataset...",
+    "filter": {
+      "title": "Filtros",
+      "addCondition": "Adicionar condição",
+      "apply": "Aplicar",
+      "clearAll": "Limpar tudo",
+      "matchAll": "Todas as condições",
+      "matchAny": "Qualquer condição",
+      "column": "Coluna",
+      "operator": "Operador",
+      "value": "Valor",
+      "remove": "Remover filtro"
+    },
+    "operator": {
+      "eq": "Igual a",
+      "neq": "Diferente de",
+      "contains": "Contém",
+      "not_contains": "Não contém",
+      "starts_with": "Começa com",
+      "ends_with": "Termina com",
+      "gt": "Maior que",
+      "gte": "Maior ou igual",
+      "lt": "Menor que",
+      "lte": "Menor ou igual",
+      "empty": "Está vazio",
+      "not_empty": "Não está vazio"
+    },
+    "sort": {
+      "label": "Ordenar",
+      "sortedBy": "Ordenado por"
+    },
+    "export": {
+      "label": "Exportar",
+      "filtered": "Exportar resultados filtrados",
+      "success": "Exportação concluída"
+    }
   },
   "footer": {
     "desc": "O mercado de referencia para dados africanos. Aceda a directorios de empresas, leads e dados institucionais verificados em todo o continente.",

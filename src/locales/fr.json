@@ -99,7 +99,11 @@
   },
   "dataset": {
     "records": "enregistrements",
-    "columns": "colonnes",
+    "columns": {
+      "label": "Colonnes",
+      "selectAll": "Tout sélectionner",
+      "deselectAll": "Tout désélectionner"
+    },
     "preview": "Apercu",
     "viewOnly": "Consultation seule",
     "download": "Telecharger",
@@ -166,7 +170,42 @@
     "fullView": "Vue complète",
     "exitFullView": "Quitter la vue complète",
     "viewingFullscreen": "Le jeu de données est ouvert en vue complète",
-    "loadingData": "Chargement du dataset..."
+    "loadingData": "Chargement du dataset...",
+    "filter": {
+      "title": "Filtres",
+      "addCondition": "Ajouter une condition",
+      "apply": "Appliquer",
+      "clearAll": "Tout effacer",
+      "matchAll": "Toutes les conditions",
+      "matchAny": "Au moins une condition",
+      "column": "Colonne",
+      "operator": "Opérateur",
+      "value": "Valeur",
+      "remove": "Supprimer le filtre"
+    },
+    "operator": {
+      "eq": "Égal à",
+      "neq": "Différent de",
+      "contains": "Contient",
+      "not_contains": "Ne contient pas",
+      "starts_with": "Commence par",
+      "ends_with": "Finit par",
+      "gt": "Supérieur à",
+      "gte": "Supérieur ou égal",
+      "lt": "Inférieur à",
+      "lte": "Inférieur ou égal",
+      "empty": "Est vide",
+      "not_empty": "N'est pas vide"
+    },
+    "sort": {
+      "label": "Trier",
+      "sortedBy": "Trié par"
+    },
+    "export": {
+      "label": "Exporter",
+      "filtered": "Exporter les résultats filtrés",
+      "success": "Export terminé"
+    }
   },
   "footer": {
     "desc": "Le marché de référence pour les données africaines. Accédez à des annuaires d'entreprises, des prospects et des données institutionnelles vérifiés à travers le continent.",

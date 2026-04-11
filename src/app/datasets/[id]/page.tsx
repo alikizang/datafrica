@@ -313,7 +313,7 @@ export default function DatasetDetailPage({
             <div className="glass-card rounded-xl p-4 stat-glow">
               <Columns3 className="h-4 w-4 text-primary mb-2" />
               <p className="text-2xl font-bold text-foreground">{dataset.columns.length}</p>
-              <p className="text-xs text-muted-foreground">{t("dataset.columns")}</p>
+              <p className="text-xs text-muted-foreground">{t("dataset.dataColumns")}</p>
             </div>
             <div className="glass-card rounded-xl p-4 stat-glow">
               <Calendar className="h-4 w-4 text-primary mb-2" />
@@ -496,7 +496,7 @@ export default function DatasetDetailPage({
                 <span className="text-foreground">{dataset.recordCount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">{t("dataset.columns")}</span>
+                <span className="text-muted-foreground">{t("dataset.dataColumns")}</span>
                 <span className="text-foreground">{dataset.columns.length}</span>
               </div>
               <div className="flex justify-between">
