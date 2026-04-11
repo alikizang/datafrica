@@ -58,12 +58,12 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <Database className="h-3 w-3" />
-            {dataset.recordCount.toLocaleString()} {t("dataset.records")}
+            {(dataset.recordCount || 0).toLocaleString()} {t("dataset.records")}
           </span>
-          {dataset.ratingCount > 0 && (
+          {(dataset.ratingCount || 0) > 0 && (
             <span className="flex items-center gap-1">
               <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-              {dataset.rating.toFixed(1)}
+              {(dataset.rating || 0).toFixed(1)}
             </span>
           )}
         </div>
