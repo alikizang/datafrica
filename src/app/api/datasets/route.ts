@@ -14,27 +14,28 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured");
     const limit = parseInt(searchParams.get("limit") || "50");
 
-    let query: FirebaseFirestore.Query = adminDb.collection("datasets");
+    // Fetch all datasets ordered by createdAt, then filter in JS.
+    // This avoids needing composite Firestore indexes for every
+    // filter combination (category+createdAt, country+createdAt, etc.)
+    const snapshot = await adminDb
+      .collection("datasets")
+      .orderBy("createdAt", "desc")
+      .get();
 
-    if (category) {
-      query = query.where("category", "==", category);
-    }
-    if (country) {
-      query = query.where("country", "==", country);
-    }
-    if (featured === "true") {
-      query = query.where("featured", "==", true);
-    }
-
-    query = query.orderBy("createdAt", "desc").limit(limit);
-
-    const snapshot = await query.get();
     let datasets: Dataset[] = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as Dataset[];
 
-    // Client-side filtering for price range and search (Firestore doesn't support range on multiple fields easily)
+    if (category) {
+      datasets = datasets.filter((d) => d.category === category);
+    }
+    if (country) {
+      datasets = datasets.filter((d) => d.country === country);
+    }
+    if (featured === "true") {
+      datasets = datasets.filter((d) => d.featured === true);
+    }
     if (minPrice) {
       datasets = datasets.filter((d) => d.price >= parseFloat(minPrice));
     }
@@ -49,6 +50,8 @@ export async function GET(request: NextRequest) {
           d.description.toLowerCase().includes(searchLower)
       );
     }
+
+    datasets = datasets.slice(0, limit);
 
     return NextResponse.json({ datasets });
   } catch (error) {
