@@ -87,20 +87,31 @@ export async function GET(
 
     try {
       const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || undefined;
+      console.log(`[data] Using bucket: "${bucketName}"`);
       const bucket = adminStorage.bucket(bucketName);
       const file = bucket.file(storagePath);
       const [exists] = await file.exists();
       console.log(`[data] File exists at "${storagePath}": ${exists}`);
 
       if (exists) {
-        const [contents] = await file.download();
-        const csvText = contents.toString("utf-8");
-        const parsed = Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-        });
-        allData = parsed.data as Record<string, unknown>[];
-        console.log(`[data] Parsed ${allData.length} rows from Storage`);
+        // Check file size before downloading to avoid OOM
+        const [metadata] = await file.getMetadata();
+        const fileSize = Number(metadata.size || 0);
+        console.log(`[data] File size: ${fileSize} bytes`);
+
+        if (fileSize > 100 * 1024 * 1024) {
+          // > 100MB — too large, skip to fallback
+          console.warn(`[data] File too large (${fileSize} bytes), falling back to preview data`);
+        } else {
+          const [contents] = await file.download();
+          const csvText = contents.toString("utf-8");
+          const parsed = Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+          });
+          allData = parsed.data as Record<string, unknown>[];
+          console.log(`[data] Parsed ${allData.length} rows from Storage`);
+        }
       }
     } catch (storageError) {
       console.error(`[data] Storage error for "${storagePath}":`, storageError);
@@ -156,9 +167,8 @@ export async function GET(
     });
   } catch (error) {
     console.error("Dataset data error:", error);
-    return NextResponse.json(
-      { error: "Failed to load dataset" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to load dataset";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
