@@ -249,21 +249,21 @@ export default function AdminUsersPage() {
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
                     <TableHead className="text-muted-foreground">{t("admin.email")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.name")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden sm:table-cell">{t("admin.name")}</TableHead>
                     <TableHead className="text-muted-foreground">{t("admin.role")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.provider")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.purchasesCol")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden lg:table-cell">{t("admin.provider")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden lg:table-cell">{t("admin.purchasesCol")}</TableHead>
                     <TableHead className="text-muted-foreground">{t("admin.status")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.joined")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.lastLogin")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden md:table-cell">{t("admin.joined")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden md:table-cell">{t("admin.lastLogin")}</TableHead>
                     <TableHead className="text-muted-foreground text-right">{t("admin.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((u) => (
                     <TableRow key={u.id} className={`border-border hover:bg-muted ${u.disabled ? "opacity-60" : ""}`}>
-                      <TableCell className="font-medium text-foreground">{u.email}</TableCell>
-                      <TableCell className="text-muted-foreground">{u.displayName || "-"}</TableCell>
+                      <TableCell className="font-medium text-foreground max-w-[180px] truncate">{u.email}</TableCell>
+                      <TableCell className="text-muted-foreground hidden sm:table-cell">{u.displayName || "-"}</TableCell>
                       <TableCell>
                         <Badge
                           className={
@@ -276,7 +276,7 @@ export default function AdminUsersPage() {
                           {u.role}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <Badge className="bg-muted text-muted-foreground border-border">
                           {u.provider === "google" ? (
                             <>
@@ -291,7 +291,7 @@ export default function AdminUsersPage() {
                           )}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <ShoppingBag className="h-3.5 w-3.5" />
                           {u.purchaseCount}
@@ -310,53 +310,55 @@ export default function AdminUsersPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
+                      <TableCell className="text-muted-foreground text-sm hidden md:table-cell">
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "-"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
+                      <TableCell className="text-muted-foreground text-sm hidden md:table-cell">
                         {u.lastSignIn ? new Date(u.lastSignIn).toLocaleDateString() : "-"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                            className="border-border text-muted-foreground hover:bg-muted hover:text-foreground h-8 w-8 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
                             onClick={() => toggleRole(u.id, u.role)}
                             disabled={u.id === user?.uid}
+                            title={u.role === "admin" ? t("admin.revokeAdmin") : t("admin.makeAdmin")}
                           >
                             {u.role === "admin" ? (
                               <>
-                                <ShieldAlert className="h-3.5 w-3.5 mr-1" />
-                                {t("admin.revokeAdmin")}
+                                <ShieldAlert className="h-3.5 w-3.5 sm:mr-1" />
+                                <span className="hidden sm:inline">{t("admin.revokeAdmin")}</span>
                               </>
                             ) : (
                               <>
-                                <Shield className="h-3.5 w-3.5 mr-1" />
-                                {t("admin.makeAdmin")}
+                                <Shield className="h-3.5 w-3.5 sm:mr-1" />
+                                <span className="hidden sm:inline">{t("admin.makeAdmin")}</span>
                               </>
                             )}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            className={`border-border ${
+                            className={`border-border h-8 w-8 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${
                               u.disabled
                                 ? "text-emerald-400 hover:bg-emerald-500/10"
                                 : "text-red-400 hover:bg-red-500/10"
                             }`}
                             onClick={() => toggleDisabled(u.id, u.disabled)}
                             disabled={u.id === user?.uid}
+                            title={u.disabled ? t("admin.enable") : t("admin.disable")}
                           >
                             {u.disabled ? (
                               <>
-                                <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                                {t("admin.enable")}
+                                <CheckCircle className="h-3.5 w-3.5 sm:mr-1" />
+                                <span className="hidden sm:inline">{t("admin.enable")}</span>
                               </>
                             ) : (
                               <>
-                                <Ban className="h-3.5 w-3.5 mr-1" />
-                                {t("admin.disable")}
+                                <Ban className="h-3.5 w-3.5 sm:mr-1" />
+                                <span className="hidden sm:inline">{t("admin.disable")}</span>
                               </>
                             )}
                           </Button>

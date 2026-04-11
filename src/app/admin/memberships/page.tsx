@@ -687,16 +687,16 @@ export default function AdminMembershipsPage() {
                       <TableHead className="text-muted-foreground">
                         Monthly
                       </TableHead>
-                      <TableHead className="text-muted-foreground">
+                      <TableHead className="text-muted-foreground hidden md:table-cell">
                         Yearly
                       </TableHead>
-                      <TableHead className="text-muted-foreground">
+                      <TableHead className="text-muted-foreground hidden lg:table-cell">
                         Datasets
                       </TableHead>
-                      <TableHead className="text-muted-foreground">
+                      <TableHead className="text-muted-foreground hidden sm:table-cell">
                         Subscribers
                       </TableHead>
-                      <TableHead className="text-muted-foreground">
+                      <TableHead className="text-muted-foreground hidden lg:table-cell">
                         Access
                       </TableHead>
                       <TableHead className="text-muted-foreground">
@@ -727,20 +727,20 @@ export default function AdminMembershipsPage() {
                           {plan.pricing.monthly.price.toLocaleString()}{" "}
                           {plan.pricing.monthly.currency}
                         </TableCell>
-                        <TableCell className="font-medium text-foreground">
+                        <TableCell className="font-medium text-foreground hidden md:table-cell">
                           {plan.pricing.yearly.price.toLocaleString()}{" "}
                           {plan.pricing.yearly.currency}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="text-muted-foreground hidden lg:table-cell">
                           {plan.datasetIds.length}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Users className="h-3.5 w-3.5" />
                             {plan.subscriberCount || 0}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                           {plan.conditions.allowDownload ? (
                             <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                               Download
@@ -838,13 +838,13 @@ export default function AdminMembershipsPage() {
                         <TableHead className="text-muted-foreground">
                           Plan
                         </TableHead>
-                        <TableHead className="text-muted-foreground">
+                        <TableHead className="text-muted-foreground hidden sm:table-cell">
                           Cycle
                         </TableHead>
                         <TableHead className="text-muted-foreground">
                           Status
                         </TableHead>
-                        <TableHead className="text-muted-foreground">
+                        <TableHead className="text-muted-foreground hidden md:table-cell">
                           Ends
                         </TableHead>
                         <TableHead className="text-muted-foreground">
@@ -869,7 +869,7 @@ export default function AdminMembershipsPage() {
                             <TableCell className="text-muted-foreground">
                               {sub.planName}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden sm:table-cell">
                               <Badge className="bg-muted text-muted-foreground border-border">
                                 {sub.billingCycle}
                               </Badge>
@@ -889,7 +889,7 @@ export default function AdminMembershipsPage() {
                                   : sub.status}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
+                            <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                               {new Date(sub.endDate).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="font-medium text-foreground">

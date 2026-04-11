@@ -230,7 +230,7 @@ export default function AdminPaymentsPage() {
                 </div>
                 <div className="pt-2 flex items-start gap-2 text-xs text-dim">
                   <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                  <span>{t("admin.webhookUrl")}: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">{process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/paydunya/webhook</code></span>
+                  <span>{t("admin.webhookUrl")}: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground break-all text-xs">{process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/paydunya/webhook</code></span>
                 </div>
               </div>
             )}
@@ -271,7 +271,7 @@ export default function AdminPaymentsPage() {
                 </div>
                 <div className="pt-2 flex items-start gap-2 text-xs text-dim">
                   <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                  <span>{t("admin.webhookUrl")}: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground">{process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/webhook</code></span>
+                  <span>{t("admin.webhookUrl")}: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground break-all text-xs">{process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/webhook</code></span>
                 </div>
               </div>
             )}

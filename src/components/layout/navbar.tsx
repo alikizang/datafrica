@@ -161,17 +161,17 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card p-4 space-y-3">
-          <Link href="/datasets" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+        <div className="md:hidden border-t border-border bg-card p-4 space-y-1">
+          <Link href="/datasets" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-3" onClick={() => setMobileOpen(false)}>
             {t("nav.datasets")}
           </Link>
-          <Link href="/datasets?category=Business" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+          <Link href="/datasets?category=Business" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-3" onClick={() => setMobileOpen(false)}>
             {t("nav.businessData")}
           </Link>
-          <Link href="/datasets?category=Leads" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+          <Link href="/datasets?category=Leads" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-3" onClick={() => setMobileOpen(false)}>
             {t("nav.leads")}
           </Link>
-          <Link href="/pricing" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+          <Link href="/pricing" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-3" onClick={() => setMobileOpen(false)}>
             {t("nav.pricing")}
           </Link>
 
@@ -191,16 +191,16 @@ export function Navbar() {
           {user ? (
             <>
               {user.role === "admin" ? (
-                <Link href="/admin" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+                <Link href="/admin" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-3" onClick={() => setMobileOpen(false)}>
                   {t("nav.adminPanel")}
                 </Link>
               ) : (
-                <Link href="/dashboard" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-2" onClick={() => setMobileOpen(false)}>
+                <Link href="/dashboard" className="block text-sm font-medium text-secondary-foreground hover:text-foreground py-3" onClick={() => setMobileOpen(false)}>
                   {t("nav.dashboard")}
                 </Link>
               )}
               <button
-                className="w-full text-left text-sm font-medium text-secondary-foreground hover:text-foreground py-2"
+                className="w-full text-left text-sm font-medium text-secondary-foreground hover:text-foreground py-3"
                 onClick={() => { signOut(); setMobileOpen(false); }}
               >
                 {t("nav.signOut")}
@@ -208,10 +208,10 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex gap-2 pt-2">
-              <Link href="/login" className="flex-1 text-center text-sm font-medium text-secondary-foreground border border-border rounded-full py-2 hover:bg-muted" onClick={() => setMobileOpen(false)}>
+              <Link href="/login" className="flex-1 text-center text-sm font-medium text-secondary-foreground border border-border rounded-full py-2.5 hover:bg-muted" onClick={() => setMobileOpen(false)}>
                 {t("nav.signIn")}
               </Link>
-              <Link href="/register" className="flex-1 text-center text-sm font-medium text-primary-foreground bg-primary rounded-full py-2 hover:bg-primary/90" onClick={() => setMobileOpen(false)}>
+              <Link href="/register" className="flex-1 text-center text-sm font-medium text-primary-foreground bg-primary rounded-full py-2.5 hover:bg-primary/90" onClick={() => setMobileOpen(false)}>
                 {t("nav.startTrial")}
               </Link>
             </div>

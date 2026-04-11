@@ -138,12 +138,12 @@ function FilterRow({
   const operators = colType === "number" ? ALL_OPERATORS : STRING_OPERATORS;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
       {/* Column */}
       <select
         value={condition.column}
         onChange={(e) => onChange({ ...condition, column: e.target.value, operator: "contains", value: "" })}
-        className="h-9 px-3 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-w-[140px] flex-1"
+        className="h-9 px-3 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 col-span-1 sm:col-span-1 w-full"
       >
         <option value="">{t("dataset.filter.column")}</option>
         {columns.map((col) => (
@@ -155,7 +155,7 @@ function FilterRow({
       <select
         value={condition.operator}
         onChange={(e) => onChange({ ...condition, operator: e.target.value })}
-        className="h-9 px-3 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-w-[140px]"
+        className="h-9 px-3 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full"
       >
         {operators.map((op) => (
           <option key={op} value={op}>{t(`dataset.operator.${op}`)}</option>
@@ -163,21 +163,23 @@ function FilterRow({
       </select>
 
       {/* Value */}
-      {!NO_VALUE_OPERATORS.has(condition.operator) && (
+      {!NO_VALUE_OPERATORS.has(condition.operator) ? (
         <input
           type={colType === "number" && ["gt", "gte", "lt", "lte"].includes(condition.operator) ? "number" : "text"}
           value={condition.value}
           onChange={(e) => onChange({ ...condition, value: e.target.value })}
           placeholder={t("dataset.filter.value")}
-          className="h-9 px-3 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-w-[120px] flex-1"
+          className="h-9 px-3 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full"
         />
+      ) : (
+        <div className="hidden sm:block" />
       )}
 
       {/* Remove */}
       <button
         type="button"
         onClick={onRemove}
-        className="h-9 w-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors shrink-0"
+        className="h-9 w-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 transition-colors shrink-0 justify-self-end"
         title={t("dataset.filter.remove")}
       >
         <X className="h-4 w-4" />
@@ -759,7 +761,7 @@ export function FullDatasetViewer({
       {/* DATA TABLE */}
       {data.length > 0 ? (
         <div className="rounded-lg border border-border overflow-hidden">
-          <div className={`overflow-x-auto ${fullscreen ? "overflow-y-auto max-h-[calc(100vh-300px)]" : ""}`}>
+          <div className={`overflow-x-auto ${fullscreen ? "overflow-y-auto max-h-[calc(100vh-340px)] sm:max-h-[calc(100vh-300px)]" : ""}`}>
             <Table>
               <TableHeader>
                 <TableRow className="border-border bg-muted">

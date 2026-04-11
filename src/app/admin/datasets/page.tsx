@@ -429,13 +429,13 @@ export default function AdminDatasetsPage() {
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
                     <TableHead className="text-muted-foreground">{t("admin.title")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.category")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.country")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden sm:table-cell">{t("admin.category")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden lg:table-cell">{t("admin.country")}</TableHead>
                     <TableHead className="text-muted-foreground">{t("admin.price")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.recordsCol")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.salesCol")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.revenueCol")}</TableHead>
-                    <TableHead className="text-muted-foreground">{t("admin.access")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden lg:table-cell">{t("admin.recordsCol")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden md:table-cell">{t("admin.salesCol")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden md:table-cell">{t("admin.revenueCol")}</TableHead>
+                    <TableHead className="text-muted-foreground hidden sm:table-cell">{t("admin.access")}</TableHead>
                     <TableHead className="text-muted-foreground text-right">{t("admin.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -448,26 +448,26 @@ export default function AdminDatasetsPage() {
                           <span className="font-medium text-foreground truncate max-w-[200px]">{ds.title}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge className="bg-muted text-muted-foreground border-border">
                           {t(`categories.${ds.category}`)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{ds.country}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">{ds.country}</TableCell>
                       <TableCell className="font-medium text-foreground">
                         {ds.price > 0 ? `${ds.price.toLocaleString()} ${ds.currency || "CFA"}` : t("admin.free")}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{(ds.recordCount || 0).toLocaleString()}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-muted-foreground hidden lg:table-cell">{(ds.recordCount || 0).toLocaleString()}</TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <ShoppingBag className="h-3.5 w-3.5" />
                           {ds.salesCount}
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium text-emerald-400">
+                      <TableCell className="font-medium text-emerald-400 hidden md:table-cell">
                         {ds.revenue > 0 ? `${ds.revenue.toLocaleString()} CFA` : "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         {ds.allowDownload ? (
                           <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                             <Download className="h-3 w-3 mr-1" />
