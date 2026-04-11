@@ -4,6 +4,11 @@ import { adminDb, adminStorage } from "@/lib/firebase-admin";
 import { checkDatasetAccess } from "@/lib/access-check";
 import Papa from "papaparse";
 
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 // GET /api/datasets/[id]/data?page=1&limit=100&search=xxx
 // Returns full dataset data as JSON for users with access (purchase or subscription)
 export async function GET(
@@ -20,14 +25,25 @@ export async function GET(
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
-    // Check access (purchase OR subscription)
-    const access = await checkDatasetAccess(user!.uid, id);
+    // Check access (purchase OR subscription OR admin)
+    let isAdmin = false;
+    if (user!.email && ADMIN_EMAILS.includes(user!.email.toLowerCase())) {
+      isAdmin = true;
+    } else {
+      const userDoc = await adminDb.collection("users").doc(user!.uid).get();
+      if (userDoc.exists && userDoc.data()?.role === "admin") {
+        isAdmin = true;
+      }
+    }
 
-    if (!access.hasAccess) {
-      return NextResponse.json(
-        { error: "You do not have access to this dataset" },
-        { status: 403 }
-      );
+    if (!isAdmin) {
+      const access = await checkDatasetAccess(user!.uid, id);
+      if (!access.hasAccess) {
+        return NextResponse.json(
+          { error: "You do not have access to this dataset" },
+          { status: 403 }
+        );
+      }
     }
 
     // Fetch dataset metadata

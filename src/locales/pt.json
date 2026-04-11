@@ -165,7 +165,8 @@
     "paymentCancelled": "O pagamento foi cancelado.",
     "fullView": "Vista completa",
     "exitFullView": "Sair da vista completa",
-    "viewingFullscreen": "O conjunto de dados está aberto em vista completa"
+    "viewingFullscreen": "O conjunto de dados está aberto em vista completa",
+    "loadingData": "Carregando dataset..."
   },
   "footer": {
     "desc": "O mercado de referencia para dados africanos. Aceda a directorios de empresas, leads e dados institucionais verificados em todo o continente.",
@@ -195,7 +196,8 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "close": "Fechar",
-    "search": "Pesquisar"
+    "search": "Pesquisar",
+    "retry": "Tentar novamente"
   },
   "admin": {
     "administration": "Administracao",

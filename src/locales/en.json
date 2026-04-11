@@ -165,7 +165,8 @@
     "paymentCancelled": "Payment was cancelled.",
     "fullView": "Full view",
     "exitFullView": "Exit full view",
-    "viewingFullscreen": "Dataset is open in full view mode"
+    "viewingFullscreen": "Dataset is open in full view mode",
+    "loadingData": "Loading dataset..."
   },
   "footer": {
     "desc": "The premier marketplace for African datasets. Access verified business directories, leads, and institutional data across the continent.",
@@ -195,7 +196,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
-    "search": "Search"
+    "search": "Search",
+    "retry": "Retry"
   },
   "admin": {
     "administration": "Administration",

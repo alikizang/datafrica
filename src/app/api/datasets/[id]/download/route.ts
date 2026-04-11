@@ -5,6 +5,17 @@ import { checkDatasetAccess } from "@/lib/access-check";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+async function isUserAdmin(uid: string, email?: string): Promise<boolean> {
+  if (email && ADMIN_EMAILS.includes(email.toLowerCase())) return true;
+  const userDoc = await adminDb.collection("users").doc(uid).get();
+  return userDoc.exists && userDoc.data()?.role === "admin";
+}
+
 // GET /api/datasets/[id]/download?format=csv|excel|json&token=xxx
 export async function GET(
   request: NextRequest,
@@ -20,22 +31,23 @@ export async function GET(
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
-    // Check access (purchase OR subscription)
-    const access = await checkDatasetAccess(user!.uid, id);
+    // Check access (purchase OR subscription OR admin)
+    const adminUser = await isUserAdmin(user!.uid, user!.email ?? undefined);
 
-    if (!access.hasAccess) {
-      return NextResponse.json(
-        { error: "You do not have access to this dataset" },
-        { status: 403 }
-      );
-    }
-
-    // Check if download is allowed
-    if (!access.allowDownload) {
-      return NextResponse.json(
-        { error: "Download is not available for your access level" },
-        { status: 403 }
-      );
+    if (!adminUser) {
+      const access = await checkDatasetAccess(user!.uid, id);
+      if (!access.hasAccess) {
+        return NextResponse.json(
+          { error: "You do not have access to this dataset" },
+          { status: 403 }
+        );
+      }
+      if (!access.allowDownload) {
+        return NextResponse.json(
+          { error: "Download is not available for your access level" },
+          { status: 403 }
+        );
+      }
     }
 
     // Verify download token if provided
@@ -203,6 +215,9 @@ export async function HEAD(
     const { id } = await params;
     const { user, error } = await requireAuth(request);
     if (error) return new NextResponse(null, { status: 401 });
+
+    const adminUser = await isUserAdmin(user!.uid, user!.email ?? undefined);
+    if (adminUser) return new NextResponse(null, { status: 200 });
 
     const access = await checkDatasetAccess(user!.uid, id);
 

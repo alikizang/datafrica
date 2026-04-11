@@ -165,7 +165,8 @@
     "paymentCancelled": "Le paiement a été annulé.",
     "fullView": "Vue complète",
     "exitFullView": "Quitter la vue complète",
-    "viewingFullscreen": "Le jeu de données est ouvert en vue complète"
+    "viewingFullscreen": "Le jeu de données est ouvert en vue complète",
+    "loadingData": "Chargement du dataset..."
   },
   "footer": {
     "desc": "Le marché de référence pour les données africaines. Accédez à des annuaires d'entreprises, des prospects et des données institutionnelles vérifiés à travers le continent.",
@@ -195,7 +196,8 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "close": "Fermer",
-    "search": "Rechercher"
+    "search": "Rechercher",
+    "retry": "Réessayer"
   },
   "admin": {
     "administration": "Administration",
