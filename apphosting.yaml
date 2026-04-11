@@ -59,25 +59,25 @@ env:
     availability:
       - RUNTIME
   - variable: JWT_SECRET
-    value: datafrica-jwt-secret-change-in-production
+    secret: JWT_SECRET
     availability:
       - RUNTIME
 
   # PayDunya
   - variable: PAYDUNYA_MASTER_KEY
-    value: PWi2wARf-R115-PAeu-bPvm-mNdTjC0geQic
+    secret: PAYDUNYA_MASTER_KEY
     availability:
       - RUNTIME
   - variable: PAYDUNYA_PRIVATE_KEY
-    value: test_private_m77IiQ10C4zBj4HujY1nLHKeLYR
+    secret: PAYDUNYA_PRIVATE_KEY
     availability:
       - RUNTIME
   - variable: PAYDUNYA_PUBLIC_KEY
-    value: test_public_Ru1lVG98qUMG6Q7qw4ko7Ge2D5L
+    secret: PAYDUNYA_PUBLIC_KEY
     availability:
       - RUNTIME
   - variable: PAYDUNYA_TOKEN
-    value: T9PGdsqSHOEYaXz1rf5s
+    secret: PAYDUNYA_TOKEN
     availability:
       - RUNTIME
   - variable: PAYDUNYA_MODE
@@ -92,10 +92,10 @@ env:
       - BUILD
       - RUNTIME
   - variable: KKIAPAY_PRIVATE_KEY
-    value: pk_3fe2d17932564c053c8e2ad2f2cde02fb959f0196180505dda99801880bea36d
+    secret: KKIAPAY_PRIVATE_KEY
     availability:
       - RUNTIME
   - variable: KKIAPAY_SECRET
-    value: sk_9787b7f5713dcafb3394676987b0975da4e2661567ce3179f362b5419f894cda
+    secret: KKIAPAY_SECRET
     availability:
       - RUNTIME
