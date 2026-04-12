@@ -4,9 +4,26 @@ export interface User {
   uid: string;
   email: string;
   displayName?: string;
+  photoURL?: string;
   role: "user" | "admin";
   activePlanId?: string;
+  suspendedUntil?: string;
+  bannedReason?: string;
+  trialStartDate?: string;
+  trialEndDate?: string;
+  fingerprintHash?: string;
   createdAt: string;
+}
+
+export interface Alert {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "error";
+  read: boolean;
+  createdAt: string;
+  createdBy: string;
 }
 
 export interface Dataset {
@@ -25,7 +42,11 @@ export interface Dataset {
   previewRows: number;
   allowDownload: boolean;
   fileUrl: string;
+  fileFormat?: "csv" | "json" | "xlsx" | "txt";
   featured: boolean;
+  manualFeatured?: boolean;
+  featuredScore?: number;
+  accessTier?: "standard" | "premium";
   rating: number;
   ratingCount: number;
   updatedAt: string;
@@ -46,7 +67,7 @@ export interface Purchase {
   createdAt: string;
 }
 
-export type PaymentProvider = "paydunya" | "kkiapay";
+export type PaymentProvider = "paydunya" | "kkiapay" | "stripe";
 
 export interface PaymentSettings {
   activeProvider: PaymentProvider;
@@ -62,6 +83,12 @@ export interface PaymentSettings {
     privateKey: string;
     secret: string;
     sandbox: boolean;
+  };
+  stripe: {
+    publishableKey: string;
+    secretKey: string;
+    webhookSecret: string;
+    mode: "test" | "live";
   };
 }
 
@@ -185,7 +212,7 @@ export interface Subscription {
 
 export interface AccessResult {
   hasAccess: boolean;
-  accessType: "purchase" | "subscription" | "none";
+  accessType: "purchase" | "subscription" | "trial" | "none";
   allowDownload: boolean;
   planName?: string;
   endDate?: string;

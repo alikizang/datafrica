@@ -71,7 +71,8 @@ export async function PATCH(request: NextRequest) {
     const allowed: Record<string, unknown> = {};
     const safeFields = [
       "title", "description", "descriptions", "category", "country",
-      "price", "currency", "featured", "allowDownload",
+      "price", "currency", "featured", "allowDownload", "manualFeatured",
+      "accessTier",
     ];
     for (const key of safeFields) {
       if (updates[key] !== undefined) {

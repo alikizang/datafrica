@@ -37,6 +37,12 @@ interface ProviderSettings {
     secret: string;
     sandbox: boolean;
   };
+  stripe: {
+    publishableKey: string;
+    secretKey: string;
+    webhookSecret: string;
+    mode: "test" | "live";
+  };
 }
 
 type VisibleFields = Record<string, boolean>;
@@ -76,6 +82,14 @@ function getKkiapayStatus(s: ProviderSettings): { color: "green" | "yellow" | "r
   return { color: "green", label: "ready" };
 }
 
+function getStripeStatus(s: ProviderSettings): { color: "green" | "yellow" | "red"; label: string } {
+  const { publishableKey, secretKey, mode } = s.stripe;
+  const keysConfigured = publishableKey.length > 0 && secretKey.length > 0;
+  if (!keysConfigured) return { color: "red", label: "missingKeys" };
+  if (mode === "test") return { color: "yellow", label: "testMode" };
+  return { color: "green", label: "ready" };
+}
+
 function StatusBadge({ color, label, t }: { color: "green" | "yellow" | "red"; label: string; t: (key: string) => string }) {
   const config = {
     green: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-400", icon: <CircleCheck className="h-3.5 w-3.5" /> },
@@ -108,7 +122,15 @@ export default function AdminPaymentsPage() {
       if (!token) return;
       try {
         const res = await fetch("/api/admin/payment-settings", { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) { const data = await res.json(); setSettings(data); setActiveTab(data.activeProvider || "paydunya"); }
+        if (res.ok) {
+            const data = await res.json();
+            // Ensure stripe defaults exist for backwards compat
+            if (!data.stripe) {
+              data.stripe = { publishableKey: "", secretKey: "", webhookSecret: "", mode: "test" };
+            }
+            setSettings(data);
+            setActiveTab(data.activeProvider || "paydunya");
+          }
       } catch { toast.error(t("common.error")); } finally { setLoading(false); }
     }
     fetchSettings();
@@ -135,6 +157,7 @@ export default function AdminPaymentsPage() {
 
   const paydunyaStatus = settings ? getPaydunyaStatus(settings) : null;
   const kkiapayStatus = settings ? getKkiapayStatus(settings) : null;
+  const stripeStatus = settings ? getStripeStatus(settings) : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -158,17 +181,22 @@ export default function AdminPaymentsPage() {
             {/* Provider Selection */}
             <div className="glass-card rounded-xl p-6">
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">{t("admin.activePaymentProvider")}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {(["paydunya", "kkiapay"] as const).map((provider) => {
-                  const status = provider === "paydunya" ? paydunyaStatus : kkiapayStatus;
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {(["paydunya", "kkiapay", "stripe"] as const).map((provider) => {
+                  const status = provider === "paydunya" ? paydunyaStatus : provider === "kkiapay" ? kkiapayStatus : stripeStatus;
+                  const labels: Record<string, { name: string; desc: string }> = {
+                    paydunya: { name: "PayDunya", desc: "Mobile Money & Cards - West Africa" },
+                    kkiapay: { name: "KKiaPay", desc: "Mobile Money & Cards - Africa" },
+                    stripe: { name: "Stripe", desc: "Cards & International Payments" },
+                  };
                   return (
                     <button key={provider} onClick={() => setActiveProvider(provider)}
                       className={`relative p-4 rounded-xl border-2 text-left transition-all ${settings.activeProvider === provider ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30"}`}>
                       {settings.activeProvider === provider && (
                         <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center"><Check className="h-3 w-3 text-primary-foreground" /></div>
                       )}
-                      <p className="font-semibold text-foreground capitalize">{provider === "paydunya" ? "PayDunya" : "KKiaPay"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{provider === "paydunya" ? "Mobile Money & Cards - West Africa" : "Mobile Money & Cards - Africa"}</p>
+                      <p className="font-semibold text-foreground">{labels[provider].name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{labels[provider].desc}</p>
                       {status && <div className="mt-2"><StatusBadge color={status.color} label={status.label} t={t} /></div>}
                     </button>
                   );
@@ -178,13 +206,14 @@ export default function AdminPaymentsPage() {
 
             {/* Provider Tabs */}
             <div className="flex gap-2 border-b border-border pb-0">
-              {(["paydunya", "kkiapay"] as const).map((tab) => {
-                const status = tab === "paydunya" ? paydunyaStatus : kkiapayStatus;
+              {(["paydunya", "kkiapay", "stripe"] as const).map((tab) => {
+                const status = tab === "paydunya" ? paydunyaStatus : tab === "kkiapay" ? kkiapayStatus : stripeStatus;
                 const dotColor = status?.color === "green" ? "bg-emerald-400" : status?.color === "yellow" ? "bg-amber-400" : "bg-red-400";
+                const tabLabel = tab === "paydunya" ? "PayDunya" : tab === "kkiapay" ? "KKiaPay" : "Stripe";
                 return (
                   <button key={tab} onClick={() => setActiveTab(tab)}
                     className={`px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${activeTab === tab ? "bg-card text-foreground border border-border border-b-0" : "text-muted-foreground hover:text-foreground"}`}>
-                    {tab === "paydunya" ? "PayDunya" : "KKiaPay"}
+                    {tabLabel}
                     <span className={`ml-2 inline-block h-2 w-2 rounded-full ${dotColor}`} />
                   </button>
                 );
@@ -272,6 +301,47 @@ export default function AdminPaymentsPage() {
                 <div className="pt-2 flex items-start gap-2 text-xs text-dim">
                   <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                   <span>{t("admin.webhookUrl")}: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground break-all text-xs">{process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/webhook</code></span>
+                </div>
+              </div>
+            )}
+
+            {/* Stripe Settings */}
+            {activeTab === "stripe" && (
+              <div className="glass-card rounded-xl p-6 space-y-5">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-semibold text-foreground">Stripe</h2>
+                    {stripeStatus && <StatusBadge color={stripeStatus.color} label={stripeStatus.label} t={t} />}
+                  </div>
+                  <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                    Stripe Dashboard <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+                <div className="space-y-4">
+                  <SecretInput label={t("admin.publishableKey")} required placeholder="pk_test_..." value={settings.stripe.publishableKey}
+                    onChange={(val) => setSettings({ ...settings, stripe: { ...settings.stripe, publishableKey: val } })}
+                    visible={!!visibleFields["st-pub"]} onToggleVisibility={() => toggleVisibility("st-pub")} />
+                  <SecretInput label={t("admin.secretKey")} required placeholder="sk_test_..." value={settings.stripe.secretKey}
+                    onChange={(val) => setSettings({ ...settings, stripe: { ...settings.stripe, secretKey: val } })}
+                    visible={!!visibleFields["st-secret"]} onToggleVisibility={() => toggleVisibility("st-secret")} />
+                  <SecretInput label={t("admin.webhookSigningSecret")} placeholder="whsec_..." value={settings.stripe.webhookSecret}
+                    onChange={(val) => setSettings({ ...settings, stripe: { ...settings.stripe, webhookSecret: val } })}
+                    visible={!!visibleFields["st-webhook"]} onToggleVisibility={() => toggleVisibility("st-webhook")} />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">{t("admin.mode")}</label>
+                    <div className="flex gap-3">
+                      {(["test", "live"] as const).map((mode) => (
+                        <button key={mode} onClick={() => setSettings({ ...settings, stripe: { ...settings.stripe, mode } })}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${settings.stripe.mode === mode ? (mode === "live" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-amber-500/10 border-amber-500/30 text-amber-400") : "border-border text-muted-foreground hover:text-foreground"}`}>
+                          {mode === "test" ? t("admin.testSandbox") : t("admin.liveProduction")}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-2 flex items-start gap-2 text-xs text-dim">
+                  <Shield className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>{t("admin.webhookUrl")}: <code className="bg-muted px-1.5 py-0.5 rounded text-foreground break-all text-xs">{process.env.NEXT_PUBLIC_APP_URL || "https://mydatafrica.web.app"}/api/payments/stripe/webhook</code></span>
                 </div>
               </div>
             )}

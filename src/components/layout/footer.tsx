@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useLanguage } from "@/hooks/use-language";
 
 export function Footer() {
@@ -12,9 +13,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2.5 font-bold text-lg">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[#6c5ce7] flex items-center justify-center">
-                <span className="text-white font-bold text-sm">D</span>
-              </div>
+              <Image src="/logo.png" alt="Datafrica" width={32} height={32} className="h-8 w-8 rounded-lg" />
               <span className="text-foreground">Datafrica</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">{t("footer.desc")}</p>
@@ -31,17 +30,17 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">{t("footer.company")}</h4>
             <div className="space-y-3">
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.about")}</Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.contact")}</Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.privacy")}</Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.terms")}</Link>
+              <Link href="/privacy" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.privacy")}</Link>
+              <Link href="/terms" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.terms")}</Link>
+              <Link href="/refund" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.refund")}</Link>
+              <Link href="/cookies" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.cookies")}</Link>
             </div>
           </div>
           <div className="space-y-4">
             <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">{t("footer.resources")}</h4>
             <div className="space-y-3">
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.apiDocs")}</Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.dataQuality")}</Link>
+              <Link href="/acceptable-use" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.acceptableUse")}</Link>
+              <Link href="/dpa" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.dpa")}</Link>
               <Link href="/register" className="block text-sm text-muted-foreground hover:text-primary transition-colors">{t("footer.getStarted")}</Link>
             </div>
           </div>

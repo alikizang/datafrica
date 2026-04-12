@@ -3,7 +3,7 @@
 ## Project Overview
 - **Stack**: Next.js 16 (App Router) + Firebase (Auth, Firestore, Storage, App Hosting) + KKiaPay/PayDunya
 - **Languages**: TypeScript, Tailwind CSS
-- **i18n**: 5 locales (en, fr, pt, es, ar) in `src/locales/`
+- **i18n**: 10 locales (en, fr, pt, es, ar, zh, ja, ko, de, ru) in `src/locales/`
 - **Admin**: Protected under `src/app/admin/` with AdminGuard
 
 ## Build & Lint Commands

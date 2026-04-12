@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { autoTranslateDatasetMetadata } from "@/lib/translate";
 
 // POST /api/admin/upload - Save dataset metadata (file already uploaded to Storage by client)
 export async function POST(request: NextRequest) {
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest) {
     const {
       datasetId,
       storagePath,
+      fileFormat,
       title,
       titles,
       description,
@@ -23,6 +25,7 @@ export async function POST(request: NextRequest) {
       previewRows,
       featured,
       allowDownload,
+      accessTier,
       columns,
       previewData,
       recordCount,
@@ -36,14 +39,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // File size validation (max 50MB)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (fileSize && fileSize > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds maximum allowed (50MB)" },
+        { status: 400 }
+      );
+    }
+
+    // Auto-translate missing languages (non-blocking, best-effort)
+    let finalTitles = titles || {};
+    let finalDescs = descriptions || {};
+    try {
+      const translated = await autoTranslateDatasetMetadata(
+        finalTitles,
+        finalDescs
+      );
+      finalTitles = translated.titles;
+      finalDescs = translated.descriptions;
+    } catch (err) {
+      console.error("Auto-translate failed (non-blocking):", err);
+    }
+
     // Create dataset document in Firestore
     const datasetRef = adminDb.collection("datasets").doc(datasetId);
 
     await datasetRef.set({
       title,
-      titles: titles || {},
+      titles: finalTitles,
       description: description || "",
-      descriptions: descriptions || {},
+      descriptions: finalDescs,
       category,
       country,
       price,
@@ -54,8 +80,11 @@ export async function POST(request: NextRequest) {
       previewRows: previewRows || 10,
       allowDownload: allowDownload !== false,
       fileUrl: storagePath,
+      fileFormat: fileFormat || "csv",
       fileSize: fileSize || 0,
       featured: featured || false,
+      manualFeatured: featured || false,
+      accessTier: accessTier || "standard",
       rating: 0,
       ratingCount: 0,
       uploadedBy: user!.uid,

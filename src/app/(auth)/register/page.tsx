@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { isEmailAllowed } from "@/lib/email-validation";
+import { getFingerprint } from "@/lib/fingerprint";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,9 +34,14 @@ export default function RegisterPage() {
       toast.error(t("auth.passwordError"));
       return;
     }
+    if (!isEmailAllowed(email)) {
+      toast.error(t("auth.tempEmailBlocked"));
+      return;
+    }
     setLoading(true);
     try {
-      const resolvedUser = await signUp(email, password, name);
+      const fpHash = await getFingerprint().catch(() => undefined);
+      const resolvedUser = await signUp(email, password, name, fpHash);
       toast.success(t("auth.accountCreated"));
       router.push(resolvedUser.role === "admin" ? "/admin" : "/dashboard");
     } catch (err: unknown) {

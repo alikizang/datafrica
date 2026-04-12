@@ -15,6 +15,8 @@ import {
   CreditCard,
   FolderOpen,
   Crown,
+  Wrench,
+  Loader2,
 } from "lucide-react";
 
 interface Analytics {
@@ -43,6 +45,8 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -73,6 +77,42 @@ export default function AdminPage() {
     }
     fetchAnalytics();
   }, [user, getIdToken]);
+
+  // Fetch maintenance state
+  useEffect(() => {
+    async function fetchMaintenance() {
+      if (!user || user.role !== "admin") return;
+      const token = await getIdToken();
+      if (!token) return;
+      try {
+        const res = await fetch("/api/admin/maintenance", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setMaintenanceEnabled(!!data.enabled);
+        }
+      } catch { /* silent */ }
+    }
+    fetchMaintenance();
+  }, [user, getIdToken]);
+
+  const toggleMaintenance = async () => {
+    const token = await getIdToken();
+    if (!token) return;
+    setMaintenanceLoading(true);
+    try {
+      const res = await fetch("/api/admin/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ enabled: !maintenanceEnabled }),
+      });
+      if (res.ok) {
+        setMaintenanceEnabled(!maintenanceEnabled);
+      }
+    } catch { /* silent */ }
+    finally { setMaintenanceLoading(false); }
+  };
 
   return (
     <div className="container mx-auto px-4 lg:px-8 py-10">
@@ -143,6 +183,21 @@ export default function AdminPage() {
             <p className="text-sm text-muted-foreground">{t("admin.managePlans")}</p>
           </div>
         </Link>
+        <button
+          onClick={toggleMaintenance}
+          disabled={maintenanceLoading}
+          className={`glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all text-left ${maintenanceEnabled ? "ring-2 ring-amber-500/50" : ""}`}
+        >
+          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${maintenanceEnabled ? "bg-amber-500/20" : "bg-muted"}`}>
+            {maintenanceLoading ? <Loader2 className="h-5 w-5 text-amber-400 animate-spin" /> : <Wrench className={`h-5 w-5 ${maintenanceEnabled ? "text-amber-400" : "text-muted-foreground"}`} />}
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{t("admin.maintenance")}</p>
+            <p className={`text-sm ${maintenanceEnabled ? "text-amber-400" : "text-muted-foreground"}`}>
+              {maintenanceEnabled ? t("admin.maintenanceOn") : t("admin.maintenanceOff")}
+            </p>
+          </div>
+        </button>
       </div>
 
       {error && (

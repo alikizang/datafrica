@@ -6,13 +6,18 @@ import fr from "@/locales/fr.json";
 import pt from "@/locales/pt.json";
 import es from "@/locales/es.json";
 import ar from "@/locales/ar.json";
+import zh from "@/locales/zh.json";
+import ja from "@/locales/ja.json";
+import ko from "@/locales/ko.json";
+import de from "@/locales/de.json";
+import ru from "@/locales/ru.json";
 
 type Translations = typeof en;
 type NestedKeyOf<T, K extends string = ""> = T extends object
   ? { [P in keyof T & string]: NestedKeyOf<T[P], K extends "" ? P : `${K}.${P}`> }[keyof T & string]
   : K;
 
-const locales: Record<string, Translations> = { en, fr, pt, es, ar };
+const locales: Record<string, Translations> = { en, fr, pt, es, ar, zh, ja, ko, de, ru };
 
 export const LANGUAGES = [
   { code: "en", label: "English", flag: "GB" },
@@ -20,6 +25,11 @@ export const LANGUAGES = [
   { code: "pt", label: "Portugu\u00eas", flag: "PT" },
   { code: "es", label: "Espa\u00f1ol", flag: "ES" },
   { code: "ar", label: "\u0627\u0644\u0639\u0631\u0628\u064a\u0629", flag: "SA" },
+  { code: "zh", label: "\u4e2d\u6587", flag: "CN" },
+  { code: "ja", label: "\u65e5\u672c\u8a9e", flag: "JP" },
+  { code: "ko", label: "\ud55c\uad6d\uc5b4", flag: "KR" },
+  { code: "de", label: "Deutsch", flag: "DE" },
+  { code: "ru", label: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439", flag: "RU" },
 ] as const;
 
 export type LangCode = (typeof LANGUAGES)[number]["code"];

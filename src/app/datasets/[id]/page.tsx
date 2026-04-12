@@ -23,6 +23,8 @@ import {
   Eye,
   ArrowLeft,
   ShieldCheck,
+  UserPlus,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Dataset } from "@/types";
@@ -66,13 +68,13 @@ export default function DatasetDetailPage({
     fetchDataset();
   }, [id]);
 
-  // Handle PayDunya return (user redirected back after payment)
-  // PayDunya appends ?token=INVOICE_TOKEN to the return_url
+  // Handle payment return (PayDunya or Stripe redirect back)
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
     const paydunyaToken = searchParams.get("token");
+    const stripeSessionId = searchParams.get("session_id");
 
-    // PayDunya return: token param present (with or without payment=success)
+    // PayDunya return: token param present
     if (paydunyaToken && user && !purchased) {
       (async () => {
         try {
@@ -103,7 +105,40 @@ export default function DatasetDetailPage({
         } catch {
           // IPN webhook will handle it as backup
         }
-        // Clean up URL params
+        router.replace(`/datasets/${id}`, { scroll: false });
+      })();
+    }
+    // Stripe return: session_id param present with payment=success
+    else if (stripeSessionId && paymentStatus === "success" && user && !purchased) {
+      (async () => {
+        try {
+          const authToken = await getIdToken();
+          if (!authToken) return;
+
+          const res = await fetch("/api/payments/verify", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+              transactionId: stripeSessionId,
+              datasetId: id,
+              paymentMethod: "stripe",
+            }),
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            setPurchased(true);
+            setDownloadToken(data.downloadToken);
+            toast.success(t("dataset.paymentSuccess"));
+          } else if (data.alreadyPurchased) {
+            setPurchased(true);
+          }
+        } catch {
+          // Webhook will handle it as backup
+        }
         router.replace(`/datasets/${id}`, { scroll: false });
       })();
     } else if (paymentStatus === "cancelled") {
@@ -114,7 +149,16 @@ export default function DatasetDetailPage({
 
   useEffect(() => {
     async function checkAccess() {
-      if (!user) return;
+      if (!user) {
+        // Reset access state on logout
+        setPurchased(false);
+        setAccessType("none");
+        setAllowDownload(false);
+        setSubscriptionInfo(null);
+        setDownloadToken(null);
+        setShowFullViewer(false);
+        return;
+      }
       const token = await getIdToken();
       if (!token) return;
 
@@ -292,6 +336,12 @@ export default function DatasetDetailPage({
                   {t("dataset.featured")}
                 </Badge>
               )}
+              {dataset.accessTier === "premium" && (
+                <Badge className="bg-violet-500/10 text-violet-400 border-0 text-xs gap-1">
+                  <Crown className="h-3 w-3" />
+                  {t("dataset.premium")}
+                </Badge>
+              )}
               {!dataset.allowDownload && (
                 <Badge className="bg-purple-500/10 text-purple-400 border-0 text-xs gap-1">
                   <Eye className="h-3 w-3" />
@@ -369,6 +419,39 @@ export default function DatasetDetailPage({
               purchased={purchased}
             />
           </div>
+
+          {/* Guest CTA Banner */}
+          {!user && !loading && (
+            <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 p-6 md:p-8">
+              <div className="relative flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <UserPlus className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    {t("dataset.guestBannerTitle")}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t("dataset.guestBannerDesc")}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <Link
+                    href="/register"
+                    className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors text-sm whitespace-nowrap"
+                  >
+                    {t("dataset.guestBannerCta")}
+                  </Link>
+                  <p className="text-xs text-muted-foreground">
+                    {t("dataset.guestBannerSignIn")}{" "}
+                    <Link href="/login" className="text-primary hover:underline">
+                      {t("nav.signIn")}
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Full Dataset Viewer (fullscreen overlay) */}
           {showFullViewer && (

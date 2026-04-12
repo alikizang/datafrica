@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
 import { v4 as uuidv4 } from "uuid";
+import Stripe from "stripe";
 
 // POST /api/payments/verify - Verify KKiaPay or Stripe payment (purchases + subscriptions)
 export async function POST(request: NextRequest) {
@@ -91,6 +92,17 @@ export async function POST(request: NextRequest) {
       used: false,
     });
 
+    // Clean up pending payment record
+    const pendingSnap = await adminDb
+      .collection("pending_payments")
+      .where("userId", "==", user!.uid)
+      .where("datasetId", "==", datasetId)
+      .limit(5)
+      .get();
+    const batch = adminDb.batch();
+    pendingSnap.docs.forEach((doc) => batch.delete(doc.ref));
+    if (!pendingSnap.empty) await batch.commit();
+
     return NextResponse.json({
       success: true,
       purchaseId: purchaseRef.id,
@@ -171,6 +183,23 @@ async function verifyPayment(
       }
     } catch (pdError) {
       console.error("PayDunya verification error:", pdError);
+      if (process.env.NODE_ENV === "development") return true;
+    }
+  } else if (paymentMethod === "stripe") {
+    try {
+      const settingsDoc = await adminDb.collection("settings").doc("payment").get();
+      const settings = settingsDoc.exists ? settingsDoc.data() : null;
+      const secretKey = settings?.stripe?.secretKey || process.env.STRIPE_SECRET_KEY;
+      if (secretKey) {
+        const stripe = new Stripe(secretKey);
+        const session = await stripe.checkout.sessions.retrieve(transactionId);
+        if (session.payment_status === "paid") {
+          const amountPaid = (session.amount_total || 0) / 100;
+          if (amountPaid >= expectedAmount) return true;
+        }
+      }
+    } catch (stripeError) {
+      console.error("Stripe verification error:", stripeError);
       if (process.env.NODE_ENV === "development") return true;
     }
   }

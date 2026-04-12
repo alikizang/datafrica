@@ -14,6 +14,10 @@ export async function GET() {
           ? data.kkiapay?.publicKey || process.env.NEXT_PUBLIC_KKIAPAY_PUBLIC_KEY || ""
           : "",
       kkiapaySandbox: data.kkiapay?.sandbox ?? true,
+      stripePublishableKey:
+        data.activeProvider === "stripe"
+          ? data.stripe?.publishableKey || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
+          : "",
     });
   } catch {
     return NextResponse.json({

@@ -27,6 +27,12 @@ export async function GET(request: NextRequest) {
           secret: process.env.KKIAPAY_SECRET || "",
           sandbox: true,
         },
+        stripe: {
+          publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
+          secretKey: process.env.STRIPE_SECRET_KEY || "",
+          webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+          mode: "test",
+        },
       });
     }
 
@@ -54,6 +60,12 @@ export async function GET(request: NextRequest) {
         secret: clean(data.kkiapay?.secret, process.env.KKIAPAY_SECRET || ""),
         sandbox: data.kkiapay?.sandbox ?? true,
       },
+      stripe: {
+        publishableKey: clean(data.stripe?.publishableKey, process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""),
+        secretKey: clean(data.stripe?.secretKey, process.env.STRIPE_SECRET_KEY || ""),
+        webhookSecret: clean(data.stripe?.webhookSecret, process.env.STRIPE_WEBHOOK_SECRET || ""),
+        mode: data.stripe?.mode || "test",
+      },
     });
   } catch (err) {
     console.error("Error fetching payment settings:", err);
@@ -68,9 +80,9 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { activeProvider, paydunya, kkiapay } = body;
+    const { activeProvider, paydunya, kkiapay, stripe } = body;
 
-    if (activeProvider && !["paydunya", "kkiapay"].includes(activeProvider)) {
+    if (activeProvider && !["paydunya", "kkiapay", "stripe"].includes(activeProvider)) {
       return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
     }
 
@@ -102,6 +114,15 @@ export async function PUT(request: NextRequest) {
         privateKey: sanitize(kkiapay.privateKey),
         secret: sanitize(kkiapay.secret),
         sandbox: kkiapay.sandbox ?? true,
+      };
+    }
+
+    if (stripe) {
+      update.stripe = {
+        publishableKey: sanitize(stripe.publishableKey),
+        secretKey: sanitize(stripe.secretKey),
+        webhookSecret: sanitize(stripe.webhookSecret),
+        mode: stripe.mode || "test",
       };
     }
 

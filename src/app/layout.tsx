@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LanguageProvider } from "@/hooks/use-language";
+import { NotificationsProvider } from "@/hooks/use-notifications";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { AntiScrape } from "@/components/anti-scrape";
@@ -41,12 +42,14 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <LanguageProvider>
             <AuthProvider>
+              <NotificationsProvider>
               <AntiScrape />
               <GoogleOneTap />
               <Navbar />
               <main className="flex-1">{children}</main>
               <Footer />
               <Toaster />
+              </NotificationsProvider>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

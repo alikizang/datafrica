@@ -30,12 +30,24 @@ export async function getUserActiveSubscription(
 }
 
 /**
+ * Check whether the user has an active free trial.
+ */
+export async function hasActiveTrial(userId: string): Promise<boolean> {
+  const userDoc = await adminDb.collection("users").doc(userId).get();
+  if (!userDoc.exists) return false;
+  const data = userDoc.data();
+  if (!data?.trialEndDate) return false;
+  return new Date(data.trialEndDate) > new Date();
+}
+
+/**
  * Check whether a user can access a specific dataset.
  *
  * Priority:
  *   1. One-time purchase (completed) -> permanent full access
  *   2. Active subscription whose plan includes the dataset -> subscription access (plan conditions)
- *   3. Neither -> no access (preview only)
+ *   3. Active free trial -> view-only access for standard datasets
+ *   4. Neither -> no access (preview only)
  */
 export async function checkDatasetAccess(
   userId: string,
@@ -88,7 +100,24 @@ export async function checkDatasetAccess(
     }
   }
 
-  // 3. No access
+  // 3. Check free trial (view-only, standard datasets only)
+  const trialActive = await hasActiveTrial(userId);
+  if (trialActive) {
+    const datasetDoc = await adminDb.collection("datasets").doc(datasetId).get();
+    const accessTier = datasetDoc.exists ? datasetDoc.data()?.accessTier : "standard";
+    if (accessTier !== "premium") {
+      const userDoc = await adminDb.collection("users").doc(userId).get();
+      const trialEndDate = userDoc.data()?.trialEndDate;
+      return {
+        hasAccess: true,
+        accessType: "trial",
+        allowDownload: false,
+        endDate: trialEndDate,
+      };
+    }
+  }
+
+  // 4. No access
   return {
     hasAccess: false,
     accessType: "none",

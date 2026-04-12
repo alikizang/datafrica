@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb, adminStorage } from "@/lib/firebase-admin";
 import { checkDatasetAccess } from "@/lib/access-check";
+import { parseStorageFile } from "@/lib/file-parser";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 
@@ -90,14 +91,9 @@ export async function GET(
 
     const dataset = datasetDoc.data()!;
 
-    // Try to read from Firebase Storage first (new approach - cheap)
+    // Load data from Firebase Storage (supports CSV, JSON, XLSX, TXT)
     let fullData: Record<string, unknown>[] = [];
 
-    // Resolve storage path - handle different formats:
-    // - "uploads/{uid}/{id}/data.csv" (app upload)
-    // - "gs://bucket/path/file.csv" (gs:// URL)
-    // - "https://storage.googleapis.com/..." or "https://firebasestorage.googleapis.com/..." (HTTP URL)
-    // - "datasets/{id}/data.csv" (legacy fallback)
     const rawPath = dataset.fileUrl || dataset.storagePath || "";
     let storagePath = "";
 
@@ -119,18 +115,7 @@ export async function GET(
     try {
       const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || undefined;
       const bucket = adminStorage.bucket(bucketName);
-      const file = bucket.file(storagePath);
-      const [exists] = await file.exists();
-
-      if (exists) {
-        const [contents] = await file.download();
-        const csvText = contents.toString("utf-8");
-        const parsed = Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-        });
-        fullData = parsed.data as Record<string, unknown>[];
-      }
+      fullData = await parseStorageFile(bucket, storagePath, dataset.fileFormat);
     } catch (storageErr) {
       console.warn("Storage read failed, falling back to Firestore:", storageErr);
     }

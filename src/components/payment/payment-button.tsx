@@ -198,9 +198,48 @@ export function PaymentButton(props: PaymentButtonProps) {
     }
   }, [isPlan, plan, billingCycle, dataset, getIdToken, onError]);
 
+  const handleStripePayment = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = await getIdToken();
+      if (!token) {
+        onError?.("Please sign in to make a purchase");
+        setLoading(false);
+        return;
+      }
+
+      const body = isPlan
+        ? { type: "subscription", planId: plan!.id, billingCycle }
+        : { datasetId: dataset!.id };
+
+      const res = await fetch("/api/payments/stripe/create-checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        onError?.(data.error || "Failed to initiate payment");
+        setLoading(false);
+      }
+    } catch {
+      onError?.("Payment failed. Please try again.");
+      setLoading(false);
+    }
+  }, [isPlan, plan, billingCycle, dataset, getIdToken, onError]);
+
   const handlePayment = () => {
     if (provider === "kkiapay") {
       handleKkiapayPayment();
+    } else if (provider === "stripe") {
+      handleStripePayment();
     } else {
       handlePaydunyaPayment();
     }
@@ -250,6 +289,11 @@ export function PaymentButton(props: PaymentButtonProps) {
             className="opacity-80"
           />
         </div>
+      )}
+      {provider === "stripe" && (
+        <p className="text-xs text-center text-muted-foreground">
+          Visa, Mastercard, Apple Pay, Google Pay
+        </p>
       )}
     </div>
   );

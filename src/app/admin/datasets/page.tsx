@@ -31,6 +31,8 @@ import {
   Check,
   Download,
   Eye,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DATASET_CATEGORIES, AFRICAN_COUNTRIES } from "@/types";
@@ -49,6 +51,9 @@ interface DatasetRecord {
   columns: string[];
   allowDownload: boolean;
   featured: boolean;
+  manualFeatured?: boolean;
+  featuredScore?: number;
+  accessTier?: "standard" | "premium";
   salesCount: number;
   revenue: number;
   createdAt: string;
@@ -76,6 +81,7 @@ export default function AdminDatasetsPage() {
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [autoFeaturing, setAutoFeaturing] = useState(false);
 
   useEffect(() => {
     fetchDatasets();
@@ -181,17 +187,56 @@ export default function AdminDatasetsPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ datasetId: dsId, featured: !current }),
+        body: JSON.stringify({
+          datasetId: dsId,
+          featured: !current,
+          manualFeatured: !current,
+        }),
       });
 
       if (res.ok) {
         setDatasets((prev) =>
-          prev.map((ds) => (ds.id === dsId ? { ...ds, featured: !current } : ds))
+          prev.map((ds) =>
+            ds.id === dsId
+              ? { ...ds, featured: !current, manualFeatured: !current }
+              : ds
+          )
         );
         toast.success(t("admin.datasetUpdated"));
       }
     } catch {
       toast.error(t("common.error"));
+    }
+  };
+
+  const runAutoFeature = async () => {
+    const token = await getIdToken();
+    if (!token) return;
+    setAutoFeaturing(true);
+
+    try {
+      const res = await fetch("/api/admin/auto-feature", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ topN: 6 }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(
+          `Auto-featured: ${data.autoFeatured} auto + ${data.manualFeatured} manual`
+        );
+        await fetchDatasets();
+      } else {
+        toast.error(t("common.error"));
+      }
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setAutoFeaturing(false);
     }
   };
 
@@ -255,13 +300,27 @@ export default function AdminDatasetsPage() {
               </p>
             </div>
           </div>
-          <Link
-            href="/admin/upload"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors text-sm"
-          >
-            <Upload className="h-4 w-4" />
-            {t("admin.uploadDataset")}
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={runAutoFeature}
+              disabled={autoFeaturing}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-amber-500/30 text-amber-500 rounded-xl font-medium hover:bg-amber-500/10 transition-colors text-sm disabled:opacity-50"
+            >
+              {autoFeaturing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {t("admin.autoFeature")}
+            </button>
+            <Link
+              href="/admin/upload"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors text-sm"
+            >
+              <Upload className="h-4 w-4" />
+              {t("admin.uploadDataset")}
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb, adminStorage } from "@/lib/firebase-admin";
 import { checkDatasetAccess } from "@/lib/access-check";
-import Papa from "papaparse";
+import { parseStorageFile } from "@/lib/file-parser";
 
 const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
   .split(",")
@@ -300,34 +300,16 @@ export async function GET(
     }
 
     console.log(
-      `[data] Dataset ${id} - fileUrl: "${rawPath}", resolved storagePath: "${storagePath}"`
+      `[data] Dataset ${id} - fileUrl: "${rawPath}", resolved storagePath: "${storagePath}", format: "${dataset.fileFormat || "csv"}"`
     );
 
     try {
       const bucketName =
         process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || undefined;
       const bucket = adminStorage.bucket(bucketName);
-      const file = bucket.file(storagePath);
-      const [exists] = await file.exists();
-
-      if (exists) {
-        const [metadata] = await file.getMetadata();
-        const fileSize = Number(metadata.size || 0);
-
-        if (fileSize > 100 * 1024 * 1024) {
-          console.warn(
-            `[data] File too large (${fileSize} bytes), falling back`
-          );
-        } else {
-          const [contents] = await file.download();
-          const csvText = contents.toString("utf-8");
-          const parsed = Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-          });
-          allData = parsed.data as Record<string, unknown>[];
-          console.log(`[data] Parsed ${allData.length} rows from Storage`);
-        }
+      allData = await parseStorageFile(bucket, storagePath, dataset.fileFormat);
+      if (allData.length > 0) {
+        console.log(`[data] Parsed ${allData.length} rows from Storage`);
       }
     } catch (storageError) {
       console.error(

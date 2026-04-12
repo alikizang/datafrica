@@ -25,6 +25,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Database,
   Maximize2,
   Minimize2,
@@ -830,15 +832,26 @@ export function FullDatasetViewer({
 
       {/* PAGINATION */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
+          {/* First page */}
+          <button
+            onClick={() => setPage(1)}
+            disabled={page === 1 || loading}
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            title={t("dataset.firstPage") !== "dataset.firstPage" ? t("dataset.firstPage") : "First page"}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </button>
+          {/* Previous */}
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={!pagination.hasPrev || loading}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
             <ChevronLeft className="h-4 w-4" />
-            {t("dataset.previous")}
+            <span className="hidden sm:inline">{t("dataset.previous")}</span>
           </button>
+          {/* Page numbers */}
           <div className="flex items-center gap-1">
             {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, idx) => {
               let pageNum: number;
@@ -862,13 +875,27 @@ export function FullDatasetViewer({
               );
             })}
           </div>
+          {/* Page X of Y */}
+          <span className="text-xs text-muted-foreground px-1 hidden sm:inline">
+            {pagination.page} / {pagination.totalPages}
+          </span>
+          {/* Next */}
           <button
             onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
             disabled={!pagination.hasNext || loading}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
-            {t("dataset.next")}
+            <span className="hidden sm:inline">{t("dataset.next")}</span>
             <ChevronRight className="h-4 w-4" />
+          </button>
+          {/* Last page */}
+          <button
+            onClick={() => setPage(pagination.totalPages)}
+            disabled={page === pagination.totalPages || loading}
+            className="flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            title={t("dataset.lastPage") !== "dataset.lastPage" ? t("dataset.lastPage") : "Last page"}
+          >
+            <ChevronsRight className="h-4 w-4" />
           </button>
         </div>
       )}

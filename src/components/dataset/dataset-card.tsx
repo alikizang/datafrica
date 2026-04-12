@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Database, MapPin, Star, ArrowRight, Eye } from "lucide-react";
+import { Database, MapPin, Star, ArrowRight, Eye, Crown } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 import type { Dataset } from "@/types";
 
@@ -30,16 +30,22 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
     <Link href={`/datasets/${dataset.id}`} className="group">
       <div className="glass-card rounded-xl p-6 h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
         <div className="flex items-center gap-2 mb-4">
-          <Badge className="bg-primary/10 text-primary border-0 text-xs font-medium">
+          <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-medium">
             {translatedCategory}
           </Badge>
           {dataset.featured && (
-            <Badge className="bg-amber-500/10 text-amber-400 border-0 text-xs font-medium">
+            <Badge className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-medium">
               {t("dataset.featured")}
             </Badge>
           )}
+          {dataset.accessTier === "premium" && (
+            <Badge className="bg-violet-500/10 text-violet-500 border border-violet-500/20 text-xs font-medium gap-1">
+              <Crown className="h-3 w-3" />
+              {t("dataset.premium")}
+            </Badge>
+          )}
           {!dataset.allowDownload && (
-            <Badge className="bg-purple-500/10 text-purple-400 border-0 text-xs font-medium gap-1">
+            <Badge className="bg-purple-500/10 text-purple-500 border border-purple-500/20 text-xs font-medium gap-1">
               <Eye className="h-3 w-3" />
               {t("dataset.viewOnly")}
             </Badge>
@@ -51,7 +57,7 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
           {description}
         </p>
-        <div className="flex items-center gap-4 text-xs text-dim mb-5">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground mb-5">
           <span className="flex items-center gap-1">
             <MapPin className="h-3 w-3" />
             {dataset.country}

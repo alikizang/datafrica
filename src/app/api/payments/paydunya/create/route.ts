@@ -115,6 +115,18 @@ export async function POST(request: NextRequest) {
     const data = await res.json();
 
     if (data.response_code === "00" && data.token) {
+      // Track pending payment for abandonment handling (30 min TTL)
+      await adminDb.collection("pending_payments").add({
+        userId: user!.uid,
+        datasetId,
+        provider: "paydunya",
+        invoiceToken: data.token,
+        amount: dataset.price,
+        currency: dataset.currency || "XOF",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+      });
+
       return NextResponse.json({
         success: true,
         url: data.response_text, // PayDunya returns the redirect URL here

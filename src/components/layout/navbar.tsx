@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage, LANGUAGES } from "@/hooks/use-language";
@@ -12,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Menu,
   X,
@@ -31,8 +32,10 @@ import {
   LayoutDashboard,
   LogOut,
   Shield,
+  Bell,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNotifications } from "@/hooks/use-notifications";
 
 const NAV_CATEGORIES = [
   { key: "Business", icon: Briefcase },
@@ -48,6 +51,7 @@ export function Navbar() {
   const { user, signOut, loading } = useAuth();
   const { t, lang, setLang } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { unreadCount } = useNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -63,9 +67,7 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-[#6c5ce7] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">D</span>
-          </div>
+          <Image src="/logo.png" alt="Datafrica" width={32} height={32} className="h-8 w-8 rounded-lg" />
           <span className="text-foreground">Datafrica</span>
         </Link>
 
@@ -137,6 +139,22 @@ export function Navbar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Notifications Bell */}
+          {user && (
+            <Link
+              href="/dashboard?tab=purchases"
+              className="relative p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted/50 transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
+
           {/* Theme Toggle */}
           {mounted && (
             <button
@@ -154,6 +172,7 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors ml-1 px-2 py-1.5 rounded-lg">
                   <Avatar className="h-8 w-8">
+                    {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold border border-primary/20">
                       {user.displayName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -286,6 +305,7 @@ export function Navbar() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 py-2 px-1">
                     <Avatar className="h-8 w-8">
+                      {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
                       <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold border border-primary/20">
                         {user.displayName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                       </AvatarFallback>

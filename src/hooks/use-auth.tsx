@@ -33,12 +33,13 @@ interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<User>;
+  signUp: (email: string, password: string, name: string, fingerprintHash?: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
   signInWithGoogle: () => Promise<User>;
   signInWithGoogleCredential: (idToken: string) => Promise<User>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
+  updateUserProfile: (data: { displayName?: string; photoURL?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,12 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return userData;
       } else {
         const isAdmin = fbUser.email ? await checkAdminEmail(fbUser.email) : false;
+        const now = new Date();
+        const trialEnd = new Date(now);
+        trialEnd.setDate(trialEnd.getDate() + 14);
         const newUser: User = {
           uid: fbUser.uid,
           email: fbUser.email || "",
           displayName: fbUser.displayName || "",
+          photoURL: fbUser.photoURL || "",
           role: isAdmin ? "admin" : "user",
-          createdAt: new Date().toISOString(),
+          trialStartDate: now.toISOString(),
+          trialEndDate: trialEnd.toISOString(),
+          createdAt: now.toISOString(),
         };
         await setDoc(doc(db, "users", fbUser.uid), newUser);
         return newUser;
@@ -95,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         uid: fbUser.uid,
         email: fbUser.email || "",
         displayName: fbUser.displayName || "",
+        photoURL: fbUser.photoURL || "",
         role: isFallbackAdmin ? "admin" : "user",
         createdAt: new Date().toISOString(),
       };
@@ -129,17 +137,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string): Promise<User> => {
+  const signUp = async (email: string, password: string, name: string, fingerprintHash?: string): Promise<User> => {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(credential.user, { displayName: name });
 
     const isAdmin = await checkAdminEmail(email);
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setDate(trialEnd.getDate() + 14);
     const newUser: User = {
       uid: credential.user.uid,
       email,
       displayName: name,
       role: isAdmin ? "admin" : "user",
-      createdAt: new Date().toISOString(),
+      trialStartDate: now.toISOString(),
+      trialEndDate: trialEnd.toISOString(),
+      ...(fingerprintHash ? { fingerprintHash } : {}),
+      createdAt: now.toISOString(),
     };
     await setDoc(doc(db, "users", credential.user.uid), newUser);
     setUser(newUser);
@@ -195,9 +209,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {
+    const fbUser = firebaseUser || auth.currentUser;
+    if (!fbUser) throw new Error("Not authenticated");
+
+    // Update Firebase Auth profile
+    await updateProfile(fbUser, data);
+
+    // Update Firestore user doc
+    const updates: Record<string, string> = {};
+    if (data.displayName !== undefined) updates.displayName = data.displayName;
+    if (data.photoURL !== undefined) updates.photoURL = data.photoURL;
+    await setDoc(doc(db, "users", fbUser.uid), updates, { merge: true });
+
+    // Update local state
+    setUser((prev) => prev ? { ...prev, ...updates } : prev);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, firebaseUser, loading, signUp, signIn, signInWithGoogle, signInWithGoogleCredential, signOut, getIdToken }}
+      value={{ user, firebaseUser, loading, signUp, signIn, signInWithGoogle, signInWithGoogleCredential, signOut, getIdToken, updateUserProfile }}
     >
       {children}
     </AuthContext.Provider>

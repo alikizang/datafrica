@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { AFRICAN_COUNTRIES, DATASET_CATEGORIES } from "@/types";
 import Link from "next/link";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import { ref, uploadBytesResumable } from "firebase/storage";
 import { storage, auth as firebaseAuth } from "@/lib/firebase";
 
@@ -24,6 +25,81 @@ function formatFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+const ACCEPTED_FORMATS = ".csv,.json,.xlsx,.xls,.txt";
+const FORMAT_LABELS: Record<string, string> = {
+  csv: "CSV",
+  json: "JSON",
+  xlsx: "Excel (XLSX/XLS)",
+  txt: "Text (TXT)",
+};
+
+function detectFileFormat(filename: string): "csv" | "json" | "xlsx" | "txt" | null {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  if (ext === "csv") return "csv";
+  if (ext === "json") return "json";
+  if (ext === "xlsx" || ext === "xls") return "xlsx";
+  if (ext === "txt") return "txt";
+  return null;
+}
+
+async function parseFilePreview(
+  file: File,
+  format: "csv" | "json" | "xlsx" | "txt",
+  previewRowCount: number
+): Promise<{ columns: string[]; previewData: Record<string, string>[]; estimatedRecordCount: number }> {
+  if (format === "json") {
+    const text = await file.text();
+    let parsed = JSON.parse(text);
+    if (!Array.isArray(parsed)) {
+      const arrayKey = Object.keys(parsed).find((k) => Array.isArray(parsed[k]));
+      if (arrayKey) parsed = parsed[arrayKey];
+      else throw new Error("JSON file must contain an array of objects");
+    }
+    if (parsed.length === 0) throw new Error("JSON file is empty");
+    const columns = Object.keys(parsed[0]);
+    const previewData = parsed.slice(0, previewRowCount).map((row: Record<string, unknown>) => {
+      const out: Record<string, string> = {};
+      for (const col of columns) out[col] = String(row[col] ?? "");
+      return out;
+    });
+    return { columns, previewData, estimatedRecordCount: parsed.length };
+  }
+
+  if (format === "xlsx") {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
+    if (data.length === 0) throw new Error("Excel file is empty");
+    const columns = Object.keys(data[0]);
+    const previewData = data.slice(0, previewRowCount).map((row) => {
+      const out: Record<string, string> = {};
+      for (const col of columns) out[col] = String(row[col] ?? "");
+      return out;
+    });
+    return { columns, previewData, estimatedRecordCount: data.length };
+  }
+
+  // CSV or TXT — use PapaParse
+  const sliceSize = Math.min(file.size, 100 * 1024);
+  const slice = file.slice(0, sliceSize);
+  const sliceText = await slice.text();
+  const lastNewline = sliceText.lastIndexOf("\n");
+  const completeText = lastNewline > 0 ? sliceText.substring(0, lastNewline) : sliceText;
+  const csvParsed = Papa.parse(completeText, { header: true, skipEmptyLines: true });
+  const columns = csvParsed.meta.fields || [];
+  const allRows = csvParsed.data as Record<string, string>[];
+  const previewData = allRows.slice(0, previewRowCount);
+
+  const avgRowSize = completeText.length / Math.max(allRows.length, 1);
+  const estimatedRecordCount = file.size <= sliceSize
+    ? allRows.length
+    : Math.round(file.size / avgRowSize);
+
+  return { columns, previewData, estimatedRecordCount };
 }
 
 export default function UploadDatasetPage() {
@@ -45,6 +121,7 @@ export default function UploadDatasetPage() {
   const [previewRows, setPreviewRows] = useState("10");
   const [featured, setFeatured] = useState(false);
   const [allowDownload, setAllowDownload] = useState(true);
+  const [accessTier, setAccessTier] = useState<"standard" | "premium">("standard");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -57,7 +134,13 @@ export default function UploadDatasetPage() {
     const effectiveTitle = titles.en || Object.values(titles).find(v => v) || "";
 
     if (!file) {
-      toast.error("Please select a CSV file");
+      toast.error("Please select a data file");
+      return;
+    }
+
+    const fileFormat = detectFileFormat(file.name);
+    if (!fileFormat) {
+      toast.error("Unsupported file format. Use CSV, JSON, XLSX, XLS, or TXT.");
       return;
     }
 
@@ -77,27 +160,18 @@ export default function UploadDatasetPage() {
     setUploadPhase("parsing");
 
     try {
-      // Phase 1: Parse first portion of CSV for preview data
-      const sliceSize = Math.min(file.size, 100 * 1024);
-      const slice = file.slice(0, sliceSize);
-      const sliceText = await slice.text();
-      const lastNewline = sliceText.lastIndexOf("\n");
-      const completeText = lastNewline > 0 ? sliceText.substring(0, lastNewline) : sliceText;
-      const parsed = Papa.parse(completeText, { header: true, skipEmptyLines: true });
-      const columns = parsed.meta.fields || [];
-      const allPreviewRows = parsed.data as Record<string, string>[];
-      const previewData = allPreviewRows.slice(0, parseInt(previewRows));
-
-      // Estimate total record count
-      const avgRowSize = completeText.length / Math.max(allPreviewRows.length, 1);
-      const estimatedRecordCount = file.size <= sliceSize
-        ? allPreviewRows.length
-        : Math.round(file.size / avgRowSize);
+      // Phase 1: Parse file for preview data
+      const { columns, previewData, estimatedRecordCount } = await parseFilePreview(
+        file,
+        fileFormat,
+        parseInt(previewRows)
+      );
 
       // Phase 2: Upload file directly to Firebase Storage with progress
       setUploadPhase("uploading");
       const datasetId = crypto.randomUUID();
-      const storagePath = `uploads/${currentUser.uid}/${datasetId}/data.csv`;
+      const ext = file.name.split(".").pop()?.toLowerCase() || fileFormat;
+      const storagePath = `uploads/${currentUser.uid}/${datasetId}/data.${ext}`;
       const storageRef = ref(storage, storagePath);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -130,6 +204,7 @@ export default function UploadDatasetPage() {
         body: JSON.stringify({
           datasetId,
           storagePath,
+          fileFormat,
           title: effectiveTitle,
           titles,
           description: descriptions.en || Object.values(descriptions).find(v => v) || "",
@@ -141,6 +216,7 @@ export default function UploadDatasetPage() {
           previewRows: parseInt(previewRows),
           featured,
           allowDownload,
+          accessTier,
           columns,
           previewData,
           recordCount: estimatedRecordCount,
@@ -216,22 +292,29 @@ export default function UploadDatasetPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* CSV File */}
+          {/* Data File */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">{t("admin.csvFile")} *</label>
+            <label className="text-sm font-medium text-foreground">{t("admin.dataFile")} *</label>
             <Input
               type="file"
-              accept=".csv"
+              accept={ACCEPTED_FORMATS}
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               required
               className="bg-muted border-border text-foreground rounded-xl file:bg-card file:text-foreground file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3"
             />
             <p className="text-xs text-dim">
-              {t("admin.csvHelp")}
+              {t("admin.dataFileHelp")}
               {file && (
-                <span className="ml-2 font-medium text-foreground">
-                  ({formatFileSize(file.size)})
-                </span>
+                <>
+                  <span className="ml-2 font-medium text-foreground">
+                    ({formatFileSize(file.size)})
+                  </span>
+                  {detectFileFormat(file.name) && (
+                    <span className="ml-1 text-primary font-medium">
+                      — {FORMAT_LABELS[detectFileFormat(file.name)!]}
+                    </span>
+                  )}
+                </>
               )}
             </p>
           </div>
@@ -425,6 +508,29 @@ export default function UploadDatasetPage() {
                 />
               </button>
             </div>
+
+            <div className="h-px bg-border" />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">{t("admin.premiumDataset")}</p>
+                <p className="text-xs text-dim">
+                  {t("admin.premiumDesc")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAccessTier(accessTier === "premium" ? "standard" : "premium")}
+                className={`w-11 h-6 rounded-full transition-colors ${
+                  accessTier === "premium" ? "bg-violet-500" : "bg-card"
+                } relative`}
+              >
+                <span
+                  className={`block w-5 h-5 rounded-full bg-white transition-transform absolute top-0.5 left-0.5`}
+                  style={{ transform: accessTier === "premium" ? "translateX(20px)" : "translateX(0)" }}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Upload Progress */}
@@ -434,7 +540,7 @@ export default function UploadDatasetPage() {
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   <span className="font-medium text-foreground">
-                    {uploadPhase === "parsing" && t("admin.parsingCsv")}
+                    {uploadPhase === "parsing" && t("admin.parsingFile")}
                     {uploadPhase === "uploading" && t("admin.uploadingFile")}
                     {uploadPhase === "saving" && t("admin.savingMetadata")}
                   </span>
@@ -469,7 +575,7 @@ export default function UploadDatasetPage() {
             {uploading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {uploadPhase === "parsing" && t("admin.parsingCsv")}
+                {uploadPhase === "parsing" && t("admin.parsingFile")}
                 {uploadPhase === "uploading" && `${t("admin.uploadingFile")} (${uploadProgress}%)`}
                 {uploadPhase === "saving" && t("admin.savingMetadata")}
               </>
