@@ -381,7 +381,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl border border-border overflow-hidden">
+        <div className="glass-card rounded-xl border border-border overflow-visible">
           {loading ? (
             <div className="p-6 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -394,7 +394,7 @@ export default function AdminUsersPage() {
               <p className="text-muted-foreground">{t("admin.noUsers")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-visible">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
@@ -474,7 +474,7 @@ export default function AdminUsersPage() {
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                           {openDropdown === u.id && (
-                            <div className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-xl z-50 py-1">
+                            <div className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-xl z-[60] py-1 max-h-80 overflow-y-auto">
                               {/* Role toggle */}
                               <button
                                 onClick={() => { toggleRole(u.id, u.role); setOpenDropdown(null); }}

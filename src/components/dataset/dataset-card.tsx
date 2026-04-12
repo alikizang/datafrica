@@ -29,23 +29,23 @@ export function DatasetCard({ dataset }: DatasetCardProps) {
   return (
     <Link href={`/datasets/${dataset.id}`} className="group">
       <div className="glass-card rounded-xl p-6 h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
-        <div className="flex items-center gap-2 mb-4">
-          <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-medium">
+        <div className="flex items-center gap-2 mb-4 relative z-10">
+          <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-medium group-hover:bg-primary/20 group-hover:border-primary/30">
             {translatedCategory}
           </Badge>
           {dataset.featured && (
-            <Badge className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-medium">
+            <Badge className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-medium group-hover:bg-amber-500/20 group-hover:border-amber-500/30">
               {t("dataset.featured")}
             </Badge>
           )}
           {dataset.accessTier === "premium" && (
-            <Badge className="bg-violet-500/10 text-violet-500 border border-violet-500/20 text-xs font-medium gap-1">
+            <Badge className="bg-violet-500/10 text-violet-500 border border-violet-500/20 text-xs font-medium gap-1 group-hover:bg-violet-500/20 group-hover:border-violet-500/30">
               <Crown className="h-3 w-3" />
               {t("dataset.premium")}
             </Badge>
           )}
           {!dataset.allowDownload && (
-            <Badge className="bg-purple-500/10 text-purple-500 border border-purple-500/20 text-xs font-medium gap-1">
+            <Badge className="bg-purple-500/10 text-purple-500 border border-purple-500/20 text-xs font-medium gap-1 group-hover:bg-purple-500/20 group-hover:border-purple-500/30">
               <Eye className="h-3 w-3" />
               {t("dataset.viewOnly")}
             </Badge>

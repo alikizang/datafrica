@@ -25,6 +25,13 @@ export const metadata: Metadata = {
   title: "Datafrica - African Dataset Marketplace",
   description:
     "The premier marketplace for African datasets. Browse, preview, and purchase business data, leads, contacts, and more across the continent.",
+  icons: {
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
