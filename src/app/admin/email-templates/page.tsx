@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { toast } from "sonner";
@@ -334,7 +335,7 @@ export default function AdminEmailTemplatesPage() {
                 {showPreview ? (
                   <div
                     className="w-full min-h-[300px] border border-border rounded-lg bg-white p-4 text-sm"
-                    dangerouslySetInnerHTML={{ __html: editBody }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(editBody) }}
                   />
                 ) : (
                   <textarea

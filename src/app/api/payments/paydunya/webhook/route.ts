@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const invoice = data.invoice as Record<string, unknown> | undefined;
     const customData = data.custom_data as Record<string, unknown> | undefined;
 
-    // Verify the hash using SHA-512 of the master key
+    // Verify the hash using SHA-512 of the master key (mandatory)
     const settingsDoc = await adminDb.collection("settings").doc("payment").get();
     const settings = settingsDoc.exists ? settingsDoc.data() : null;
 
@@ -68,12 +68,20 @@ export async function POST(request: NextRequest) {
     const pdMasterKey = settings?.paydunya?.masterKey;
     const masterKey = isValidKey(pdMasterKey) ? pdMasterKey : (process.env.PAYDUNYA_MASTER_KEY || "");
 
-    if (masterKey && hash) {
-      const expectedHash = crypto.createHash("sha512").update(masterKey).digest("hex");
-      if (hash !== expectedHash) {
-        console.error("PayDunya webhook hash mismatch");
-        return NextResponse.json({ error: "Invalid hash" }, { status: 401 });
-      }
+    if (!masterKey) {
+      console.error("PayDunya master key not configured");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+    }
+
+    if (!hash) {
+      console.error("PayDunya webhook missing hash");
+      return NextResponse.json({ error: "Missing hash" }, { status: 401 });
+    }
+
+    const expectedHash = crypto.createHash("sha512").update(masterKey).digest("hex");
+    if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expectedHash))) {
+      console.error("PayDunya webhook hash mismatch");
+      return NextResponse.json({ error: "Invalid hash" }, { status: 401 });
     }
 
     if (status === "completed" && customData) {

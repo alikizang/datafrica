@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
 import Stripe from "stripe";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 async function getStripeClient(): Promise<Stripe | null> {
   const doc = await adminDb.collection("settings").doc("payment").get();
@@ -14,6 +15,16 @@ async function getStripeClient(): Promise<Stripe | null> {
 // POST /api/payments/stripe/create-checkout
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 checkout creations per minute per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = checkRateLimit(`stripe-checkout:${ip}`, { maxRequests: 5, windowSeconds: 60 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
+    }
+
     const { user, error } = await requireAuth(request);
     if (error) return error;
 

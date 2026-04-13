@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, requireAdmin } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // POST /api/analytics/track - Record a page view / heartbeat
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 60 requests per minute per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = checkRateLimit(`analytics:${ip}`, { maxRequests: 60, windowSeconds: 60 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
+    }
+
     const body = await request.json();
     const { page, sessionId, event } = body;
 
