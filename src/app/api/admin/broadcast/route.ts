@@ -10,17 +10,40 @@ export async function POST(request: NextRequest) {
     const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
-    const body = await request.json();
-    const { title, message, type, userIds, sendEmail } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!title || !message) {
-      return NextResponse.json({ error: "title and message required" }, { status: 400 });
+    const { title, message, type, userIds, sendEmail } = body as Record<string, unknown>;
+
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return NextResponse.json({ error: "title is required and must be a non-empty string" }, { status: 400 });
+    }
+
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return NextResponse.json({ error: "message is required and must be a non-empty string" }, { status: 400 });
+    }
+
+    const VALID_BROADCAST_TYPES = ["info", "warning", "error", "success"];
+    if (type !== undefined && (typeof type !== "string" || !VALID_BROADCAST_TYPES.includes(type))) {
+      return NextResponse.json({ error: `type must be one of: ${VALID_BROADCAST_TYPES.join(", ")}` }, { status: 400 });
+    }
+
+    if (userIds !== undefined && !Array.isArray(userIds)) {
+      return NextResponse.json({ error: "userIds must be an array of strings" }, { status: 400 });
+    }
+
+    if (userIds && Array.isArray(userIds) && userIds.some((id: unknown) => typeof id !== "string" || !id.trim())) {
+      return NextResponse.json({ error: "Each userId must be a non-empty string" }, { status: 400 });
     }
 
     let targetUsers: string[] = [];
 
     if (userIds && Array.isArray(userIds) && userIds.length > 0) {
-      targetUsers = userIds;
+      targetUsers = userIds as string[];
     } else {
       // Broadcast to all users
       const usersSnap = await adminDb.collection("users").get();
@@ -41,7 +64,7 @@ export async function POST(request: NextRequest) {
           userId,
           title,
           message,
-          type: type || "info",
+          type: (type as string) || "info",
           read: false,
           createdAt: new Date().toISOString(),
           createdBy: "admin-broadcast",
@@ -65,8 +88,8 @@ export async function POST(request: NextRequest) {
               if (userData.email) {
                 const sent = await sendTemplateEmail("broadcast", userData.email, {
                   name: userData.displayName || userData.email,
-                  title,
-                  message,
+                  title: title as string,
+                  message: message as string,
                 });
                 if (sent) emailsSent++;
               }
@@ -81,7 +104,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    logActivity({ action: "broadcast.sent", userId: adminUser?.uid, details: `"${title}" to ${totalSent} users${sendEmail ? ` (${emailsSent} emails)` : ""}` });
+    logActivity({ action: "broadcast.sent", userId: adminUser?.uid, details: `"${title as string}" to ${totalSent} users${sendEmail ? ` (${emailsSent} emails)` : ""}` });
 
     return NextResponse.json({ success: true, totalSent, emailsSent });
   } catch (error) {

@@ -53,18 +53,38 @@ export async function PUT(request: NextRequest) {
   if (error) return error;
 
   try {
-    const body = await request.json();
-    const { type, subject, bodyHtml, enabled } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!type || !VALID_TYPES.includes(type)) {
+    const { type, subject, bodyHtml, enabled } = body as Record<string, unknown>;
+
+    if (!type || typeof type !== "string" || !VALID_TYPES.includes(type as EmailTemplateType)) {
       return NextResponse.json({ error: "Invalid template type" }, { status: 400 });
     }
 
+    if (subject !== undefined && typeof subject !== "string") {
+      return NextResponse.json({ error: "subject must be a string" }, { status: 400 });
+    }
+
+    if (bodyHtml !== undefined && typeof bodyHtml !== "string") {
+      return NextResponse.json({ error: "bodyHtml must be a string" }, { status: 400 });
+    }
+
+    if (enabled !== undefined && typeof enabled !== "boolean") {
+      return NextResponse.json({ error: "enabled must be a boolean" }, { status: 400 });
+    }
+
+    const templateType = type as EmailTemplateType;
+
     await adminDb.collection("email_templates").doc(type).set(
       {
-        subject: subject || DEFAULT_TEMPLATES[type as EmailTemplateType].subject,
-        bodyHtml: bodyHtml || DEFAULT_TEMPLATES[type as EmailTemplateType].bodyHtml,
-        enabled: enabled !== false,
+        subject: subject || DEFAULT_TEMPLATES[templateType].subject,
+        bodyHtml: bodyHtml || DEFAULT_TEMPLATES[templateType].bodyHtml,
+        enabled: enabled ?? true,
         updatedAt: new Date().toISOString(),
         updatedBy: adminUser?.uid || "unknown",
       },
@@ -92,10 +112,16 @@ export async function POST(request: NextRequest) {
   if (error) return error;
 
   try {
-    const body = await request.json();
-    const { type } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!type || !VALID_TYPES.includes(type)) {
+    const { type } = body as Record<string, unknown>;
+
+    if (!type || typeof type !== "string" || !VALID_TYPES.includes(type as EmailTemplateType)) {
       return NextResponse.json({ error: "Invalid template type" }, { status: 400 });
     }
 
@@ -144,10 +170,16 @@ export async function DELETE(request: NextRequest) {
   if (error) return error;
 
   try {
-    const body = await request.json();
-    const { type } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!type || !VALID_TYPES.includes(type)) {
+    const { type } = body as Record<string, unknown>;
+
+    if (!type || typeof type !== "string" || !VALID_TYPES.includes(type as EmailTemplateType)) {
       return NextResponse.json({ error: "Invalid template type" }, { status: 400 });
     }
 

@@ -9,17 +9,35 @@ export async function POST(request: NextRequest) {
     const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
-    const body = await request.json();
-    const { userIds, subject, body: msgBody } = body;
+    let parsed: unknown;
+    try {
+      parsed = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
-    if (!msgBody || !msgBody.trim()) {
-      return NextResponse.json({ error: "Message body required" }, { status: 400 });
+    const { userIds, subject, body: msgBody } = parsed as Record<string, unknown>;
+
+    if (!msgBody || typeof msgBody !== "string" || !msgBody.trim()) {
+      return NextResponse.json({ error: "Message body is required and must be a non-empty string" }, { status: 400 });
+    }
+
+    if (subject !== undefined && typeof subject !== "string") {
+      return NextResponse.json({ error: "subject must be a string" }, { status: 400 });
+    }
+
+    if (userIds !== undefined && !Array.isArray(userIds)) {
+      return NextResponse.json({ error: "userIds must be an array of strings" }, { status: 400 });
+    }
+
+    if (userIds && Array.isArray(userIds) && userIds.some((id: unknown) => typeof id !== "string" || !id.trim())) {
+      return NextResponse.json({ error: "Each userId must be a non-empty string" }, { status: 400 });
     }
 
     let targets: string[] = [];
 
     if (userIds && Array.isArray(userIds) && userIds.length > 0) {
-      targets = userIds;
+      targets = userIds as string[];
     } else {
       // Send to all users
       const usersSnap = await adminDb.collection("users").get();
