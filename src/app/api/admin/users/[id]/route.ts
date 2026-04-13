@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
+import { logActivity } from "@/lib/activity-log";
 
 // POST /api/admin/users/[id] - Perform actions on a specific user
 // Actions: send-alert, password-reset
@@ -44,11 +45,12 @@ export async function POST(
           createdBy: adminUser?.uid || "admin",
         });
 
+        logActivity({ action: "user.alert_sent", userId: adminUser?.uid, targetId: userId, details: title });
+
         return NextResponse.json({ success: true, alertId: alertRef.id });
       }
 
       case "password-reset": {
-        // Get user email first
         const userRecord = await adminAuth.getUser(userId);
         if (!userRecord.email) {
           return NextResponse.json(
@@ -60,6 +62,8 @@ export async function POST(
         const resetLink = await adminAuth.generatePasswordResetLink(
           userRecord.email
         );
+
+        logActivity({ action: "user.password_reset", userId: adminUser?.uid, targetId: userId, details: userRecord.email });
 
         return NextResponse.json({ success: true, resetLink });
       }

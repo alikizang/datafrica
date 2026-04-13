@@ -157,6 +157,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     await setDoc(doc(db, "users", credential.user.uid), newUser);
     setUser(newUser);
+
+    // Send welcome email (fire-and-forget)
+    try {
+      const token = await credential.user.getIdToken();
+      fetch("/api/auth/welcome-email", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    } catch { /* non-blocking */ }
+
     return newUser;
   };
 

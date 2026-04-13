@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { sendTemplateEmail } from "@/lib/email";
 import { v4 as uuidv4 } from "uuid";
 import Stripe from "stripe";
 
@@ -102,6 +103,25 @@ export async function POST(request: NextRequest) {
     const batch = adminDb.batch();
     pendingSnap.docs.forEach((doc) => batch.delete(doc.ref));
     if (!pendingSnap.empty) await batch.commit();
+
+    // Send purchase confirmation email
+    try {
+      const userDoc = await adminDb.collection("users").doc(user!.uid).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data()!;
+        const cur = dataset.currency || "XOF";
+        const formatted = (cur === "XOF" || cur === "CFA")
+          ? `${dataset.price.toLocaleString()} CFA`
+          : `$${dataset.price.toLocaleString()}`;
+        sendTemplateEmail("purchase_confirmation", userData.email, {
+          name: userData.displayName || userData.email,
+          datasetTitle: dataset.title,
+          amount: formatted,
+          currency: cur,
+          date: new Date().toLocaleDateString(),
+        }).catch(() => {});
+      }
+    } catch { /* non-blocking */ }
 
     return NextResponse.json({
       success: true,
@@ -325,6 +345,34 @@ async function handleSubscriptionVerify(
   await adminDb.collection("users").doc(user.uid).update({
     activePlanId: planId,
   });
+
+  // Send subscription email
+  try {
+    const userDoc = await adminDb.collection("users").doc(user.uid).get();
+    if (userDoc.exists) {
+      const userData = userDoc.data()!;
+      const cur = paymentRecord.currency || "XOF";
+      const formatted = (cur === "XOF" || cur === "CFA")
+        ? `${amount.toLocaleString()} CFA`
+        : `$${amount.toLocaleString()}`;
+      const isRenewal = !existingSub.empty;
+      sendTemplateEmail(
+        isRenewal ? "subscription_renewed" : "subscription_created",
+        userData.email,
+        {
+          name: userData.displayName || userData.email,
+          planName: plan.name || "Subscription",
+          billingCycle: cycle,
+          startDate: new Date(nowISO).toLocaleDateString(),
+          endDate: new Date(endISO).toLocaleDateString(),
+          renewalDate: new Date(nowISO).toLocaleDateString(),
+          nextEndDate: new Date(endISO).toLocaleDateString(),
+          amount: formatted,
+          currency: cur,
+        }
+      ).catch(() => {});
+    }
+  } catch { /* non-blocking */ }
 
   return NextResponse.json({
     success: true,

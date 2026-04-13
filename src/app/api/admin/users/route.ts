@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { getCached } from "@/lib/cache";
+import { logActivity } from "@/lib/activity-log";
+import { sendTemplateEmail } from "@/lib/email";
 
 // GET /api/admin/users - List users with pagination
 export async function GET(request: NextRequest) {
@@ -160,7 +162,7 @@ export async function GET(request: NextRequest) {
 // PATCH /api/admin/users - Update user role, status, ban, or suspend
 export async function PATCH(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const body = await request.json();
@@ -170,28 +172,51 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "userId required" }, { status: 400 });
     }
 
+    const adminId = adminUser?.uid || "admin";
+
     // Update role
     if (role && ["user", "admin"].includes(role)) {
       await adminDb.collection("users").doc(userId).set({ role }, { merge: true });
+      logActivity({ action: "user.role_changed", userId: adminId, targetId: userId, details: `Role changed to ${role}` });
     }
 
     // Enable/disable user in Firebase Auth
     if (typeof disabled === "boolean") {
       await adminAuth.updateUser(userId, { disabled });
-      // If banning, store reason in Firestore
       if (disabled && bannedReason) {
         await adminDb.collection("users").doc(userId).set(
           { bannedReason, bannedAt: new Date().toISOString() },
           { merge: true }
         );
+        logActivity({ action: "user.banned", userId: adminId, targetId: userId, details: bannedReason });
+        try {
+          const ud = await adminDb.collection("users").doc(userId).get();
+          if (ud.exists && ud.data()?.email) {
+            sendTemplateEmail("account_disabled", ud.data()!.email, {
+              name: ud.data()!.displayName || ud.data()!.email,
+              reason: bannedReason,
+            }).catch(() => {});
+          }
+        } catch { /* non-blocking */ }
+      } else if (disabled) {
+        logActivity({ action: "user.disabled", userId: adminId, targetId: userId });
+        try {
+          const ud = await adminDb.collection("users").doc(userId).get();
+          if (ud.exists && ud.data()?.email) {
+            sendTemplateEmail("account_disabled", ud.data()!.email, {
+              name: ud.data()!.displayName || ud.data()!.email,
+              reason: "Your account has been disabled by an administrator.",
+            }).catch(() => {});
+          }
+        } catch { /* non-blocking */ }
       }
-      // If unbanning, clear ban fields
       if (!disabled) {
         await adminDb.collection("users").doc(userId).update({
           bannedReason: "",
           bannedAt: "",
           suspendedUntil: "",
         });
+        logActivity({ action: "user.enabled", userId: adminId, targetId: userId });
       }
     }
 
@@ -202,6 +227,7 @@ export async function PATCH(request: NextRequest) {
         { suspendedUntil, suspendedAt: new Date().toISOString() },
         { merge: true }
       );
+      logActivity({ action: "user.suspended", userId: adminId, targetId: userId, details: `Until ${suspendedUntil}` });
     }
 
     return NextResponse.json({ success: true });
@@ -217,7 +243,7 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/admin/users - Delete user and cleanup all related data
 export async function DELETE(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -226,6 +252,9 @@ export async function DELETE(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "userId required" }, { status: 400 });
     }
+
+    let userEmail = userId;
+    try { const u = await adminAuth.getUser(userId); userEmail = u.email || userId; } catch { /* ok */ }
 
     // 1. Delete Firebase Auth user
     try {
@@ -271,6 +300,8 @@ export async function DELETE(request: NextRequest) {
       alertsSnap.docs.forEach((doc) => batch.delete(doc.ref));
       if (alertsSnap.docs.length > 0) await batch.commit();
     } catch { /* best effort */ }
+
+    logActivity({ action: "user.deleted", userId: adminUser?.uid || "admin", targetId: userId, details: `Deleted user ${userEmail}` });
 
     return NextResponse.json({ success: true });
   } catch (error) {

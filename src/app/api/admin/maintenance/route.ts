@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { logActivity } from "@/lib/activity-log";
 
 const SETTINGS_DOC = "settings/maintenance";
 
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/maintenance - Toggle maintenance mode
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const body = await request.json();
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest) {
       },
       { merge: true }
     );
+
+    logActivity({ action: "maintenance.toggled", userId: adminUser?.uid, details: enabled ? "Enabled" : "Disabled" });
 
     return NextResponse.json({ success: true, enabled: !!enabled });
   } catch (error) {

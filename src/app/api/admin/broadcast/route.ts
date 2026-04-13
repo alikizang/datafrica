@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { logActivity } from "@/lib/activity-log";
+import { sendTemplateEmail } from "@/lib/email";
 
 // POST /api/admin/broadcast - Send an alert to all users or specific users
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const body = await request.json();
-    const { title, message, type, userIds } = body;
+    const { title, message, type, userIds, sendEmail } = body;
 
     if (!title || !message) {
       return NextResponse.json({ error: "title and message required" }, { status: 400 });
@@ -50,7 +52,38 @@ export async function POST(request: NextRequest) {
       totalSent += chunk.length;
     }
 
-    return NextResponse.json({ success: true, totalSent });
+    // Send emails if requested
+    let emailsSent = 0;
+    if (sendEmail) {
+      for (let i = 0; i < targetUsers.length; i += 50) {
+        const chunk = targetUsers.slice(i, i + 50);
+        const emailPromises = chunk.map(async (userId) => {
+          try {
+            const userDoc = await adminDb.collection("users").doc(userId).get();
+            if (userDoc.exists) {
+              const userData = userDoc.data()!;
+              if (userData.email) {
+                const sent = await sendTemplateEmail("broadcast", userData.email, {
+                  name: userData.displayName || userData.email,
+                  title,
+                  message,
+                });
+                if (sent) emailsSent++;
+              }
+            }
+          } catch { /* skip failed emails */ }
+        });
+        await Promise.all(emailPromises);
+        // Small delay between batches to respect Gmail rate limits
+        if (i + 50 < targetUsers.length) {
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      }
+    }
+
+    logActivity({ action: "broadcast.sent", userId: adminUser?.uid, details: `"${title}" to ${totalSent} users${sendEmail ? ` (${emailsSent} emails)` : ""}` });
+
+    return NextResponse.json({ success: true, totalSent, emailsSent });
   } catch (error) {
     console.error("Error broadcasting:", error);
     return NextResponse.json({ error: "Broadcast failed" }, { status: 500 });

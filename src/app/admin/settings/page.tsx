@@ -32,7 +32,7 @@ interface ActivityEntry {
   action: string;
   userId?: string;
   details?: string;
-  timestamp: string;
+  createdAt: string;
 }
 
 export default function AdminSettingsPage() {
@@ -57,6 +57,7 @@ export default function AdminSettingsPage() {
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [broadcastType, setBroadcastType] = useState<"info" | "warning" | "error">("info");
   const [broadcastLoading, setBroadcastLoading] = useState(false);
+  const [broadcastSendEmail, setBroadcastSendEmail] = useState(false);
 
   const getToken = useCallback(async () => {
     const token = await getIdToken();
@@ -168,7 +169,7 @@ export default function AdminSettingsPage() {
       const res = await fetch("/api/admin/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title: broadcastTitle, message: broadcastMessage, type: broadcastType }),
+        body: JSON.stringify({ title: broadcastTitle, message: broadcastMessage, type: broadcastType, sendEmail: broadcastSendEmail }),
       });
       if (res.ok) {
         toast.success(t("admin.broadcastSent"));
@@ -321,6 +322,16 @@ export default function AdminSettingsPage() {
                   className="w-full h-24 px-3 py-2 rounded-xl bg-muted border border-border text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <button
+                  type="button"
+                  onClick={() => setBroadcastSendEmail(!broadcastSendEmail)}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${broadcastSendEmail ? "bg-primary" : "bg-muted"}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 h-4 w-4 bg-white rounded-full transition-transform shadow ${broadcastSendEmail ? "translate-x-4" : ""}`} />
+                </button>
+                <span className="text-sm text-muted-foreground">{t("admin.alsoSendEmail")}</span>
+              </label>
               <Button
                 onClick={sendBroadcast}
                 disabled={broadcastLoading || !broadcastTitle || !broadcastMessage}
@@ -362,7 +373,7 @@ export default function AdminSettingsPage() {
                       {a.details && <p className="text-xs text-muted-foreground truncate">{a.details}</p>}
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0">
-                      {new Date(a.timestamp).toLocaleString()}
+                      {new Date(a.createdAt).toLocaleString()}
                     </span>
                   </div>
                 ))}

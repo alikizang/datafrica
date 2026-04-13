@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
-import { adminDb } from "@/lib/firebase-admin";
+import { getRecentActivity } from "@/lib/activity-log";
 
 // GET /api/admin/activity-logs - Fetch recent activity logs
 export async function GET(request: NextRequest) {
@@ -11,16 +11,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 200);
 
-    const snapshot = await adminDb
-      .collection("activity_logs")
-      .orderBy("timestamp", "desc")
-      .limit(limit)
-      .get();
-
-    const logs = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const logs = await getRecentActivity(limit);
 
     return NextResponse.json({ logs });
   } catch (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +18,9 @@ import {
   Calendar,
   MapPin,
   CreditCard,
+  Eye,
+  Globe,
+  Wifi,
 } from "lucide-react";
 
 interface Analytics {
@@ -100,15 +103,17 @@ function BarChart({
   );
 }
 
-// Simple mini bar chart for monthly data
+// Simple mini bar chart for monthly/daily data
 function MiniBarChart({
   data,
   valueKey,
   color,
+  labelKey = "month",
 }: {
   data: Array<Record<string, unknown>>;
   valueKey: string;
   color: string;
+  labelKey?: string;
 }) {
   const max = Math.max(...data.map((d) => (d[valueKey] as number) || 0), 1);
   return (
@@ -116,18 +121,18 @@ function MiniBarChart({
       {data.map((item, i) => {
         const value = (item[valueKey] as number) || 0;
         const pct = Math.max((value / max) * 100, 2);
-        const month = (item.month as string) || "";
-        const shortMonth = month.split("-")[1] || "";
+        const rawLabel = (item[labelKey] as string) || "";
+        const shortLabel = rawLabel.split("-").slice(1).join("/");
         return (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
             <div className="w-full relative flex-1 flex items-end">
               <div
                 className="w-full rounded-t-sm transition-all duration-500"
                 style={{ height: `${pct}%`, backgroundColor: color }}
-                title={`${value.toLocaleString()}`}
+                title={`${rawLabel}: ${value.toLocaleString()}`}
               />
             </div>
-            <span className="text-[10px] text-muted-foreground">{shortMonth}</span>
+            <span className="text-[10px] text-muted-foreground">{shortLabel}</span>
           </div>
         );
       })}
@@ -140,6 +145,37 @@ export default function AdminAnalyticsPage() {
   const { t } = useLanguage();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Visitor analytics
+  const [visitorData, setVisitorData] = useState<{
+    activeNow: number;
+    sessions: Array<{ id: string; userId?: string; userEmail?: string; page: string; lastSeen: string }>;
+    totalViews: number;
+    totalUnique: number;
+    daily: Array<{ date: string; views: number; uniqueVisitors: number }>;
+  } | null>(null);
+  const [visitorDays, setVisitorDays] = useState(30);
+
+  const fetchVisitorData = useCallback(async () => {
+    if (!user || user.role !== "admin") return;
+    const token = await getIdToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/analytics/track?days=${visitorDays}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setVisitorData({
+          activeNow: data.realtime?.activeNow || 0,
+          sessions: data.realtime?.sessions || [],
+          totalViews: data.period?.totalViews || 0,
+          totalUnique: data.period?.totalUnique || 0,
+          daily: data.period?.daily || [],
+        });
+      }
+    } catch { /* silent */ }
+  }, [user, getIdToken, visitorDays]);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -164,6 +200,13 @@ export default function AdminAnalyticsPage() {
 
     fetchAnalytics();
   }, [user, getIdToken]);
+
+  // Fetch visitor data + auto-refresh every 30s
+  useEffect(() => {
+    fetchVisitorData();
+    const interval = setInterval(fetchVisitorData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchVisitorData]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -239,6 +282,133 @@ export default function AdminAnalyticsPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Real-Time Visitor Analytics */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-cyan-400" />
+                  {t("admin.visitorAnalytics")}
+                </h2>
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                  {[7, 30, 90].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setVisitorDays(d)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                        visitorDays === d
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {d} {t("admin.days")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Visitor stat cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="glass-card rounded-xl border border-border p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center relative">
+                      <Wifi className="h-5 w-5 text-cyan-400" />
+                      <span className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-card animate-pulse" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{visitorData?.activeNow ?? 0}</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.activeNow")}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="glass-card rounded-xl border border-border p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Eye className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{(visitorData?.totalViews ?? 0).toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.totalPageViews")} ({visitorDays}j)</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="glass-card rounded-xl border border-border p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-violet-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{(visitorData?.totalUnique ?? 0).toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">{t("admin.uniqueVisitors")} ({visitorDays}j)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Daily page views chart */}
+              {visitorData && visitorData.daily.length > 0 && (
+                <div className="glass-card rounded-xl border border-border overflow-hidden">
+                  <div className="p-6 border-b border-border">
+                    <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                      <Eye className="h-4 w-4 text-blue-400" />
+                      {t("admin.dailyPageViews")}
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    <MiniBarChart
+                      data={visitorData.daily as unknown as Array<Record<string, unknown>>}
+                      valueKey="views"
+                      color="#06b6d4"
+                      labelKey="date"
+                    />
+                    <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{visitorData.daily[0]?.date}</span>
+                      <span>{visitorData.daily[visitorData.daily.length - 1]?.date}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Connected users list */}
+              {visitorData && visitorData.sessions.length > 0 && (
+                <div className="glass-card rounded-xl border border-border overflow-hidden">
+                  <div className="p-6 border-b border-border">
+                    <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                      <Wifi className="h-4 w-4 text-green-400" />
+                      {t("admin.connectedUsers")}
+                      <Badge className="bg-green-500/10 text-green-500 border-green-500/20 text-xs ml-auto">
+                        {visitorData.sessions.length} {t("admin.online")}
+                      </Badge>
+                    </h3>
+                  </div>
+                  <div className="p-4 max-h-64 overflow-y-auto">
+                    <div className="space-y-2">
+                      {visitorData.sessions.map((session) => (
+                        <div
+                          key={session.id}
+                          className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="h-2 w-2 bg-green-500 rounded-full" />
+                            <span className="text-sm font-medium text-foreground">
+                              {session.userEmail || t("admin.anonymousVisitor")}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                              {session.page}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(session.lastSeen).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Monthly Revenue & User Growth Charts */}

@@ -8,6 +8,8 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { AntiScrape } from "@/components/anti-scrape";
 import { GoogleOneTap } from "@/components/google-one-tap";
+import { PageTracker } from "@/components/analytics/page-tracker";
+import { MaintenanceGuard } from "@/components/maintenance-guard";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -50,12 +52,15 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               <NotificationsProvider>
+              <MaintenanceGuard>
               <AntiScrape />
               <GoogleOneTap />
+              <PageTracker />
               <Navbar />
               <main className="flex-1">{children}</main>
               <Footer />
               <Toaster />
+              </MaintenanceGuard>
               </NotificationsProvider>
             </AuthProvider>
           </LanguageProvider>

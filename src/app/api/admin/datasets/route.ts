@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb, adminStorage } from "@/lib/firebase-admin";
+import { logActivity } from "@/lib/activity-log";
 
 // GET /api/admin/datasets - List all datasets
 export async function GET(request: NextRequest) {
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
 // PATCH /api/admin/datasets - Update dataset metadata
 export async function PATCH(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const body = await request.json();
@@ -88,6 +89,11 @@ export async function PATCH(request: NextRequest) {
 
     await adminDb.collection("datasets").doc(datasetId).update(allowed);
 
+    const action = allowed.featured !== undefined
+      ? (allowed.featured ? "dataset.featured" as const : "dataset.unfeatured" as const)
+      : "dataset.updated" as const;
+    logActivity({ action, userId: adminUser?.uid, targetId: datasetId, details: Object.keys(allowed).join(", ") });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating dataset:", error);
@@ -101,7 +107,7 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/admin/datasets - Delete a dataset
 export async function DELETE(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -138,6 +144,8 @@ export async function DELETE(request: NextRequest) {
 
     // Delete the Firestore document
     await docRef.delete();
+
+    logActivity({ action: "dataset.deleted", userId: adminUser?.uid, targetId: datasetId!, details: (data?.title as string) || datasetId! });
 
     return NextResponse.json({ success: true });
   } catch (error) {

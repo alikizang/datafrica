@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { sendTemplateEmail } from "@/lib/email";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 
@@ -152,6 +153,24 @@ async function handlePurchaseWebhook(
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       used: false,
     });
+
+    // Send purchase confirmation email
+    try {
+      const userDoc = await adminDb.collection("users").doc(userId).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data()!;
+        const formatted = (purchaseCurrency === "XOF" || purchaseCurrency === "CFA")
+          ? `${(purchaseAmount || 0).toLocaleString()} CFA`
+          : `$${(purchaseAmount || 0).toLocaleString()}`;
+        sendTemplateEmail("purchase_confirmation", userData.email, {
+          name: userData.displayName || userData.email,
+          datasetTitle: title || "Dataset",
+          amount: formatted,
+          currency: purchaseCurrency || "XOF",
+          date: new Date().toLocaleDateString(),
+        }).catch(() => {});
+      }
+    } catch { /* non-blocking */ }
   }
 }
 
@@ -280,4 +299,31 @@ async function handleSubscriptionWebhook(
       activePlanId: planId,
     });
   }
+
+  // Send subscription email
+  try {
+    const userDoc = await adminDb.collection("users").doc(userId).get();
+    if (userDoc.exists) {
+      const userData = userDoc.data()!;
+      const formatted = (currency === "XOF" || currency === "CFA")
+        ? `${(amount || 0).toLocaleString()} CFA`
+        : `$${(amount || 0).toLocaleString()}`;
+      const isRenewal = !!subscriptionId;
+      sendTemplateEmail(
+        isRenewal ? "subscription_renewed" : "subscription_created",
+        userData.email,
+        {
+          name: userData.displayName || userData.email,
+          planName: planName || "Subscription",
+          billingCycle: billingCycle,
+          startDate: new Date(nowISO).toLocaleDateString(),
+          endDate: new Date(endISO).toLocaleDateString(),
+          renewalDate: new Date(nowISO).toLocaleDateString(),
+          nextEndDate: new Date(endISO).toLocaleDateString(),
+          amount: formatted,
+          currency,
+        }
+      ).catch(() => {});
+    }
+  } catch { /* non-blocking */ }
 }

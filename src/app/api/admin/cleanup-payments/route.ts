@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { logActivity } from "@/lib/activity-log";
 
 // POST /api/admin/cleanup-payments - Delete expired pending payments
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const now = new Date().toISOString();
@@ -23,6 +24,8 @@ export async function POST(request: NextRequest) {
     const batch = adminDb.batch();
     expiredSnap.docs.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
+
+    logActivity({ action: "cleanup.run", userId: adminUser?.uid, details: `Deleted ${expiredSnap.size} stale payments` });
 
     return NextResponse.json({
       success: true,

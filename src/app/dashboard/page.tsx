@@ -32,6 +32,7 @@ import {
   Info,
   AlertTriangle,
   AlertCircle,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Purchase, Alert } from "@/types";
@@ -336,6 +337,17 @@ function DashboardContent() {
             ))}
         </div>
       )}
+
+      {/* Quick actions */}
+      <div className="flex items-center gap-3 mb-6">
+        <Link
+          href="/messages"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+        >
+          <MessageSquare className="h-4 w-4 text-primary" />
+          {t("messages.title")}
+        </Link>
+      </div>
 
       <Tabs defaultValue={defaultTab}>
         <TabsList className="bg-card border border-border">

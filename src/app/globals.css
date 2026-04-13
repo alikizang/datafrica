@@ -144,8 +144,8 @@ body {
 }
 
 .glass-card:hover {
-  background: color-mix(in srgb, var(--accent) 50%, var(--surface));
   border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  box-shadow: 0 4px 24px rgba(61, 126, 255, 0.06);
 }
 
 /* Gradient accent border on hover */

@@ -16,6 +16,8 @@ import {
   FolderOpen,
   Crown,
   Settings,
+  MessageSquare,
+  Mail,
 } from "lucide-react";
 
 interface Analytics {
@@ -144,6 +146,15 @@ export default function AdminPage() {
             <p className="text-sm text-muted-foreground">{t("admin.managePlans")}</p>
           </div>
         </Link>
+        <Link href="/admin/messages" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+            <MessageSquare className="h-5 w-5 text-indigo-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{t("messages.adminTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("messages.adminSubtitle")}</p>
+          </div>
+        </Link>
         <Link href="/admin/settings" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
           <div className="h-10 w-10 rounded-xl bg-slate-500/10 flex items-center justify-center">
             <Settings className="h-5 w-5 text-slate-400" />
@@ -151,6 +162,15 @@ export default function AdminPage() {
           <div>
             <p className="font-semibold text-foreground">{t("admin.settings")}</p>
             <p className="text-sm text-muted-foreground">{t("admin.settingsDesc")}</p>
+          </div>
+        </Link>
+        <Link href="/admin/email-templates" className="glass-card rounded-xl p-5 flex items-center gap-4 hover:-translate-y-0.5 transition-all">
+          <div className="h-10 w-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+            <Mail className="h-5 w-5 text-orange-400" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{t("admin.emailTemplates")}</p>
+            <p className="text-sm text-muted-foreground">{t("admin.emailTemplatesDesc")}</p>
           </div>
         </Link>
       </div>

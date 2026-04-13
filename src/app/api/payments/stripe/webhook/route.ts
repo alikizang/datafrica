@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { sendTemplateEmail } from "@/lib/email";
 import { v4 as uuidv4 } from "uuid";
 import Stripe from "stripe";
 
@@ -101,6 +102,24 @@ async function handleDatasetPayment(
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     used: false,
   });
+
+  // Send purchase confirmation email
+  try {
+    const userDoc = await adminDb.collection("users").doc(userId).get();
+    if (userDoc.exists) {
+      const userData = userDoc.data()!;
+      const amt = (session.amount_total || 0) / 100;
+      const cur = (session.currency || "xof").toUpperCase();
+      const formatted = (cur === "XOF" || cur === "CFA") ? `${amt.toLocaleString()} CFA` : `$${amt.toLocaleString()}`;
+      sendTemplateEmail("purchase_confirmation", userData.email, {
+        name: userData.displayName || userData.email,
+        datasetTitle: dataset?.title || "Dataset",
+        amount: formatted,
+        currency: cur,
+        date: new Date().toLocaleDateString(),
+      }).catch(() => {});
+    }
+  } catch { /* non-blocking */ }
 }
 
 async function handleSubscriptionPayment(
@@ -193,4 +212,31 @@ async function handleSubscriptionPayment(
   await adminDb.collection("users").doc(userId).update({
     activePlanId: planId,
   });
+
+  // Send subscription email
+  try {
+    const userDoc = await adminDb.collection("users").doc(userId).get();
+    if (userDoc.exists) {
+      const userData = userDoc.data()!;
+      const amt = paymentRecord.amount;
+      const cur = paymentRecord.currency;
+      const formatted = (cur === "XOF" || cur === "CFA") ? `${amt.toLocaleString()} CFA` : `$${amt.toLocaleString()}`;
+      const isRenewal = !existingSub.empty;
+      sendTemplateEmail(
+        isRenewal ? "subscription_renewed" : "subscription_created",
+        userData.email,
+        {
+          name: userData.displayName || userData.email,
+          planName: plan.name || "Subscription",
+          billingCycle: cycle,
+          startDate: new Date(nowISO).toLocaleDateString(),
+          endDate: new Date(endISO).toLocaleDateString(),
+          renewalDate: new Date(nowISO).toLocaleDateString(),
+          nextEndDate: new Date(endISO).toLocaleDateString(),
+          amount: formatted,
+          currency: cur,
+        }
+      ).catch(() => {});
+    }
+  } catch { /* non-blocking */ }
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { logActivity } from "@/lib/activity-log";
 
-// POST /api/admin/backup - Trigger a manual Firestore backup (exports collections to a JSON snapshot in Firestore)
+// POST /api/admin/backup - Trigger a manual Firestore backup
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await requireAdmin(request);
+    const { error, user: adminUser } = await requireAdmin(request);
     if (error) return error;
 
     const collections = ["users", "datasets", "purchases", "subscriptions", "alerts", "settings"];
@@ -32,10 +33,14 @@ export async function POST(request: NextRequest) {
       status: "completed",
     });
 
+    const totalDocs = Object.values(snapshot).reduce((sum, docs) => sum + docs.length, 0);
+
+    logActivity({ action: "backup.created", userId: adminUser?.uid, details: `${totalDocs} documents` });
+
     return NextResponse.json({
       success: true,
       backupId: backupRef.id,
-      totalDocuments: Object.values(snapshot).reduce((sum, docs) => sum + docs.length, 0),
+      totalDocuments: totalDocs,
       collections: Object.fromEntries(
         Object.entries(snapshot).map(([k, v]) => [k, v.length])
       ),

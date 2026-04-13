@@ -70,6 +70,7 @@ export default function AdminUsersPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<"info" | "warning" | "error">("info");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   const fetchUsers = async () => {
     if (!user || user.role !== "admin") return;
@@ -381,7 +382,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl border border-border overflow-visible">
+        <div className="glass-card rounded-xl border border-border overflow-hidden">
           {loading ? (
             <div className="p-6 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -394,7 +395,7 @@ export default function AdminUsersPage() {
               <p className="text-muted-foreground">{t("admin.noUsers")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto overflow-y-visible">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent">
@@ -468,73 +469,19 @@ export default function AdminUsersPage() {
                             size="sm"
                             variant="outline"
                             className="border-border text-muted-foreground hover:bg-muted hover:text-foreground h-8 w-8 p-0"
-                            onClick={() => setOpenDropdown(openDropdown === u.id ? null : u.id)}
+                            onClick={(e) => {
+                              if (openDropdown === u.id) {
+                                setOpenDropdown(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                                setOpenDropdown(u.id);
+                              }
+                            }}
                             disabled={u.id === user?.uid}
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                          {openDropdown === u.id && (
-                            <div className="absolute right-0 top-full mt-1 w-52 bg-card border border-border rounded-xl shadow-xl z-[60] py-1 max-h-80 overflow-y-auto">
-                              {/* Role toggle */}
-                              <button
-                                onClick={() => { toggleRole(u.id, u.role); setOpenDropdown(null); }}
-                                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
-                              >
-                                {u.role === "admin" ? <ShieldAlert className="h-4 w-4 text-amber-400" /> : <Shield className="h-4 w-4 text-primary" />}
-                                {u.role === "admin" ? t("admin.revokeAdmin") : t("admin.makeAdmin")}
-                              </button>
-                              {/* Enable/Disable toggle */}
-                              <button
-                                onClick={() => { toggleDisabled(u.id, u.disabled); setOpenDropdown(null); }}
-                                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
-                              >
-                                {u.disabled ? <CheckCircle className="h-4 w-4 text-emerald-400" /> : <Ban className="h-4 w-4 text-red-400" />}
-                                {u.disabled ? t("admin.enable") : t("admin.disable")}
-                              </button>
-                              <div className="border-t border-border my-1" />
-                              {/* Ban */}
-                              <button
-                                onClick={() => openModal("ban", u)}
-                                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
-                              >
-                                <Ban className="h-4 w-4 text-red-400" />
-                                {t("admin.banUser")}
-                              </button>
-                              {/* Suspend */}
-                              <button
-                                onClick={() => openModal("suspend", u)}
-                                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
-                              >
-                                <Clock className="h-4 w-4 text-amber-400" />
-                                {t("admin.suspendUser")}
-                              </button>
-                              {/* Send Alert */}
-                              <button
-                                onClick={() => openModal("alert", u)}
-                                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
-                              >
-                                <Bell className="h-4 w-4 text-blue-400" />
-                                {t("admin.sendAlert")}
-                              </button>
-                              {/* Password Reset */}
-                              <button
-                                onClick={() => { handlePasswordReset(u.id); setOpenDropdown(null); }}
-                                className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
-                              >
-                                <KeyRound className="h-4 w-4 text-purple-400" />
-                                {t("admin.passwordReset")}
-                              </button>
-                              <div className="border-t border-border my-1" />
-                              {/* Delete */}
-                              <button
-                                onClick={() => openModal("delete", u)}
-                                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                {t("admin.deleteUser")}
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -550,6 +497,70 @@ export default function AdminUsersPage() {
       {openDropdown && (
         <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
       )}
+
+      {/* Fixed-position dropdown portal (outside table to avoid overflow clipping) */}
+      {openDropdown && (() => {
+        const u = users.find((u) => u.id === openDropdown);
+        if (!u) return null;
+        return (
+          <div
+            className="fixed w-52 bg-card border border-border rounded-xl shadow-xl z-50 py-1 max-h-80 overflow-y-auto"
+            style={{ top: dropdownPos.top, right: dropdownPos.right }}
+          >
+            <button
+              onClick={() => { toggleRole(u.id, u.role); setOpenDropdown(null); }}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
+            >
+              {u.role === "admin" ? <ShieldAlert className="h-4 w-4 text-amber-400" /> : <Shield className="h-4 w-4 text-primary" />}
+              {u.role === "admin" ? t("admin.revokeAdmin") : t("admin.makeAdmin")}
+            </button>
+            <button
+              onClick={() => { toggleDisabled(u.id, u.disabled); setOpenDropdown(null); }}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
+            >
+              {u.disabled ? <CheckCircle className="h-4 w-4 text-emerald-400" /> : <Ban className="h-4 w-4 text-red-400" />}
+              {u.disabled ? t("admin.enable") : t("admin.disable")}
+            </button>
+            <div className="border-t border-border my-1" />
+            <button
+              onClick={() => openModal("ban", u)}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
+            >
+              <Ban className="h-4 w-4 text-red-400" />
+              {t("admin.banUser")}
+            </button>
+            <button
+              onClick={() => openModal("suspend", u)}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
+            >
+              <Clock className="h-4 w-4 text-amber-400" />
+              {t("admin.suspendUser")}
+            </button>
+            <button
+              onClick={() => openModal("alert", u)}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
+            >
+              <Bell className="h-4 w-4 text-blue-400" />
+              {t("admin.sendAlert")}
+            </button>
+            <button
+              onClick={() => { handlePasswordReset(u.id); setOpenDropdown(null); }}
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
+            >
+              <KeyRound className="h-4 w-4 text-purple-400" />
+              {t("admin.passwordReset")}
+            </button>
+            <div className="border-t border-border my-1" />
+            <button
+              onClick={() => openModal("delete", u)}
+              className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("admin.deleteUser")}
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Modals */}
       {modalType && selectedUser && (

@@ -3,16 +3,35 @@ import { adminDb } from "@/lib/firebase-admin";
 export type ActivityAction =
   | "user.signup"
   | "user.login"
+  | "user.role_changed"
+  | "user.disabled"
+  | "user.enabled"
+  | "user.banned"
+  | "user.suspended"
   | "user.deleted"
+  | "user.alert_sent"
+  | "user.password_reset"
   | "dataset.purchased"
   | "dataset.downloaded"
   | "dataset.uploaded"
+  | "dataset.updated"
   | "dataset.deleted"
+  | "dataset.featured"
+  | "dataset.unfeatured"
   | "subscription.created"
   | "subscription.renewed"
   | "admin.action"
+  | "maintenance.toggled"
+  | "backup.created"
+  | "broadcast.sent"
+  | "cleanup.run"
   | "payment.completed"
-  | "payment.failed";
+  | "payment.failed"
+  | "payment_settings.updated"
+  | "membership.created"
+  | "membership.updated"
+  | "membership.deleted"
+  | "message.sent";
 
 interface LogEntry {
   action: ActivityAction;
