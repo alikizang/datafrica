@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { adminDb } from "@/lib/firebase-admin";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // POST /api/payments/paydunya/create - Create a PayDunya checkout invoice
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 payment creations per minute per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = checkRateLimit(`paydunya-create:${ip}`, { maxRequests: 5, windowSeconds: 60 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
+    }
+
     const { user, error } = await requireAuth(request);
     if (error) return error;
 

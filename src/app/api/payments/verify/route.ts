@@ -4,10 +4,21 @@ import { adminDb } from "@/lib/firebase-admin";
 import { sendTemplateEmail } from "@/lib/email";
 import { v4 as uuidv4 } from "uuid";
 import Stripe from "stripe";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 // POST /api/payments/verify - Verify KKiaPay or Stripe payment (purchases + subscriptions)
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 payment verifications per minute per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = checkRateLimit(`payment-verify:${ip}`, { maxRequests: 10, windowSeconds: 60 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: rateLimitHeaders(rl) }
+      );
+    }
+
     const { user, error } = await requireAuth(request);
     if (error) return error;
 
@@ -167,7 +178,6 @@ async function verifyPayment(
       }
     } catch (kkError) {
       console.error("KKiaPay verification error:", kkError);
-      if (process.env.NODE_ENV === "development") return true;
     }
   } else if (paymentMethod === "paydunya") {
     try {
@@ -203,7 +213,6 @@ async function verifyPayment(
       }
     } catch (pdError) {
       console.error("PayDunya verification error:", pdError);
-      if (process.env.NODE_ENV === "development") return true;
     }
   } else if (paymentMethod === "stripe") {
     try {
@@ -220,12 +229,8 @@ async function verifyPayment(
       }
     } catch (stripeError) {
       console.error("Stripe verification error:", stripeError);
-      if (process.env.NODE_ENV === "development") return true;
     }
   }
-
-  // In development mode, always verify for testing
-  if (process.env.NODE_ENV === "development") return true;
 
   return false;
 }

@@ -6,6 +6,19 @@ import { parseStorageFile } from "@/lib/file-parser";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 
+/**
+ * Sanitize a filename for use in Content-Disposition headers.
+ * Removes or replaces characters that could enable header injection.
+ */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/["\\\r\n]/g, "")       // Remove quotes, backslashes, newlines
+    .replace(/[^\w\s\-_.()]/g, "_")  // Replace non-safe chars with underscore
+    .trim()
+    .slice(0, 200)                    // Limit length
+    || "download";
+}
+
 const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
   .split(",")
   .map((e) => e.trim().toLowerCase())
@@ -154,7 +167,7 @@ export async function GET(
       return new NextResponse(JSON.stringify(fullData, null, 2), {
         headers: {
           "Content-Type": "application/json",
-          "Content-Disposition": `attachment; filename="${dataset.title}.json"`,
+          "Content-Disposition": `attachment; filename="${sanitizeFilename(dataset.title)}.json"`,
         },
       });
     }
@@ -169,7 +182,7 @@ export async function GET(
         headers: {
           "Content-Type":
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "Content-Disposition": `attachment; filename="${dataset.title}.xlsx"`,
+          "Content-Disposition": `attachment; filename="${sanitizeFilename(dataset.title)}.xlsx"`,
         },
       });
     }
@@ -179,7 +192,7 @@ export async function GET(
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": `attachment; filename="${dataset.title}.csv"`,
+        "Content-Disposition": `attachment; filename="${sanitizeFilename(dataset.title)}.csv"`,
       },
     });
   } catch (error) {

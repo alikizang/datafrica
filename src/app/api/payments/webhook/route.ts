@@ -10,17 +10,26 @@ export async function POST(request: NextRequest) {
 
     // Verify the webhook is from KKiaPay using the secret key
     const signature = request.headers.get("x-kkiapay-signature");
-    if (signature) {
-      const secret = process.env.KKIAPAY_SECRET || "";
-      const expectedSignature = crypto
-        .createHmac("sha256", secret)
-        .update(JSON.stringify(body))
-        .digest("hex");
+    const secret = process.env.KKIAPAY_SECRET || "";
 
-      if (signature !== expectedSignature) {
-        console.error("Webhook signature mismatch");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    if (!secret) {
+      console.error("KKiaPay webhook secret not configured");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+    }
+
+    if (!signature) {
+      console.error("KKiaPay webhook missing signature header");
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(JSON.stringify(body))
+      .digest("hex");
+
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+      console.error("Webhook signature mismatch");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     if (!transactionId) {
